@@ -1,9 +1,9 @@
 # configs
-Public, free to use, repository with diggers configs for various e-commerce websites and online stores
+Public, free to use, repository with diggers configs for web scraping various e-commerce websites and online stores
 
-All configs can be used with diggernaut service to retrieve products information.
+All configs can be used with Diggernaut service to retrieve products information.
 
-1. You need to create free account at diggernaut.com
+1. You need to create free account at [Diggernaut](https://www.diggernaut.com/)
 2. Login to your account
 3. Create a project with any name and description you want
 4. Get into your new project by clicking it and create new digger with any name
@@ -14,3 +14,13 @@ All configs can be used with diggernaut service to retrieve products information
 9. Download data.
 10. Schedule your runs if required.
 
+List of sites:
+
+1. abercrombie.com
+2. adidas.com
+3. adidashardware.com
+4. ae.com
+5. alexandermcqueen.com
+6. americanapparel.net
+7. anntaylor.com
+8. anthropologie.com
