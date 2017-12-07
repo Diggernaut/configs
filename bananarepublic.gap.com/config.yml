@@ -4,18 +4,20 @@ config:
     agent: Firefox
 do:
 - walk:
-    to: http://athleta.gap.com/
+    to: http://bananarepublic.gap.com/
     do:
     - find:
-        path: div.topnav_atol>ul>li>a
+        path: ul.brnavigation-brol>li>a
         do:
         - parse:
             attr: href
         - space_dedupe
         - trim
         - if:
-            match: \w+
+            match: \/browse\/
             do:
+            - normalize:
+                routine: url
             - link_add:
                 pool: main
 - walk:
@@ -24,6 +26,7 @@ do:
     do:
     - find:
         path: .sidebar-navigation
+        slice: 0
         do:
         - node_remove: h1
         - sequence:
@@ -49,7 +52,7 @@ do:
                     filter:
                         - cid=(.+)
                 - variable_set: cid
-                - register_set: http://athleta.gap.com/resources/productSearch/v1/search?cid=<%cid%>&locale=en_US&isFacetsEnabled=true
+                - register_set: http://bananarepublic.gap.com/resources/productSearch/v1/search?cid=<%cid%>&locale=en_US&isFacetsEnabled=true
                 - link_add:
                     pool: pager
                 - walk:
@@ -88,7 +91,7 @@ do:
                                         do:
                                         - parse
                                         - variable_set: pageid
-                                        - register_set: http://athleta.gap.com/resources/productSearch/v1/search?cid=<%cid%>&locale=en_US&pageId=<%pageid%>&isFacetsEnabled=true
+                                        - register_set:  http://bananarepublic.gap.com/resources/productSearch/v1/search?cid=<%cid%>&locale=en_US&pageId=<%pageid%>&isFacetsEnabled=true
                                         - link_add:
                                             pool: pager
                     - find:
@@ -109,7 +112,7 @@ do:
                                 match: (\S)
                                 do:
                                 - variable_set: pid
-                                - register_set: http://athleta.gap.com/browse/product.do?pid=<%pid%>&cid=<%cid%>
+                                - register_set:  http://bananarepublic.gap.com/browse/product.do?pid=<%pid%>&cid=<%cid%>
                                 - walk:
                                     to: value
                                     do:
@@ -141,7 +144,7 @@ do:
                                                 - object_field_set:
                                                     object: product
                                                     field: url
-                                                - register_set: 'GAP'
+                                                - register_set: 'Banana Republic'
                                                 - object_field_set:
                                                     object: product
                                                     field: brand
@@ -316,11 +319,12 @@ do:
                                                     - object_field_set:
                                                         object: product
                                                         field: sku
+                                                    - variable_set: sid
                                             - find:
                                                 path: body
                                                 do: 
                                                 - find:
-                                                    path: '.selected'
+                                                    path: '#topNavWrapper a[class*=_selected]'
                                                     do:
                                                     - parse
                                                     - space_dedupe
@@ -347,6 +351,7 @@ do:
                                                         joinby: "|"
                                             - object_save:
                                                 name: product
+
                     - find:
                         path: productCategory > childCategories
                         do:
@@ -367,7 +372,7 @@ do:
                                 match: (\S)
                                 do:
                                 - variable_set: pid
-                                - register_set: http://athleta.gap.com/browse/product.do?pid=<%pid%>&cid=<%cid%>
+                                - register_set:  http://bananarepublic.gap.com/browse/product.do?pid=<%pid%>&cid=<%cid%>
                                 - walk:
                                     to: value
                                     do:
@@ -399,7 +404,7 @@ do:
                                                 - object_field_set:
                                                     object: product
                                                     field: url
-                                                - register_set: 'GAP'
+                                                - register_set: 'Banana Republic'
                                                 - object_field_set:
                                                     object: product
                                                     field: brand
@@ -574,11 +579,12 @@ do:
                                                     - object_field_set:
                                                         object: product
                                                         field: sku
+                                                    - variable_set: sid
                                             - find:
                                                 path: body
                                                 do: 
                                                 - find:
-                                                    path: '.selected'
+                                                    path: '#topNavWrapper a[class*=_selected]'
                                                     do:
                                                     - parse
                                                     - space_dedupe

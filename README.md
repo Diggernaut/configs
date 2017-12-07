@@ -24,3 +24,7 @@ List of sites:
 6. americanapparel.net
 7. anntaylor.com
 8. anthropologie.com
+9. asos.com
+10. athleta.gap.com
+11. bananarepublic.gap.com
+12. bedbathandbeyond.com
