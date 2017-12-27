@@ -28,3 +28,13 @@ List of sites:
 10. athleta.gap.com
 11. bananarepublic.gap.com
 12. bedbathandbeyond.com
+13. benmeadows.com
+14. betseyjohnson.com
+15. bloomingdales.com
+16. burton.com
+17. cabelas.com
+18. calypsostbarth.com
+19. cartier.com
+20. chanel.com
+21. covergirl.com
+
