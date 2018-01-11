@@ -37,238 +37,123 @@ List of sites:
 19. cartier.com
 20. chanel.com
 21. covergirl.com
+22. debshops.com
+23. desigual.com
+24. diesel.com
+25. dior.com
+26. donnakaran.com
 
 To be released:
 
-debshops.com
-
-desigual.com
-
-diesel.com
-
-dior.com
-
-dkny.com
-
-dwell.co.uk
-
-eddiebauer.com
-
-eloquii.com
-
-esteelauder.com
-
-eu.tommy.com
-
-express.com
-
-faithfullthebrand.com
-
-farfetch.com
-
-ferragamo.com
-
-footlocker.com
-
-forever21.com
-
-freepeople.com
-
-gap.com
-
-gapfactory.com
-
-gentrynyc.com
-
-gilt.com
-
-global.tommy.com
-
-guess.com
-
-guessbymarciano.guess.com
-
-happysocks.com
-
-hermanmiller.com
-
-hermes.com
-
-hm.com
-
-hollisterco.com
-
-hugoboss.com
-
-ikea.com
-
-jaanuu.com
-
-jcrew.com
-
-joesjeans.com
-
-johnstonmurphy.com
-
-johnvarvatos.com
-
-karenwalker.com
-
-karl.com
-
-katespade.com
-
-kennethcole.com
-
-kohls.com
-
-lancome-usa.com
-
-levi.com
-
-llbean.com
-
-lornajane.de
-
-lululemon.com
-
-macys.com
-
-mango.com
-
-marcjacobs.com
-
-marketplace.asos.com
-
-matthewwilliamson.com
-
-maybelline.com
-
-michaelkors.com
-
-nastygal.com
-
-nautica.com
-
-neimanmarcus.com
-
-nike.com
-
-nordstrom.com
-
-oldnavi.gap.com
-
-onekingslane.com
-
-patagonia.com
-
-paulsmith.com
-
-pier1.com
-
-potterybarn.com
-
-quiksilver.com
-
-rainbowshops.com
-
-ralphlauren.com
-
-ralphlaurenhome.com
-
-rei.com
-
-revlon.com
-
-revolve.com
-
-riverisland.com
-
-romwe.com
-
-roomandboard.com
-
-rue21.com
-
-scotch-soda.com
-
-sephora.com
-
-shopbop.com
-
-eastdane.com
-
-sonos.com
-
-stellamccartney.com
-
-stevemadden.com
-
-style.com
-
-sunglasshut.com
-
-superdry.com
-
-surlatable.com
-
-target.com
-
-tedbaker.com
-
-timberland.com
-
-tomford.com
-
-topman.com
-
-topshop.com
-
-toysrus.com
-
-uk.tommy.com
-
-underarmour.com
-
-uniqlo.com
-
-urbanoutfitters.com
-
-us.benetton.com
-
-us.burberry.com
-
-us.louisvuitton.com
-
-us.nextdirect.com
-
-us.shein.com
-
-valentino.com
-
-vans.com
-
-versace.com
-
-victoriassecret.com
-
-vineyardvines.com
-
-walmart.com
-
-westelm.com
-
-whitehouseblackmarket.com
-
-williams-sonoma.com
-
-ysl.com
-
-zalando.de
-
-zappos.com
-
-zara.com
-
-zarahome.com
+27. dwell.co.uk
+28. eddiebauer.com
+29. eloquii.com
+30. esteelauder.com
+31. eu.tommy.com
+32. express.com
+33. faithfullthebrand.com
+34. farfetch.com
+35. ferragamo.com
+36. footlocker.com
+37. forever21.com
+38. freepeople.com
+39. gap.com
+40. gapfactory.com
+41. gentrynyc.com
+42. gilt.com
+43. global.tommy.com
+44. guess.com
+45. guessbymarciano.guess.com
+46. happysocks.com
+47. hermanmiller.com
+48. hermes.com
+49. hm.com
+50. hollisterco.com
+51. hugoboss.com
+52. ikea.com
+53. jaanuu.com
+54. jcrew.com
+55. joesjeans.com
+56. johnstonmurphy.com
+57. johnvarvatos.com
+58. karenwalker.com
+59. karl.com
+60. katespade.com
+61. kennethcole.com
+62. kohls.com
+63. lancome-usa.com
+64. levi.com
+65. llbean.com
+66. lornajane.de
+67. lululemon.com
+68. macys.com
+69. mango.com
+70. marcjacobs.com
+71. marketplace.asos.com
+70. matthewwilliamson.com
+71. maybelline.com
+72. michaelkors.com
+73. nastygal.com
+74. nautica.com
+75. neimanmarcus.com
+76. nike.com
+77. nordstrom.com
+78. oldnavi.gap.com
+79. onekingslane.com
+80. patagonia.com
+81. paulsmith.com
+82. pier1.com
+83. potterybarn.com
+84. quiksilver.com
+85. rainbowshops.com
+86. ralphlauren.com
+87. ralphlaurenhome.com
+88. rei.com
+89. revlon.com
+90. revolve.com
+91. riverisland.com
+92. romwe.com
+93. roomandboard.com
+94. rue21.com
+95. scotch-soda.com
+96. sephora.com
+97. shopbop.com
+98. eastdane.com
+99. sonos.com
+100. stellamccartney.com
+101. stevemadden.com
+102. style.com
+103. sunglasshut.com
+104. superdry.com
+105. surlatable.com
+106. target.com
+107. tedbaker.com
+108. timberland.com
+109. tomford.com
+110. topman.com
+111. topshop.com
+112. toysrus.com
+113. uk.tommy.com
+114. underarmour.com
+115. uniqlo.com
+116. urbanoutfitters.com
+117. us.benetton.com
+118. us.burberry.com
+119. us.louisvuitton.com
+120. us.nextdirect.com
+121. us.shein.com
+122. valentino.com
+123. vans.com
+124. versace.com
+125. victoriassecret.com
+126. vineyardvines.com
+127. walmart.com
+128. westelm.com
+129. whitehouseblackmarket.com
+130. williams-sonoma.com
+131. ysl.com
+132. zalando.de
+133. zappos.com
+134. zara.com
+135. zarahome.com
 
