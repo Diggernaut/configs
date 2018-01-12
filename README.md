@@ -42,16 +42,14 @@ List of sites:
 24. diesel.com
 25. dior.com
 26. donnakaran.com
-
-To be released:
-
 27. dwell.co.uk
 28. eddiebauer.com
 29. eloquii.com
 30. esteelauder.com
-31. eu.tommy.com
-32. express.com
-33. faithfullthebrand.com
+31. faithfullthebrand.com
+
+To be released:
+
 34. farfetch.com
 35. ferragamo.com
 36. footlocker.com

@@ -1,0 +1,296 @@
+---
+config:
+    debug: 2
+    agent: Firefox
+    ssl:
+        validate: "no"
+do:
+- link_add:
+    url: 
+    - https://www.donnakaran.com/category/dkny.do
+    - https://www.donnakaran.com/home.do
+- walk:
+    to: links
+    do:
+    - find: 
+        path: .col-sm-12 > ul > li.ml-category-nav-item 
+        do: 
+        - variable_clear: cat1
+        - find: 
+            path: a.ml-category-nav-name
+            slice: 0
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - normalize:
+                routine: lower
+            - if:
+                match: \S
+                do:
+                - variable_set: cat1
+        - find: 
+            path: ul > li > a 
+            do: 
+            - variable_clear: cat2
+            - parse
+            - space_dedupe
+            - trim
+            - normalize:
+                routine: lower
+            - if:
+                match: \S
+                do:
+                - variable_set: cat2
+            - parse:
+                attr: href
+            - normalize:
+                routine: url
+            - pool_clear: main
+            - pool_clear: pages
+            - link_add:
+                pool: main
+            - walk:
+                to: links
+                pool: main
+                do:
+                - find: 
+                    path: .ml-paging-index > a
+                    do: 
+                    - parse:
+                        attr: href
+                    - if:
+                        match: \S
+                        do:
+                        - normalize:
+                            routine: url
+                        - link_add:
+                            pool: main
+                - find: 
+                    path: .ml-thumb-image a 
+                    do: 
+                    - parse:
+                        attr: href
+                        filter:
+                            - ^([^\?]+)
+                    - normalize:
+                        routine: url
+                    - link_add:
+                        pool: pages
+                    
+            - walk:
+                to: links
+                pool: pages
+                do:
+                - variable_clear: ur
+                - find:
+                    path: html
+                    do:
+                    - object_new: product
+                    - eval:
+                        routine: js
+                        body: '(function (){var d = new Date(); return d.toISOString()})();'
+                    - object_field_set:
+                        object: product
+                        field: date
+                    - static_get: url
+                    - object_field_set:
+                        object: product
+                        field: url
+                    - find: 
+                        in: doc
+                        path: head 
+                        do: 
+                        - find:
+                            path: meta[name="description"]
+                            do:
+                            - parse:
+                                attr: content
+                            - space_dedupe
+                            - trim
+                            - variable_set: descr
+                    - find: 
+                        path: html
+                        in: doc
+                        do: 
+                        - variable_get: cat1
+                        - if:
+                            match: \S
+                            do:
+                            - object_field_set:
+                                object: product
+                                field: categories
+                                joinby: "|"
+                        - variable_get: cat2
+                        - if:
+                            match: \S
+                            do:
+                            - object_field_set:
+                                object: product
+                                field: categories
+                                joinby: "|"
+                    - find: 
+                        path: .ml-site-tab.active
+                        in: doc
+                        do: 
+                        - parse:
+                            attr: href
+                        - if:
+                            match: home.do
+                            do:
+                            - register_set: DonnaKaran
+                            - object_field_set:
+                                object: product
+                                field: brand
+                            
+                            else:
+                            - register_set: DKNY
+                            - object_field_set:
+                                object: product
+                                field: brand            
+                    - find: 
+                        path: script:matches(objPDPDetailImageSwatchView)
+                        in: doc
+                        do: 
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - filter:
+                            args:
+                                - \s*,\s*(\{.+)\)\;\s*var\s*objPDPMainImgPath
+                        - register_set: '[<%register%>]'
+                        - normalize:
+                            routine: json2xml
+                        - to_block
+                        - find: 
+                            path: body_safe 
+                            do: 
+                            - find: 
+                                path: element:matches(wid=1500) > * 
+                                do: 
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - if:
+                                    match: \S
+                                    do:
+                                    - object_field_set:
+                                        object: product
+                                        field: images
+                                        joinby: "|"
+                    - find: 
+                        path: .ml-product-code
+                        id: doc
+                        do: 
+                        - node_remove: span
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \S
+                            do:
+                            - object_field_set:
+                                object: product
+                                field: sku
+                    - find: 
+                        path: .options_COLOR > img 
+                        in: doc
+                        do: 
+                        - parse:
+                            attr: title
+                        - if:
+                            match: \S
+                            do:
+                            - object_field_set:
+                                object: product
+                                field: variations
+                                joinby: "|"
+                    - find: 
+                        path: script[type="application/ld+json"] 
+                        in: doc
+                        do: 
+                        - parse
+                        - normalize:
+                            routine: json2xml
+                        - to_block
+                        - find: 
+                            path: body_safe 
+                            do: 
+                            - find: 
+                                path: price 
+                                do: 
+                                - parse
+                                - if:
+                                    match: \d
+                                    do:
+                                    - object_field_set:
+                                        object: product
+                                        field: price
+                                        type: float
+                                    - register_set: USD
+                                    - object_field_set:
+                                        object: product
+                                        field: currency
+                            - find: 
+                                path: name 
+                                do: 
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - if:
+                                    match: \S
+                                    do:
+                                    - object_field_set:
+                                        object: product
+                                        field: name
+                            - find: 
+                                path: description 
+                                do: 
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - to_block
+                                - find: 
+                                    path: div
+                                    slice: 0
+                                    do: 
+                                    - parse:
+                                        format: html
+                                    - if:
+                                        match: '<li>'
+                                        do:
+                                        - split:
+                                            context: html
+                                            delimiter: '<br/>'
+                                        - find: 
+                                            path: .splitted
+                                            slice: 0
+                                            do: 
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - if:
+                                                match: \S
+                                                do:
+                                                - object_field_set:
+                                                    object: product
+                                                    field: description
+                                        else:
+                                        - split:
+                                            context: html
+                                            delimiter: '<br/>'
+                                        - find: 
+                                            path: .splitted
+                                            slice: 0
+                                            do: 
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - if:
+                                                match: \S
+                                                do:
+                                                - object_field_set:
+                                                    object: product
+                                                    field: description
+                    - object_save:
+                        name: product
