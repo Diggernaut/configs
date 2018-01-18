@@ -47,21 +47,21 @@ List of sites:
 29. eloquii.com
 30. esteelauder.com
 31. faithfullthebrand.com
+32. farfetch.com
+33. ferragamo.com
+34. footlocker.com
+35. forever21.com
+36. freepeople.com
+37. gap.com
+38. gapfactory.com
+39. gentrynyc.com
+40. gilt.com
+41. global.tommy.com
+42. guess.com
+43. guessbymarciano.guess.com
 
 To be released:
 
-34. farfetch.com
-35. ferragamo.com
-36. footlocker.com
-37. forever21.com
-38. freepeople.com
-39. gap.com
-40. gapfactory.com
-41. gentrynyc.com
-42. gilt.com
-43. global.tommy.com
-44. guess.com
-45. guessbymarciano.guess.com
 46. happysocks.com
 47. hermanmiller.com
 48. hermes.com

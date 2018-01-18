@@ -1,0 +1,290 @@
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- walk:
+    to: https://www.ferragamo.com
+    do:
+    - find: 
+        path: .sub-nav-col li:not(.view-all) a 
+        do: 
+        - parse:
+            attr: href
+        - walk:
+            to: value
+            do:
+            - find: 
+                path: script:matches(WCParamJS\s*=\s*) 
+                do: 
+                - parse
+                - space_dedupe
+                - trim
+                - filter:   
+                    args:
+                        - WCParamJS\s*=\s*(.+)\;\s*var\s*absolute
+                - eval:
+                    routine: js
+                    body: (function () {
+                        var e = <%register%>;
+                        return JSON.stringify(e);
+                        })();
+                - normalize:
+                    routine: json2xml
+                - to_block
+                - find: 
+                    path: catalogid 
+                    do: 
+                    - parse
+                    - variable_set: catid
+                - find: 
+                    path: categoryid 
+                    do: 
+                    - parse
+                    - variable_set: categoryid
+                - register_set: 0
+                - variable_set: cpn
+                - register_set: 0
+                - variable_set: ind
+                - register_set: "yes"
+                - variable_set: repeat
+                - walk:
+                    repeat: <%repeat%>
+                    to:
+                        post: https://www.ferragamo.com/shop/AjaxCategoryCustomResultsView
+                        data:
+                            storeId: 31150
+                            catalogId: <%catid%>
+                            langId: -1
+                            categoryId: <%categoryid%>
+                            frgPageName: CategoryPage
+                            beginIndex: <%ind%>
+                            currentPageNumber: <%cpn%>
+                            pageView: grid
+                            currentScrollNumber: <%cpn%>
+                            env_maxEditorialScroll: 0
+                        headers: 
+                            x-requested-with: XMLHttpRequest
+                    do:
+                    - find: 
+                        path: .ga-product__detail 
+                        do: 
+                        - parse:
+                            attr: href
+                        - link_add:
+                            pool: sub
+                    - variable_clear: repeat
+                    - find: 
+                        path: .ga-product__detail
+                        slice: 0
+                        do: 
+                        - eval:
+                            routine: js
+                            body: '
+                                var ind = <%ind%>+15;
+                                var cpn = <%cpn%>+1;'
+                            assign:
+                                ind: ind
+                                cpn: cpn
+                        - register_set: "yes"
+                        - variable_set: repeat
+- walk:
+    to: links
+    pool: sub
+    do:
+    - object_new: product
+    - find: 
+        in: doc
+        path: head 
+        do: 
+        - register_set: Ferragamo
+        - object_field_set:
+            object: product
+            field: brand
+        - eval:
+            routine: js
+            body: '(function (){var d = new Date(); return d.toISOString()})();'
+        - object_field_set:
+            object: product
+            field: date
+        - static_get: url
+        - object_field_set:
+            object: product
+            field: url
+    - find: 
+        path: .dpd-main__details.hidden-xs .dpd-main__sku
+        do: 
+        - parse:
+            filter:
+                - model\s*code\s*(.+)
+        - space_dedupe
+        - trim
+        - object_field_set:
+            object: product
+            field: sku
+    - find: 
+        path: .dpd-main__details.hidden-xs .dpd-main__name 
+        do: 
+        - parse
+        - space_dedupe
+        - trim
+        - object_field_set:
+            object: product
+            field: name
+        
+    - find: 
+        path: .dpd-main__details.hidden-xs div[data-attr-id="color"] .val
+        do: 
+        - parse
+        - space_dedupe
+        - trim
+        - if:
+            match: (\S)
+            do:
+            - object_field_set:
+                object: product
+                field: variations
+                joinby: "|"
+    - find: 
+        path: script:matches(productURLs\s*=\s*) 
+        do: 
+        - parse:
+            filter: 
+                - productURLs\s*=\s*(.+)\;
+        - normalize:
+            routine: replace_substring
+            args:
+                \': '"'
+        
+        - normalize:
+            routine: json2xml
+        - to_block
+        - find: 
+            path: 'body_safe > *:matches(^http)'
+            do: 
+            - parse
+            - link_add:
+                pool: sub
+    - find: 
+        path: script:matches(B\_SHOPPING\.colorMap\s*\=) 
+        do: 
+        - parse:
+            filter:
+                - B_SHOPPING.colorMap\s*=\s*eval\(\[(.+)\]\)
+        - register_set: <div><%register%></div>
+        - to_block
+        - find: 
+            path: div 
+            do: 
+            - split:
+                context: text
+                delimiter: \,
+            - find: 
+                path: .splitted 
+                do: 
+                - parse
+                - space_dedupe
+                - trim
+                - normalize:
+                     routine: replace_substring
+                     args:
+                         \": ''
+                - if:
+                    match: (\S)
+                    do:
+                    - object_field_set:
+                        object: product
+                        field: variations
+                        joinby: "|"
+    - find: 
+        path: script:matches(B\_GOOGLE\_ANALYTICS\.productCategoryPath\s*=) 
+        do: 
+        - parse:
+            filter:
+                - B\_GOOGLE\_ANALYTICS\.productCategoryPath\s*=\s*\"(.+)\"\s*;
+        - register_set: <div><%register%></div>
+        - to_block
+        - find: 
+            path: div 
+            do: 
+            - split:
+                context: text
+                delimiter: \/
+            - find: 
+                path: .splitted 
+                do: 
+                - parse
+                - space_dedupe
+                - trim
+                - normalize:
+                    routine: lower
+                - if:
+                    match: (\S)
+                    do:
+                    - object_field_set:
+                        object: product
+                        field: categories
+                        joinby: "|"
+    - find: 
+        path: '#collapseOne' 
+        do: 
+        - node_remove: comment, script, .hidden-xs
+        - node_remove: br
+        - find: 
+            path: p
+            slice: 0
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: (\S)
+                do:
+                - object_field_set:
+                    object: product
+                    field: descripton
+    - find: 
+        path: .dpd-main__details.hidden-xs .dpd-price-ris 
+        do: 
+        - parse:
+            attr: data-item-price
+        - normalize:
+            routine: replace_substring
+            args:
+                \,: ''
+        - if:
+            match: (\d)
+            do:
+            - object_field_set:
+                object: product
+                field: price
+                type: float
+            - register_set: USD
+            - object_field_set:
+                object: product
+                field: currency
+    - find: 
+        path: .dpd-visuals__asset img 
+        do: 
+        - parse:
+            attr: data-zoom
+        - normalize:
+            routine: url
+        - variable_set: imgurl
+        - walk:
+            to: value
+            do:
+            - find: 
+                path: imgbase64 
+                do: 
+                - parse
+                - if:
+                    match: \S
+                    do:
+                    - variable_get: imgurl
+                    - object_field_set:
+                        object: product
+                        field: images
+                        joinby: "|"
+    - object_save:
+        name: product

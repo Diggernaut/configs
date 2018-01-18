@@ -1,0 +1,188 @@
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- walk:
+    to: https://www.gentrynyc.com
+    do:
+    - find:
+        path: ul.site-nav>li>a.site-nav__link,ul.site-nav>li>ul.site-nav__dropdown li>a.site-nav__link
+        do:
+        - parse:
+            attr: href
+        - if:
+            match: \w+
+            do:
+            - normalize:
+                routine: url
+            - link_add:
+                pool: catalog
+- walk:
+    to: links
+    pool: catalog
+    do:
+    - variable_clear: cat
+    - find:
+        path: div.pagination>span.next>a
+        slice: 0
+        do:
+        - parse:
+            attr: href
+        - if:
+            match: \w+
+            do:
+            - normalize:
+                routine: url
+            - link_add:
+                pool: catalog
+    - find:
+        path: nav.breadcrumb>span
+        slice: 1
+        do:
+        - parse
+        - variable_set: cat
+    - find:
+        path: div.all_collection_box>div>a
+        do:
+        - parse:
+            attr: href
+        - if:
+            match: \w+
+            do:
+            - normalize:
+                routine: url
+            - walk:
+                to: value
+                do:
+                - sleep: 2
+                - find:
+                    path: div[itemtype="http://schema.org/Product"]
+                    do:
+                    - object_new: product
+                    - eval:
+                        routine: js
+                        body: '(function (){var d = new Date(); return d.toISOString()})();'
+                    - object_field_set:
+                        object: product
+                        field: date
+                    - static_get: url
+                    - object_field_set:
+                        object: product
+                        field: url
+                    - find:
+                        path: h1[itemprop="name"]
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \w+
+                            do:
+                            - object_field_set:
+                                object: product
+                                field: name
+                    - find:
+                        path: div.single_products_content>p
+                        slice: 0
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \w+
+                            do:
+                            - object_field_set:
+                                object: product
+                                field: brand
+                    - find:
+                        path: 'span#ProductPrice'
+                        do:
+                        - parse:
+                            attr: content
+                        - object_field_set:
+                            object: product
+                            type: float
+                            field: price
+                        - register_set: USD
+                        - object_field_set:
+                            object: product
+                            field: currency
+                    - find:
+                        path: div.pro_sku
+                        do:
+                        - parse:
+                            filter: \s*[Ss]ku\:\s+(.+)
+                        - space_dedupe
+                        - trim
+                        - object_field_set:
+                            object: product
+                            field: sku
+                    - find:
+                        in: doc
+                        path: meta[name="description"]
+                        do:
+                        - parse:
+                            attr: content
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \w+
+                            do:
+                            - object_field_set:
+                                object: product
+                                field: description
+                    - find:
+                        path: 'select#productSelect>option'
+                        do:
+                        - parse:
+                            filter: \/([^\/\-]+)\-
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \w{2,}
+                            do:
+                            - object_field_set:
+                                object: product
+                                joinby: "|"
+                                field: variations
+                    - variable_get: cat
+                    - if:
+                        match: \w+
+                        do:
+                        - object_field_set:
+                            object: product
+                            joinby: "|"
+                            field: categories
+                    - find:
+                        path: img#ProductPhotoImg
+                        do:
+                        - parse:
+                            attr: src
+                            filter: ^([^\?]+)
+                        - if:
+                            match: \w+
+                            do:
+                            - normalize:
+                                routine: url
+                            - object_field_set:
+                                object: product
+                                joinby: "|"
+                                field: images
+                    - find:
+                        path: a.product-single__thumbnail
+                        do:
+                        - parse:
+                            attr: href
+                            filter: ^([^\?]+)
+                        - if:
+                            match: \w+
+                            do:
+                            - normalize:
+                                routine: url
+                            - object_field_set:
+                                object: product
+                                joinby: "|"
+                                field: images
+                    - object_save:
+                        name: product
