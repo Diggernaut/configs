@@ -59,15 +59,15 @@ List of sites:
 41. global.tommy.com
 42. guess.com
 43. guessbymarciano.guess.com
+44. happysocks.com
+45. hermanmiller.com
+46. hermes.com
+47. hm.com
+48. hollisterco.com
+49. hugoboss.com
 
 To be released:
 
-46. happysocks.com
-47. hermanmiller.com
-48. hermes.com
-49. hm.com
-50. hollisterco.com
-51. hugoboss.com
 52. ikea.com
 53. jaanuu.com
 54. jcrew.com
