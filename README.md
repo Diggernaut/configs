@@ -66,15 +66,15 @@ List of sites:
 48. hm.com
 49. hollisterco.com
 50. hugoboss.com
+51. ikea.com
+52. jaanuu.com
+53. jcrew.com
+54. joesjeans.com
+55. johnstonmurphy.com
+56. johnvarvatos.com
 
 To be released:
 
-52. ikea.com
-53. jaanuu.com
-54. jcrew.com
-55. joesjeans.com
-56. johnstonmurphy.com
-57. johnvarvatos.com
 58. karenwalker.com
 59. karl.com
 60. katespade.com
