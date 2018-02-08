@@ -66,7 +66,7 @@ do:
             content_type: text/html
             converter: json
         - walk:
-            to: https://www.abercrombie.com/webapp/wcs/stores/servlet/AjaxNavResults?storeId=11203&catalogId=10901&langId=-1&categoryId=<%section%>&start=0&quantity=10000&setCurrentPage=1
+            to: https://www.abercrombie.com/webapp/wcs/stores/servlet/AjaxNavAPIResponseJSON?catalogId=10901&categoryId=<%section%>&langId=-1&requestType=category&rows=10000&sort=bestmatch&start=0&storeId=11203
             do:
             - find:
                 path: products>producturl
@@ -75,6 +75,8 @@ do:
                 - if:
                     match: \/p\/
                     do:
+                    - normalize:
+                        routine: url
                     - link_add:
                         pool: pages
             - find:
