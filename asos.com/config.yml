@@ -5,21 +5,17 @@ config:
 do:
 - link_add:
     url:
-        - http://us.asos.com/women/a-to-z-of-brands/cat/?cid=1340
-        - http://us.asos.com/men/a-to-z-of-brands/cat/?cid=1361
+    - http://us.asos.com/women/a-to-z-of-brands/cat/?cid=1340
+    - http://us.asos.com/men/a-to-z-of-brands/cat/?cid=1361
 - walk:
     to: links
     do:
     - pool_clear: main
     - find:
-        path: .brands-list a
+        path: ol[data-auto-id="brand-link"]>li>a
         do:
         - parse:
             attr: href
-        - normalize:
-            routine: replace_substring
-            args:
-                \s*$: '&pgesize=204'
         - link_add:
             pool: main
     - walk: 
@@ -27,7 +23,7 @@ do:
         pool: main
         do:
         - find:
-            path: li.next a
+            path: a[data-auto-id="loadMoreProducts"]
             do:
             - parse:
                 attr: href
@@ -36,7 +32,7 @@ do:
             - link_add:
                 pool: main
         - find:
-            path: .product
+            path: article[data-auto-id="productTile"]>a
             do:
             - parse:
                 attr: href
