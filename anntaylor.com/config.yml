@@ -91,7 +91,7 @@ do:
             path: script:contains("window.productSettings = ")
             do:
             - parse:
-                filter: window\.productSettings\s+=\s+(.+)\s*$
+                filter: window\.productSettings\s+=\s+(.+)\s*
             - normalize:
                 routine: json2xml
             - to_block
