@@ -2,17 +2,16 @@
 config:
     debug: 2
     proxy: #USE YOUR PROXY HERE LIKE 1.1.1.1:8888
-    agent: Firefox
+    agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36
 do:
 - walk:
-    to: http://www.footlocker.com
+    to: https://www.footlocker.com
     headers:
         Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
         Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4
         Cache-Control: no-cache
         Pragma: no-cache
         Upgrade-Insecure-Requests: 1
-        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36
     do:
     - find: 
         path: .shop_links_column a 
@@ -30,7 +29,6 @@ do:
                 Cache-Control: no-cache
                 Pragma: no-cache
                 Upgrade-Insecure-Requests: 1
-                User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36
             pool: main
             do:
             - cookie_reset
@@ -65,7 +63,6 @@ do:
                         Cache-Control: no-cache
                         Pragma: no-cache
                         Upgrade-Insecure-Requests: 1
-                        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36
                     do:
                     - cookie_reset
                     - object_new: product
