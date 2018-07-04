@@ -18,10 +18,20 @@ do:
             attr: href
         - link_add:
             pool: main
+    - cookie_reset
+    - proxy_switch
     - walk: 
         to: links
         pool: main
         do:
+        - find:
+            path: body
+            do:
+            - parse
+            - if:
+                match: Access Denied
+                do:
+                - accessdenied
         - find:
             path: a[data-auto-id="loadMoreProducts"]
             do:
@@ -38,6 +48,8 @@ do:
                 attr: href
             - link_add:
                 pool: sub
+        - cookie_reset
+        - proxy_switch
 - walk:
     to: links
     pool: sub
@@ -215,3 +227,5 @@ do:
                             field: currency
             - object_save:
                 name: product
+    - cookie_reset
+    - proxy_switch
