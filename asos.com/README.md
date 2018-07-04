@@ -9,4 +9,4 @@ Statistics:
 
 Approx number of items on site: 90000
 
-Approx number of page requests to get data for all items: 280000
+Approx number of page requests to get data for all items: 100000
