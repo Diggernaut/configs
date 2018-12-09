@@ -35,7 +35,7 @@ do:
     do:
     - sleep: 3
     - find:
-        path: div.container-fluid[itemtype="http://schema.org/Product"]
+        path: div[itemtype="https://schema.org/Product"]
         do:
         - variable_clear: pid
         - object_new: product
@@ -166,10 +166,8 @@ do:
                 field: description
         - find:
             in: doc
-            path: ol.breadcrumb>li.bc-item
-            slice: 0:-2
+            path: ol.ancestor-breadcrumbs>li.bc-item
             do:
-            - variable_clear: list_item
             - parse
             - space_dedupe
             - trim
