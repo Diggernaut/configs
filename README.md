@@ -72,6 +72,7 @@ List of sites:
 54. joesjeans.com
 55. johnstonmurphy.com
 56. johnvarvatos.com
+57. romwe.com
 
 To be released:
 
@@ -111,7 +112,6 @@ To be released:
 89. revlon.com
 90. revolve.com
 91. riverisland.com
-92. romwe.com
 93. roomandboard.com
 94. rue21.com
 95. scotch-soda.com
