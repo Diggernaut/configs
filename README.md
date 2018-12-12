@@ -73,6 +73,7 @@ List of sites:
 55. johnstonmurphy.com
 56. johnvarvatos.com
 57. romwe.com
+123. vans.com
 
 To be released:
 
@@ -142,7 +143,6 @@ To be released:
 120. us.nextdirect.com
 121. us.shein.com
 122. valentino.com
-123. vans.com
 124. versace.com
 125. victoriassecret.com
 126. vineyardvines.com
