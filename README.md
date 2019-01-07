@@ -73,7 +73,9 @@ List of sites:
 55. johnstonmurphy.com
 56. johnvarvatos.com
 57. romwe.com
+58. patagonia.com
 123. vans.com
+
 
 To be released:
 
@@ -101,7 +103,6 @@ To be released:
 77. nordstrom.com
 78. oldnavi.gap.com
 79. onekingslane.com
-80. patagonia.com
 81. paulsmith.com
 82. pier1.com
 83. potterybarn.com
