@@ -139,7 +139,7 @@ do:
                 do:
                 - object_field_set:
                     object: product
-                    field: prcie
+                    field: price
                     type: float
         - find: 
             path: .loading > li > img 
