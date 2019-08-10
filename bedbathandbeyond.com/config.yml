@@ -5,9 +5,6 @@ config:
     proxy: #USE YOUR PROXY HERE LIKE 1.1.1.1:8888
 do:
 - variable_set:
-    field: repeatwalk
-    value: "yes"
-- variable_set:
     field: repeatcat
     value: "yes"
 - variable_set:
@@ -15,10 +12,8 @@ do:
     value: "yes"
 ## --------------------
 ## categories collector
-- link_add: 'https://www.bedbathandbeyond.com'
 - walk:
-    to: links
-    repeat_in_pool: <%repeatwalk%>
+    to: https://www.bedbathandbeyond.com/apis/stateless/v1.0/navigation/category-navigation
     headers:
         accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
         accept-encoding: deflate
@@ -28,76 +23,26 @@ do:
         upgrade-insecure-requests: 1
     do:
     - find:
-        path: title
+        path: data:haschild(label:contains("Product")) > menu > items
+        slice: 0
         do:
-        - parse
-        - if:
-            match: Access Denied
+        - node_remove: promo
+        - find:
+            path: url:contains("category")
             do:
-            - proxy_switch
-            else:
-            - find:
-                path: html
-                in: doc
+            - parse:
+                filter: ^([^\?]+)
+            - normalize:
+                routine: url
+            - if:
+                match: \/store\/category\/
                 do:
-                ## removing repeat
-                - variable_clear: repeatwalk
-            - find:
-                path: '#ctl00_InvalidRequest'
-                in: doc
-                do:
-                - parse
-                - if:
-                    match: \S
-                    do:
-                    - proxy_switch
-                    - variable_set:
-                        field: repeatwalk
-                        value: "yes"
-            - find:
-                path: body
-                in: doc
-                do:
-                - variable_get: repeatwalk
-                - if:
-                    match: \S
-                    else:
-                    ## main logic
-                    - find:
-                        path: script:contains("window.__INITIAL_STATE")
-                        do:
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - filter: 
-                            args: 'window\.__INITIAL_STATE__\s+\=\s+(.+)\s*;\s*window.__INITIAL_STATE__.sitespect'
-                        - normalize:
-                            routine: json2xml
-                        - to_block
-                        - find:
-                            path: body_safe > navigation > data
-                            slice: 0
-                            do:
-                            - find:
-                                path: menu > items
-                                slice: 0
-                                do:
-                                - find:
-                                    path: url:contains("category")
-                                    do:
-                                    - parse:
-                                        filter: ^([^\?]+)
-                                    - normalize:
-                                        routine: url
-                                    - if:
-                                        match: \/category\/[\w\-]+\/[a-zA-Z]+
-                                        do:
-                                        - normalize:
-                                            routine: replace_substring
-                                            args:
-                                                - \/?$: '/1-96'
-                                        - link_add:
-                                            pool: categories
+                - normalize:
+                    routine: replace_substring
+                    args:
+                        - \/?$: '/1-96'
+                - link_add:
+                    pool: categories
 - walk:
     to: links
     pool: categories
@@ -119,12 +64,8 @@ do:
             do:
             - proxy_switch
             else:
-            - find:
-                path: html
-                in: doc
-                do:
-                ## removing repeat
-                - variable_clear: repeatcat
+            ## removing repeat
+            - variable_clear: repeatcat
             - find:
                 path: '#ctl00_InvalidRequest'
                 in: doc
@@ -141,59 +82,53 @@ do:
                 path: body
                 in: doc
                 do:
-                - variable_get: repeatcat
-                - if:
-                    match: \S
-                    else:
-                    ## main logic to gather product item links
+                ## main logic to gather product item links
+                - find:
+                    path: div.mt0.tealium-product-grid
+                    do:
+                    ## collect all item links from page
                     - find:
-                        path: div.mt0.tealium-product-grid
-                        in: doc
-                        do:
-                        ## collect all item links from page
-                        - find:
-                            path: 'div.tealium-product-tile > div[class*="ProductTile-"] > a[class*="PrimaryLink_"]'
-                            do:
-                            - parse:
-                                attr: href
-                                filter: ^([^\?]+)
-                            - normalize:
-                                routine: url
-                            - link_add:
-                                pool: items
-                    ## and let's try to find next page here
-                    - find:
-                        path: a.Pagination__btnNext
-                        in: doc
+                        path: 'div.tealium-product-tile > div[class*="ProductTile-"] > a[class*="PrimaryLink_"]'
                         do:
                         - parse:
-                            attr: aria-disabled
-                        - if:
-                            match: "true"
-                            do:
-                            ## next page is not found
-                            else:
-                            ## found next page
-                            ## add new page link into pool
-                            - static_get: url
-                            - variable_set: url
-                            - filter:
-                                args: '\/(\d+)\-\d+$'
-                            - variable_set: pageid
-                            - eval:
-                                routine: js
-                                body: '(function () {
-                                            var cnt = <%pageid%>;
-                                            return cnt + 1;
-                                        })();'
-                            - variable_set: pageid
-                            - variable_get: url
-                            - normalize:
-                                routine: replace_substring
-                                args:
-                                - \/\d+\-\d+\$: '/<%pageid%>-96'
-                            - link_add:
-                                pool: categories
+                            attr: href
+                            filter: ^([^\?]+)
+                        - normalize:
+                            routine: url
+                        - link_add:
+                            pool: items
+                ## and let's try to find next page here
+                - find:
+                    path: a.Pagination__btnNext
+                    do:
+                    - parse:
+                        attr: aria-disabled
+                    - if:
+                        match: "true"
+                        do:
+                        ## next page is not found
+                        else:
+                        ## found next page
+                        ## add new page link into pool
+                        - static_get: url
+                        - variable_set: url
+                        - filter:
+                            args: '\/(\d+)\-\d+$'
+                        - variable_set: pageid
+                        - eval:
+                            routine: js
+                            body: '(function () {
+                                        var cnt = <%pageid%>;
+                                        return cnt + 1;
+                                    })();'
+                        - variable_set: pageid
+                        - variable_get: url
+                        - normalize:
+                            routine: replace_substring
+                            args:
+                            - \/\d+\-\d+$: '/<%pageid%>-96'
+                        - link_add:
+                            pool: categories
 - walk:
     to: links
     pool: items
