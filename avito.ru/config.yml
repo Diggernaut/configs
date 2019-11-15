@@ -1,7 +1,7 @@
 ---
 config:
     debug: 2
-    proxy: #USE YOUR PROXY HERE LIKE 1.1.1.1:8888
+    proxy: #ÂÑÒÀÂÜÒÅ ÑÞÄÀ ÂÀØ ÏÐÎÊÑÈ ÑÅÐÂÅÐ Â ÂÈÄÅ 1.1.1.1:8888
     agent: "Firefox"
 do:
 - link_add:
@@ -54,7 +54,8 @@ do:
             object: item
             field: url
         - find:
-            path: span.title-info-title-text
+            path: .item-view-header span.title-info-title-text
+            in: doc
             do:
             - parse
             - space_dedupe
@@ -63,25 +64,61 @@ do:
                 object: item
                 field: title
         - find:
-            path: div.item-view-right span.price-value-string
+            path: div.title-info-metadata-item-redesign
+            slice: 0
+            in: doc
             do:
-            - find:
-                path: span.price-value-prices-list-item-currency_sign
-                do:
-                - parse
-                - normalize:
-                    routine: replace_matched
-                    args:
-                    - â‚½: RUB
-                - object_field_set:
-                    object: item
-                    field: currency
-            - node_remove: span.price-value-prices-list-item-currency_sign
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: actualized
+        - find:
+            path: span[data-marker="item-view/item-id"]
+            in: doc
+            do:
             - parse:
                 filter: (\d+)
             - object_field_set:
                 object: item
+                field: id
+        - find:
+            path: div.title-info-metadata-item.title-info-metadata-views
+            in: doc
+            do:
+            - node_remove: i
+            - parse:
+                filter: (\d+)\s*\(
+            - object_field_set:
+                object: item
+                field: views_total
+            - parse:
+                filter: (\d+)\s*\)
+            - object_field_set:
+                object: item
+                field: views_today
+        - find:
+            path: span[itemprop="price"]
+            slice: 0
+            in: doc
+            do:
+            - parse:
+                attr: content
+                filter: (\d+)
+            - object_field_set:
+                object: item
                 field: price
+        - find:
+            path: span[itemprop="priceCurrency"]
+            slice: 0
+            in: doc
+            do:
+            - parse:
+                attr: content
+            - object_field_set:
+                object: item
+                field: currency
         - find:
             path: div.item-description-text
             do:
