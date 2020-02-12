@@ -1,0 +1,222 @@
+---
+config:
+    debug: 2
+    proxy: #proxy#
+    agent: Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14
+do:
+- walk:
+    to: links
+    headers:
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+        Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4
+        Cache-Control: no-cache
+        Pragma: no-cache
+        cookie: uPref=%7B%22cfi%22%3A%221%22%2C%22cur%22%3A%22USD%22%2C%22sf%22%3A%22US%22%7D; geoLocation=US:TX:;
+        Proxy-Connection: keep-alive
+        Upgrade-Insecure-Requests: 1
+    do:
+    - variable_clear: pageurl
+    - find:
+        path: body
+        do:
+        - static_get: url
+        - variable_set: pageurl
+    - find:
+        path: 'section.product'
+        do:
+        - variable_clear: price_list
+        - variable_clear: price_offer
+        - variable_clear: currency
+        - variable_clear: title
+        - find:
+            path: span.product-price-text
+            slice: 0
+            do:
+            - parse:
+                filter: ([0-9\.]+)
+            - variable_set: price_list
+            - variable_set: price_offer
+            - parse:
+                filter: ([^0-9\.]+)
+            - space_dedupe
+            - trim
+            - normalize:
+                routine: replace_matched
+                args:
+                - \$: 'USD'
+            - variable_set: currency            
+        - find:
+            path: span.product-price-text[data-state="original"]
+            slice: 0
+            do:
+            - parse:
+                filter: ([0-9\.]+)
+            - variable_set: price_list
+            - variable_set: price_offer
+            - parse:
+                filter: ([^0-9\.]+)
+            - space_dedupe
+            - trim
+            - normalize:
+                routine: replace_matched
+                args:
+                - \$: 'USD'
+            - variable_set: currency            
+        - find:
+            path: span.product-price-text[data-state="discount"]
+            slice: 0
+            do:
+            - parse:
+                filter: ([0-9\.]+)
+            - variable_set: price_offer
+        - find:
+            path: h1[itemprop="name"]
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - variable_set: title
+        - find:
+            path: select[name="sku"] > option[data-long-sku]
+            do:
+            - variable_clear: kic
+            - variable_clear: imgid
+            - variable_clear: pid
+            - object_new: item
+            - parse:
+                attr: data-image-id
+                filter: ^(.+)_sw$
+            - variable_set: imgid
+            - parse:
+                attr: data-kic
+            - variable_set: kic
+            - parse:
+                attr: value
+            - object_field_set:
+                object: item
+                field: 01 Product ID
+            - parse:
+                attr: data-long-sku
+            - object_field_set:
+                object: item
+                field: 02 SKU
+            - variable_get: title
+            - object_field_set:
+                object: item
+                field: 03 Title
+            - register_set: 'Abercrombie & Fitch'
+            - object_field_set:
+                object: item
+                field: 04 Brand
+            - parse:
+                attr: data-swatch
+            - object_field_set:
+                object: item
+                field: 05 Color
+            - parse:
+                attr: data-size-primary
+            - object_field_set:
+                object: item
+                field: 06 Size
+            - parse:
+                attr: data-inventory-status
+            - normalize:
+                routine: replace_matched
+                args:
+                - Unavailable: "No"
+                - Available: "Yes"
+            - object_field_set:
+                object: item
+                field: 07 In Stock
+            - parse:
+                attr: data-inventory
+            - if:
+                match: \d+
+                do:
+                - object_field_set:
+                    object: item
+                    field: 08 Quantity
+                    type: int
+            - variable_get: price_list
+            - if:
+                match: \d+
+                do:
+                - object_field_set:
+                    object: item
+                    field: 09 List Price
+                    type: float
+            - variable_get: price_offer
+            - if:
+                match: \d+
+                do:
+                - object_field_set:
+                    object: item
+                    field: 10 Sale Price
+                    type: float
+            - variable_get: currency
+            - object_field_set:
+                object: item
+                field: 11 Currency
+            - find:
+                in: doc
+                path: nav.breadcrumbs
+                slice: 0
+                do:
+                - find:
+                    path: ol > li > a
+                    do:
+                    - node_remove: span.product-count
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \w+
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: 12 Categories
+                            joinby: "|"
+            - variable_get: pageurl
+            - object_field_set:
+                object: item
+                field: 13 URL
+            - eval:
+                routine: js
+                body: '(function (){var d = new Date(); return d.toISOString()})();'
+            - object_field_set:
+                object: item
+                field: 14 Extract Date
+            - find:
+                in: doc
+                path: input[value="<%kic%>"]
+                do:
+                - parse:
+                    attr: data-productid
+                - variable_set: pid
+                - walk:
+                    to: https://anf.scene7.com/is/image/anf?imageset={anf/<%imgid%>,<%imgid%>_model}&req=set,json&id=<%pid%>&defaultimage=<%imgid%>_prod1
+                    do:
+                    - find:
+                        path: body
+                        do:
+                        - parse:
+                            filter: s7jsonResponse\((.+),\&quot;\d+\&quot;\);
+                        - normalize:
+                            routine: unescape_html
+                        - normalize:
+                            routine: json2xml
+                        - to_block
+                        - find:
+                            path: i>n
+                            do:
+                            - variable_clear: iurl
+                            - parse
+                            - variable_set: iurl
+                            - register_set: https://anf.scene7.com/is/image/<%iurl%>?scl=1
+                            - object_field_set:
+                                object: item
+                                field: 15 Images
+                                joinby: "|"
+                - object_save:
+                    name: item
+    - sleep: 3
