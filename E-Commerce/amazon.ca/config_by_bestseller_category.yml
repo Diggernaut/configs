@@ -1,0 +1,596 @@
+---
+config:
+    debug: 2
+    agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
+    keepalive: disable
+do:
+- variable_set:
+    field: "repeatoutside"
+    value: "yes"
+- walk:
+    to: links
+    repeat_in_pool: <%repeatoutside%>
+    headers:
+        Referer: ""
+    do:
+    - find: 
+        path: body
+        do: 
+        - static_get: responseCode
+        - if:
+            match: 503
+            do:
+            - proxy_switch
+            - variable_set:
+                field: "repeatoutside"
+                value: "yes"
+            else:
+            - find:
+                path: body
+                in: doc
+                do:
+                - parse
+                - if:
+                    match: Type the characters you see in this image
+                    do:
+                    - variable_set:
+                        field: "repeatoutside"
+                        value: "yes"
+                    - find:
+                        path: input[name="amzn"]
+                        do:
+                        - parse:
+                            attr: value
+                        - normalize:
+                            routine: urlencode
+                        - variable_set: amzn
+                    - find:
+                        path: input[name="amzn-r"]
+                        do:
+                        - parse:
+                            attr: value
+                        - normalize:
+                            routine: urlencode
+                        - variable_set: amznr
+                    - find:
+                        path: div.a-row>img
+                        do:
+                        - parse:
+                            attr: src
+                        - walk:
+                            to: value
+                            do:
+                            - find:
+                                path: imgbase64
+                                do:
+                                - parse
+                                - variable_set: capimg
+                                - captcha_resolve:
+                                    provider: diggernaut
+                                    type: amazon
+                                    image: <%capimg%>
+                                - variable_get: captcha
+                                - if:
+                                    match: \S+
+                                    do:
+                                    - walk:
+                                        to: https://www.amazon.ca/errors/validateCaptcha?amzn=<%amzn%>&amzn-r=<%amznr%>&field-keywords=<%captcha%>
+                                        do:
+                    else:
+                    - register_set: no
+                    - variable_set: "repeatoutside"
+                    - variable_clear: categories
+                    - sleep: 1
+                    - find: 
+                        path: '#zg-ordered-list > .zg-item-immersion' 
+                        do: 
+                        - find: 
+                            path: .a-link-normal 
+                            do: 
+                            - parse:
+                                attr: href
+                                filter:
+                                - \/dp\/([^\/\?]+)
+                            - if:
+                                match: \S
+                                do:
+                                - register_set: https://www.amazon.ca/dp/<%register%>?psc=1
+                                - link_add:
+                                    pool: pages
+                    - find:
+                        path: 'div#pagn:haschild(span.pagnCur:matches(^1$))'
+                        do:
+                        - find:
+                            path: span.pagnLink>a:matches(^2$),span.pagnLink>a:matches(^3$)
+                            do:
+                            - parse:
+                                attr: href
+                            - normalize:
+                                routine: url
+                            - link_add
+                    - find:
+                        path: ul.a-pagination:haschild(li.a-selected:matches(^1$))
+                        do:
+                        - find:
+                            path: li.a-normal>a:matches(^2$),li.a-normal>a:matches(^3$)
+                            do:
+                            - parse:
+                                attr: href
+                            - normalize:
+                                routine: url
+                            - link_add
+- variable_set: 
+    field: repeatinside
+    value: "yes"
+- counter_reset: sorry
+- walk:
+    to: links
+    pool: pages
+    repeat_in_pool: <%repeatinside%>
+    headers:
+        Referer: ""
+    do:
+    - find: 
+        path: html
+        do: 
+        - static_get: responseCode
+        - if:
+            match: 503
+            do:
+            - counter_increment:
+                name: sorry
+            - counter_get: sorry
+            - if:
+                lt: 100
+                type: int
+                do:
+                - proxy_switch
+                - cookie_reset
+                - variable_set: 
+                    field: repeatinside
+                    value: "yes"
+                else:
+                - variable_set: 
+                    field: repeatinside
+                    value: "no"
+                - counter_reset: sorry
+            else:
+            - parse
+            - if:
+                match: Type the characters you see in this image
+                do:
+                - variable_set:
+                    field: "repeatinside"
+                    value: "yes"
+                - find:
+                    path: input[name="amzn"]
+                    do:
+                    - parse:
+                        attr: value
+                    - normalize:
+                        routine: urlencode
+                    - variable_set: amzn
+                - find:
+                    path: input[name="amzn-r"]
+                    do:
+                    - parse:
+                        attr: value
+                    - normalize:
+                        routine: urlencode
+                    - variable_set: amznr
+                - find:
+                    path: div.a-row>img
+                    do:
+                    - parse:
+                        attr: src
+                    - walk:
+                        to: value
+                        do:
+                        - find:
+                            path: imgbase64
+                            do:
+                            - parse
+                            - variable_set: capimg
+                            - captcha_resolve:
+                                provider: diggernaut
+                                type: amazon
+                                image: <%capimg%>
+                            - variable_get: captcha
+                            - if:
+                                match: \S+
+                                do:
+                                - walk:
+                                    to: https://www.amazon.ca/errors/validateCaptcha?amzn=<%amzn%>&amzn-r=<%amznr%>&field-keywords=<%captcha%>
+                                    do:
+                else:
+                - variable_set:
+                    field: repeatinside
+                    value: "no"
+                - counter_reset: sorry
+                - object_new: item
+                - static_get: url
+                - object_field_set:
+                    object: item
+                    field: 14 URL
+                - filter:
+                    args:
+                    - \/dp\/([^\/\?]+)
+                - object_field_set:
+                    object: item
+                    field: 01 ASIN
+                - find: 
+                    path: script:matches("parentAsin") 
+                    do:
+                    - parse:
+                        filter:
+                            - parentAsin\"\s*\:\s*\"([^\"]+)
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: 02 Parent ASIN
+                - find: 
+                    path: .a-breadcrumb .a-link-normal
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: 13 Categories
+                            joinby: "|"
+                - variable_clear: found
+                - find:
+                    path: 'h1#title'
+                    do:
+                    - node_remove: style
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: 03 Title
+                - find: 
+                    path: '#bylineInfo' 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: 04 Brand
+                - find: 
+                    path: '#merchant-info > a'
+                    slice: 0
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \w+
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: 05 Seller
+                - register_set: "no"
+                - object_field_set:
+                    object: item
+                    field: 06 Fulfilled by Amazon
+                - find: 
+                    path: '#merchant-info'
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: sold by Amazon
+                        do:
+                        - register_set: Amazon
+                        - object_field_set:
+                            object: item
+                            field: 05 Seller
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: Fulfilled by Amazon
+                        do:
+                        - register_set: "yes"
+                        - object_field_set:
+                            object: item
+                            field: 06 Fulfilled by Amazon
+                - find: 
+                    path: '#SalesRank'
+                    in: doc
+                    do:
+                    - find: 
+                        path: ul.zg_hrsr > .zg_hrsr_item
+                        slice: 0
+                        do: 
+                        - find: 
+                            path: .zg_hrsr_rank 
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - normalize:
+                                routine: replace_substring
+                                args:
+                                    - \.: ''
+                                    - \,: ''
+                                    - \#: ''
+                            - if:
+                                match: \S
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: 09 Sales Rank 2
+                                    type: int
+                        - find: 
+                            path: .zg_hrsr_ladder > a 
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - normalize:
+                                routine: replace_substring
+                                args:
+                                    - \): ''
+                            - if:
+                                match: \S
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: 10 Sales Rank 2 Category
+                    - find: 
+                        path: ul.zg_hrsr > .zg_hrsr_item
+                        slice: 1
+                        do: 
+                        - find: 
+                            path: .zg_hrsr_rank 
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - normalize:
+                                routine: replace_substring
+                                args:
+                                    - \.: ''
+                                    - \,: ''
+                                    - \#: ''
+                            - if:
+                                match: \S
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: 11 Sales Rank 3
+                                    type: int
+                        - find: 
+                            path: .zg_hrsr_ladder > a 
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - normalize:
+                                routine: replace_substring
+                                args:
+                                    - \): ''
+                            - if:
+                                match: \S
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: 12 Sales Rank 3 Category
+                    - node_remove: script,style,b,ul,.label
+                    - parse:
+                        filter:
+                            - '^\s*\#?([0-9\,\.]+)\s+in\s+[^\(]+\(?'
+                    - normalize:
+                        routine: replace_substring
+                        args:
+                            - \.: ''
+                            - \,: ''
+                            - \#: ''
+                    - if:
+                        match: \d
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: 07 Sales Rank 1
+                            type: int
+                    - parse:
+                        filter:
+                            - '[0-9\,\.]\s+in\s+([^\(]+)\(?'
+                    - space_dedupe
+                    - trim
+                    - normalize:
+                        routine: replace_substring
+                        args:
+                            - \): ''
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: 08 Sales Rank 1 Caregory
+                - find: 
+                    path: '#variation_color_name .selection'
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - variable_set: 
+                            field: par
+                            value: 1
+                        - object_field_set:
+                            object: item
+                            field: 15 Color  
+                - find: 
+                    path: '#variation_color_name .swatchSelect img'
+                    do: 
+                    - parse:
+                        attr: alt
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: 15 Color  
+                - find: 
+                    path: '#variation_size_name .swatchSelect .text,#variation_size_name .selection,#variation_size_name option[selected]'
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: 16 Size 
+
+                - find: 
+                    path: '#variation_style_name [name="dropdown_selected_style_name"] option[selected],#variation_style_name .selection' 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: 17 Style
+                - find: 
+                    path: '#variation_edition .swatchSelect .text, #variation_edition .selection' 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - variable_set: 
+                            field: par
+                            value: 1
+                        - object_field_set:
+                            object: item
+                            field: 18 Edition 
+                - variable_clear: price
+                - find: 
+                    path: '#price #priceblock_ourprice'
+                    slice: 0
+                    do: 
+                    - parse:
+                        filter:
+                            - ([0-9\,\.]+)\s*\-
+                            - ([0-9\,\.]+)
+                    - normalize:
+                        routine: replace_substring
+                        args:
+                            - \,: ''
+                    - if:
+                        match: \d+
+                        do:
+                        - variable_set: price
+                        - object_field_set:
+                            object: item
+                            field: 19 Price
+                            type: float
+                - find: 
+                    path: '#buybox #price_inside_buybox, #price #priceblock_ourprice, #buybox #priceblock_ourprice,#buybox .a-color-price'
+                    do: 
+                    - variable_get: price
+                    - if:
+                        match: \S
+                        else:
+                        - parse:
+                            filter:
+                                - ([0-9\,\.]+)\s*\-
+                                - ([0-9\,\.]+)
+                        - normalize:
+                            routine: replace_substring
+                            args:
+                                - \,: ''
+                        - if:
+                            match: \d+
+                            do:
+                            - variable_set: price
+                            - object_field_set:
+                                object: item
+                                field: 19 Price
+                                type: float
+                - find: 
+                    path: '#availability' 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: 20 Availability
+                - find:
+                    path: script:contains("'colorImages'")
+                    in: doc
+                    do:
+                    - parse:
+                        filter: var\s+data\s+\=\s+([^\;]+)\;
+                    - space_dedupe
+                    - trim
+                    - normalize:
+                        routine: replace_substring
+                        args:
+                            A\.\$\.parseJSON\(\'[^\)]+\): '""'
+                    - eval:
+                        routine: js
+                        body: '(function (){var p = <%register%>; return JSON.stringify(p);})();'
+                    - normalize:
+                        routine: json2xml
+                    - to_block
+                    - find: 
+                        path: initial 
+                        do: 
+                        - variable_clear: hashires
+                        - find:
+                            path: hires
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \S
+                                do:
+                                - variable_set: hashires
+                                - object_field_set:
+                                    object: item
+                                    field: 21 Images
+                                    joinby: "|"
+                        - find: 
+                            path: large 
+                            do: 
+                            - variable_get: hashires
+                            - if:
+                                match: \S
+                                else:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - if:
+                                    match: \S
+                                    do:
+                                    - object_field_set:
+                                        object: item
+                                        field: 21 Images
+                                        joinby: "|"
+                - object_save:
+                    name: item
