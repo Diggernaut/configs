@@ -1,5 +1,5 @@
-# Amazon.com scraper
-Digger condigurations for amazon.com.
+# Amazon.ca scraper
+Digger condigurations for amazon.ca.
 
 config_by_bestseller_category.yml - configuration file for scraping whole categories of bestsellers
 config_by_product.yml - configuration file for scraping specific products
