@@ -1,0 +1,78 @@
+{
+    "english": {
+        "meta": {
+            "title": "Amazon.co.uk scraper",
+            "description_short": "Using this scraper for the Amazon.co.uk online marketplace, you can collect the following fields: ASIN, parent ASIN, bestseller ranking in different categories, product price, availability, FBA, BuyBox seller, and others.",
+            "description_long": "Amazon.co.uk is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
+            "keywords": "ecommerce scraper, marketplace scraper, amazon scraper, data extraction, web scraping",
+            "article": "amazoncom",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of bestsellers' category URLs",
+                "filename": "config_by_bestseller_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the online store",
+                        "example": "https://www.amazon.co.uk/Best-Sellers-Clothing-Womens/zgbs/clothing/1731296031/ref=zg_bs_nav_ap_1_ap"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product at the online store",
+                        "example": "https://www.amazon.co.uk/dp/B00721UPRI?psc=1"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для магазина Amazon.co.uk",
+            "description_short": "Используя данный парсер для онлайн маркета Amazon.co.uk, можно собирать следующие поля: ASIN, родительский ASIN, ранжирование по популярности в разных категориях, цена товара, его наличие, FBA, информацию о продавце в BuyBox и другие.",
+            "description_long": "Amazon.co.uk - огромный американский маркетплейс, используя который, люди по всему миру продают около полмиллиарда разных товаров. С помощью этого бесплатного парсера можно собирать информацию о наиболее продающихся товарах в определенных категориях, отслеживать динамику цен и другие индикаторы, играющие важную роль при выводе нового товара на маркетплейс, а также для удерживания позиции в выдаче.",
+            "keywords": "парсер магазина, парсер маркетплейса, парсер amazon, сбор данных, мониторинг цен",
+            "article": "amazoncom",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на бестселлер-категории",
+                "filename": "config_by_bestseller_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на бестселлер категорию магазина",
+                        "example": "https://www.amazon.co.uk/Best-Sellers-Clothing-Womens/zgbs/clothing/1731296031/ref=zg_bs_nav_ap_1_ap"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар магазина",
+                        "example": "https://www.amazon.co.uk/dp/B00721UPRI?psc=1"
+                    }
+                }
+            }
+        ]
+    }
+}
