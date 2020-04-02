@@ -1,0 +1,373 @@
+---
+config:
+    debug: 2
+    agent: "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Mobile Safari/537.36"
+do:
+- variable_set:
+    field: rip
+    value: "yes"
+- walk:
+    to: links
+    repeat_in_pool: <%rip%>
+    do:
+    - variable_clear: shopid
+    - variable_clear: key
+    - variable_clear: sp
+    - variable_clear: laststamp
+    - find:
+        path: body
+        do:
+        - static_get: url
+        - filter:
+            args: avito\.ru\/([^\/]+)
+        - variable_set: shopid
+    - find:
+        path: script
+        do:
+        - variable_get: key
+        - if:
+            match: \S
+            else:
+            - parse:
+                attr: src
+            - if:
+                match: mstatic\/build
+                do:
+                - set_converter:
+                    content_type: application/javascript
+                    converter: image
+                - walk:
+                    to: value
+                    do:
+                    - variable_clear: filt
+                    - find: 
+                        path: imgbase64
+                        do: 
+                        - parse
+                        - normalize:
+                            routine: Base64Decode
+                        - filter: 
+                            args:
+                                - params\:\s*\{\s*key\:\s*\"?([A-Za-z0-9\$]+)\"?\s*\}\,data
+                        - normalize:
+                            routine: replace_substring
+                            args:
+                                \$: '\$'
+                        - variable_set: filt
+                        - parse
+                        - normalize:
+                            routine: Base64Decode
+                        - filter:
+                            args:
+                                - \,\s*<%filt%>\s*\=\s*\"([^"]+)\"\;
+                                - var\s*<%filt%>\s*\=\s*\"([^"]+)\"
+                        - if:
+                            match: \S
+                            do:
+                            - variable_set: key
+                - clear_converter:
+                    content_type: application/javascript
+    - find:
+        path: html
+        do:
+        - variable_get: key
+        - if:
+            match: \w+
+            do:
+            - variable_set:
+                field: rip
+                value: "no"
+            - find:
+                path: script:contains('window.__initialData__')
+                do:
+                - parse
+                - eval:
+                    routine: js
+                    body: (function () {var window = {}; <%register%>; return JSON.stringify(window.__initialData__);})();
+                - normalize:
+                    routine: json2xml
+                - to_block
+                - find:
+                    path: search > searchparams > *
+                    do:
+                    - variable_get: nodeName
+                    - normalize:
+                        routine: replace_substring
+                        args:
+                        - categoryid: categoryId
+                        - locationid: locationId
+                    - if:
+                        match: 'owner'
+                        do:
+                        - register_set: owner%5B0%5D
+                        - variable_set: nodeName
+                    - variable_set: nodeName
+                    - parse
+                    - register_set: <%sp%>&<%nodeName%>=<%register%>
+                    - variable_set: sp
+                - register_set: key=<%key%><%sp%>
+                - variable_set: sp
+                - find:
+                    path: search > laststamp
+                    do:
+                    - parse
+                    - variable_set: laststamp
+            - variable_set:
+                field: repeat
+                value: "yes"
+            - variable_set:
+                field: offset
+                value: 0
+            - walk:
+                to: https://m.avito.ru/api/4/shops/<%shopid%>/items?<%sp%>&lastStamp=<%laststamp%>&display=list&limit=20&offset=<%offset%>
+                repeat: <%repeat%>
+                do:
+                - sleep: 3
+                - variable_set:
+                    field: repeat
+                    value: "no"
+                - find:
+                    path: status
+                    do:
+                    - eval:
+                        routine: js
+                        body: (function () {var offset = <%offset%>; return offset + 20;})();
+                    - variable_set: offset
+                - find:
+                    path: result > laststamp
+                    do:
+                    - parse
+                    - variable_set: laststamp
+                - find:
+                    path: result > list > value > uri_mweb
+                    do:
+                    - variable_set:
+                        field: repeat
+                        value: "yes"
+                    - parse
+                    - if:
+                        match: \w+
+                        do:
+                        - normalize:
+                            routine: url
+                        - variable_set:
+                            field: repeat2
+                            value: "yes"
+                        - walk:
+                            to: value
+                            repeat: <%repeat2%>
+                            do:
+                            - sleep: 3
+                            - find:
+                                path: 'div#app'
+                                do:
+                                - variable_set:
+                                    field: repeat2
+                                    value: "no"
+                                - object_new: item
+                                - static_get: url
+                                - object_field_set:
+                                    object: item
+                                    field: url
+                                - find: 
+                                    path: script:matches(window\.\_\_initialData\_\_\s*\=) 
+                                    in: doc
+                                    do: 
+                                    - parse
+                                    - eval:
+                                        routine: js
+                                        body: (function () {var window = {}; <%register%>; return JSON.stringify(window.__initialData__);})();
+                                    - normalize:
+                                        routine: json2xml
+                                    - toblock
+                                    - find: 
+                                        path: body_safe 
+                                        do: 
+                                        - find: 
+                                            path: list:hasChild(type:matches(phone)) > value > uri
+                                            do: 
+                                            - parse:
+                                                filter: 
+                                                    - number\=(.+)\s*$
+                                            - if:
+                                                match: \d
+                                                do:
+                                                - normalize:
+                                                    routine: URLDecode
+                                                - object_field_set:
+                                                    object: item
+                                                    field: phone
+         
+                                        - find: 
+                                            path: 'images > safe_640x480'
+                                            do: 
+                                            - parse
+                                            - if:
+                                                match: \S
+                                                do:
+                                                - object_field_set:
+                                                    object: item
+                                                    field: image
+                                                    joinby: "|"
+                                        - find: 
+                                            path: coords 
+                                            do: 
+                                            - find: 
+                                                path: lat
+                                                do: 
+                                                - parse
+                                                - if:
+                                                    match: \S
+                                                    do:
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: lat
+                                                        type: float
+                                            - find: 
+                                                path: lng 
+                                                do: 
+                                                - parse
+                                                - if:
+                                                    match: \S
+                                                    do:
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: lng
+                                                        type: float
+                                        - find: 
+                                            path: item > id
+                                            do: 
+                                            - parse:
+                                                filter: (\d+)
+                                            - space_dedupe
+                                            - trim
+                                            - object_field_set:
+                                                object: item
+                                                field: id
+                                            - walk:
+                                                to: https://m.avito.ru/api/1/items/<%register%>/phone?key=<%key%>
+                                                do:
+                                                - find: 
+                                                    path: uri 
+                                                    do: 
+                                                    - parse:
+                                                        filter:
+                                                            - number\=([^?]+)
+                                                    - if:
+                                                        match: \d
+                                                        do:
+                                                        - normalize:
+                                                            routine: URLDecode
+                                                        - object_field_set:
+                                                            object: item
+                                                            field: phone
+                                                        
+                                        - find: 
+                                            path: item > time
+                                            do: 
+                                            - parse:
+                                                filter: (\d+)
+                                            - if:
+                                                match: \d+
+                                                do:
+                                                - normalize:
+                                                    routine: date_format
+                                                    args:
+                                                        format_in: "%s"
+                                                        format_out: "%Y-%m-%d %T"
+                                                - object_field_set:
+                                                    object: item
+                                                    field: actualized
+                                        - find: 
+                                            path: item > stats > views > total
+                                            do: 
+                                            - parse:
+                                                filter: (\d+)
+                                            - if:
+                                                match: \d+
+                                                do:
+                                                - object_field_set:
+                                                    object: item
+                                                    field: views_total
+                                        - find: 
+                                            path: item > stats > views > today
+                                            do: 
+                                            - parse:
+                                                filter: (\d+)
+                                            - if:
+                                                match: \d+
+                                                do:
+                                                - object_field_set:
+                                                    object: item
+                                                    field: views_today
+                                - find:
+                                    path: 'h1[itemprop="name"]'
+                                    in: doc
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - object_field_set:
+                                        object: item
+                                        field: title
+                                - find:
+                                    path: 'meta[itemprop="priceCurrency"]'
+                                    do:
+                                    - parse:
+                                        attr: content
+                                    - object_field_set:
+                                        object: item
+                                        field: currency
+                                - find: 
+                                    path: 'meta[itemprop="price"]' 
+                                    do: 
+                                    - parse:
+                                        attr: content
+                                    - object_field_set:
+                                        object: item
+                                        field: price
+                                - find:
+                                    path: 'meta[itemprop="description"]'
+                                    do:
+                                    - parse:
+                                        attr: content
+                                    - space_dedupe
+                                    - trim
+                                    - object_field_set:
+                                        object: item
+                                        field: description
+                                - find:
+                                    path: 'span[data-marker="delivery/location"]'
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - object_field_set:
+                                        object: item
+                                        field: address
+         
+                                - find:
+                                    path: 'span[data-marker="seller-info/name"]'
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - object_field_set:
+                                        object: item
+                                        field: seller
+                                - object_save:
+                                    name: item
+                            - find:
+                                path: body
+                                do:
+                                - variable_get: repeat2
+                                - if:
+                                    match: "yes"
+                                    do:
+                                    - proxy_switch
+            else:
+            - variable_set:
+                field: rip
+                value: "yes"
+            - proxy_switch
+            - cookie_reset

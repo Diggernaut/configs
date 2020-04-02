@@ -1,0 +1,102 @@
+{
+    "english": {
+        "meta": {
+            "title": "Avito.ru scraper",
+            "description_short": "The Avito scraper presented here will help you collect information about products and services from ads in the Avito.ru classified ads board. The scraper collects both information about the ad: product name, price, date of placement of the ad and many others, as well as information about the seller: its name, phone number, geographical coordinates",
+            "description_long": "Avito is one of the most popular classified ads boards in Russia with tens of millions of products. Using this web scraper, you can extract information about the products or services presented in a given category, as well as the seller’s contact information.",
+            "keywords": "ecommerce scraper, classified ads scraper, avito scraper, data extraction, web scraping",
+            "article": "avitoru",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the classified ads board",
+                        "example": "https://www.avito.ru/ufa/ptitsy"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of ad URLs",
+                "filename": "config_by_ad.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the ad page at the classified ads board",
+                        "example": "https://www.avito.ru/ufa/ptitsy/gusi_linda_krupnye_serye_italyanka_golosheyka_f_1865995562"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of shop URLs",
+                "filename": "config_by_shop.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the specific shop at the classified ads board",
+                        "example": "https://www.avito.ru/ufa/ptitsy/gusi_linda_krupnye_serye_italyanka_golosheyka_f_1865995562"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для доски объявлений Avito.ru",
+            "description_short": "Представленный здесь парсер авито поможет вам собрать информацию o товарах из объявлений в системе Avito.ru. Парсер собирает как информацию об объявлении: название товара, цену, дату размещения объявления и моногое другой, так и информацию о продавце: его имя, телефон, географические координаты",
+            "description_long": "Авито является одной из самых популярных в России досок объявлений частных лиц, на которой представлены десятки миллионов товаров. С помощью этого парсера вы сможете забрать информацию о товарах, представленных в заданной категории, а также контактную информацию продавца.",
+            "keywords": "парсер доски объявлений, парсер авито, сбор данных, мониторинг цен",
+            "article": "avitoru",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию доски объявлений",
+                        "example": "https://www.avito.ru/ufa/ptitsy"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на объявления",
+                "filename": "config_by_ad.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на объявление",
+                        "example": "https://www.avito.ru/ufa/ptitsy/gusi_linda_krupnye_serye_italyanka_golosheyka_f_1865995562"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на магазины",
+                "filename": "config_by_shop.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на магазин в доске объявлений",
+                        "example": "https://www.avito.ru/ufa/ptitsy/gusi_linda_krupnye_serye_italyanka_golosheyka_f_1865995562"
+                    }
+                }
+            }
+        ]
+    }
+}
