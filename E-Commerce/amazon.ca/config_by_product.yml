@@ -207,9 +207,10 @@ do:
                             - normalize:
                                 routine: replace_substring
                                 args:
-                                    - \.: ''
-                                    - \,: ''
-                                    - \#: ''
+                                - \.: ''
+                                - \,: ''
+                                - \#: ''
+                                - \D+: ''
                             - if:
                                 match: \S
                                 do:
@@ -246,9 +247,10 @@ do:
                             - normalize:
                                 routine: replace_substring
                                 args:
-                                    - \.: ''
-                                    - \,: ''
-                                    - \#: ''
+                                - \.: ''
+                                - \,: ''
+                                - \#: ''
+                                - \D+: ''
                             - if:
                                 match: \S
                                 do:
@@ -275,13 +277,14 @@ do:
                     - node_remove: script,style,b,ul,.label
                     - parse:
                         filter:
-                            - '^\s*\#?([0-9\,\.]+)\s+in\s+[^\(]+\(?'
+                        - '^\s*\#?([0-9\,\.]+)\s+in\s+[^\(]+\(?'
                     - normalize:
                         routine: replace_substring
                         args:
-                            - \.: ''
-                            - \,: ''
-                            - \#: ''
+                        - \.: ''
+                        - \,: ''
+                        - \#: ''
+                        - \D+: ''
                     - if:
                         match: \d
                         do:
@@ -291,7 +294,7 @@ do:
                             type: int
                     - parse:
                         filter:
-                            - '[0-9\,\.]\s+in\s+([^\(]+)\(?'
+                        - '^\s*\#?[0-9\,\.]+\s+in\s+([^\(]+)\(?'
                     - space_dedupe
                     - trim
                     - normalize:

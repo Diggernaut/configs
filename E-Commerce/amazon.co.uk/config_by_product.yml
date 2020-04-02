@@ -207,9 +207,10 @@ do:
                             - normalize:
                                 routine: replace_substring
                                 args:
-                                    - \.: ''
-                                    - \,: ''
-                                    - \#: ''
+                                - \.: ''
+                                - \,: ''
+                                - \#: ''
+                                - \D+: ''
                             - if:
                                 match: \S
                                 do:
@@ -246,9 +247,10 @@ do:
                             - normalize:
                                 routine: replace_substring
                                 args:
-                                    - \.: ''
-                                    - \,: ''
-                                    - \#: ''
+                                - \.: ''
+                                - \,: ''
+                                - \#: ''
+                                - \D+: ''
                             - if:
                                 match: \S
                                 do:
@@ -279,9 +281,10 @@ do:
                     - normalize:
                         routine: replace_substring
                         args:
-                            - \.: ''
-                            - \,: ''
-                            - \#: ''
+                        - \.: ''
+                        - \,: ''
+                        - \#: ''
+                        - \D+: ''
                     - if:
                         match: \d
                         do:

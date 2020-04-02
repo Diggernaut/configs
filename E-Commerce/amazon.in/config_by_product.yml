@@ -4,128 +4,12 @@ config:
     agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
     keepalive: disable
 do:
-- variable_set:
-    field: "repeatoutside"
-    value: "yes"
-- walk:
-    to: links
-    repeat_in_pool: <%repeatoutside%>
-    headers:
-        Referer: ""
-    do:
-    - find: 
-        path: body
-        do: 
-        - static_get: responseCode
-        - if:
-            match: 503
-            do:
-            - proxy_switch
-            - variable_set:
-                field: "repeatoutside"
-                value: "yes"
-            else:
-            - find:
-                path: body
-                in: doc
-                do:
-                - parse
-                - if:
-                    match: Type the characters you see in this image
-                    do:
-                    - variable_set:
-                        field: "repeatoutside"
-                        value: "yes"
-                    - find:
-                        path: input[name="amzn"]
-                        do:
-                        - parse:
-                            attr: value
-                        - normalize:
-                            routine: urlencode
-                        - variable_set: amzn
-                    - find:
-                        path: input[name="amzn-r"]
-                        do:
-                        - parse:
-                            attr: value
-                        - normalize:
-                            routine: urlencode
-                        - variable_set: amznr
-                    - find:
-                        path: div.a-row>img
-                        do:
-                        - parse:
-                            attr: src
-                        - walk:
-                            to: value
-                            do:
-                            - find:
-                                path: imgbase64
-                                do:
-                                - parse
-                                - variable_set: capimg
-                                - captcha_resolve:
-                                    provider: diggernaut
-                                    type: amazon
-                                    image: <%capimg%>
-                                - variable_get: captcha
-                                - if:
-                                    match: \S+
-                                    do:
-                                    - walk:
-                                        to: https://www.amazon.ca/errors/validateCaptcha?amzn=<%amzn%>&amzn-r=<%amznr%>&field-keywords=<%captcha%>
-                                        do:
-                    else:
-                    - register_set: no
-                    - variable_set: "repeatoutside"
-                    - variable_clear: categories
-                    - sleep: 1
-                    - find: 
-                        path: '#zg-ordered-list > .zg-item-immersion' 
-                        do: 
-                        - find: 
-                            path: .a-link-normal 
-                            do: 
-                            - parse:
-                                attr: href
-                                filter:
-                                - \/dp\/([^\/\?]+)
-                            - if:
-                                match: \S
-                                do:
-                                - register_set: https://www.amazon.ca/dp/<%register%>?psc=1
-                                - link_add:
-                                    pool: pages
-                    - find:
-                        path: 'div#pagn:haschild(span.pagnCur:matches(^1$))'
-                        do:
-                        - find:
-                            path: span.pagnLink>a:matches(^2$),span.pagnLink>a:matches(^3$)
-                            do:
-                            - parse:
-                                attr: href
-                            - normalize:
-                                routine: url
-                            - link_add
-                    - find:
-                        path: ul.a-pagination:haschild(li.a-selected:matches(^1$))
-                        do:
-                        - find:
-                            path: li.a-normal>a:matches(^2$),li.a-normal>a:matches(^3$)
-                            do:
-                            - parse:
-                                attr: href
-                            - normalize:
-                                routine: url
-                            - link_add
 - variable_set: 
     field: repeatinside
     value: "yes"
 - counter_reset: sorry
 - walk:
     to: links
-    pool: pages
     repeat_in_pool: <%repeatinside%>
     headers:
         Referer: ""
@@ -200,7 +84,7 @@ do:
                                 match: \S+
                                 do:
                                 - walk:
-                                    to: https://www.amazon.ca/errors/validateCaptcha?amzn=<%amzn%>&amzn-r=<%amznr%>&field-keywords=<%captcha%>
+                                    to: https://www.amazon.in/errors/validateCaptcha?amzn=<%amzn%>&amzn-r=<%amznr%>&field-keywords=<%captcha%>
                                     do:
                 else:
                 - variable_set:
@@ -274,7 +158,7 @@ do:
                     - space_dedupe
                     - trim
                     - if:
-                        match: \w+
+                        match: \S+
                         do:
                         - object_field_set:
                             object: item
@@ -393,7 +277,7 @@ do:
                     - node_remove: script,style,b,ul,.label
                     - parse:
                         filter:
-                        - '^\s*\#?([0-9\,\.]+)\s+in\s+[^\(]+\(?'
+                            - '^\s*\#?([0-9\,\.]+)\s+in\s+[^\(]+\(?'
                     - normalize:
                         routine: replace_substring
                         args:
@@ -410,7 +294,7 @@ do:
                             type: int
                     - parse:
                         filter:
-                        - '^\s*\#?[0-9\,\.]+\s+in\s+([^\(]+)\(?'
+                            - '^\s*\#?[0-9\,\.]+\s+in\s+([^\(]+)\(?'
                     - space_dedupe
                     - trim
                     - normalize:

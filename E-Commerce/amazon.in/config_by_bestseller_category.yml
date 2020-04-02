@@ -74,7 +74,7 @@ do:
                                     match: \S+
                                     do:
                                     - walk:
-                                        to: https://www.amazon.ca/errors/validateCaptcha?amzn=<%amzn%>&amzn-r=<%amznr%>&field-keywords=<%captcha%>
+                                        to: https://www.amazon.in/errors/validateCaptcha?amzn=<%amzn%>&amzn-r=<%amznr%>&field-keywords=<%captcha%>
                                         do:
                     else:
                     - register_set: no
@@ -94,7 +94,7 @@ do:
                             - if:
                                 match: \S
                                 do:
-                                - register_set: https://www.amazon.ca/dp/<%register%>?psc=1
+                                - register_set: https://www.amazon.in/dp/<%register%>?psc=1
                                 - link_add:
                                     pool: pages
                     - find:
@@ -200,7 +200,7 @@ do:
                                 match: \S+
                                 do:
                                 - walk:
-                                    to: https://www.amazon.ca/errors/validateCaptcha?amzn=<%amzn%>&amzn-r=<%amznr%>&field-keywords=<%captcha%>
+                                    to: https://www.amazon.in/errors/validateCaptcha?amzn=<%amzn%>&amzn-r=<%amznr%>&field-keywords=<%captcha%>
                                     do:
                 else:
                 - variable_set:
@@ -274,7 +274,7 @@ do:
                     - space_dedupe
                     - trim
                     - if:
-                        match: \w+
+                        match: \S+
                         do:
                         - object_field_set:
                             object: item
@@ -393,7 +393,7 @@ do:
                     - node_remove: script,style,b,ul,.label
                     - parse:
                         filter:
-                        - '^\s*\#?([0-9\,\.]+)\s+in\s+[^\(]+\(?'
+                            - '^\s*\#?([0-9\,\.]+)\s+in\s+[^\(]+\(?'
                     - normalize:
                         routine: replace_substring
                         args:
@@ -410,7 +410,7 @@ do:
                             type: int
                     - parse:
                         filter:
-                        - '^\s*\#?[0-9\,\.]+\s+in\s+([^\(]+)\(?'
+                            - '^\s*\#?[0-9\,\.]+\s+in\s+([^\(]+)\(?'
                     - space_dedupe
                     - trim
                     - normalize:

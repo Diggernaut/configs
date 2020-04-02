@@ -207,9 +207,10 @@ do:
                             - normalize:
                                 routine: replace_substring
                                 args:
-                                    - \.: ''
-                                    - \,: ''
-                                    - \#: ''
+                                - \.: ''
+                                - \,: ''
+                                - \#: ''
+                                - \D+: ''
                             - if:
                                 match: \S
                                 do:
@@ -246,9 +247,10 @@ do:
                             - normalize:
                                 routine: replace_substring
                                 args:
-                                    - \.: ''
-                                    - \,: ''
-                                    - \#: ''
+                                - \.: ''
+                                - \,: ''
+                                - \#: ''
+                                - \D+: ''
                             - if:
                                 match: \S
                                 do:
@@ -279,9 +281,10 @@ do:
                     - normalize:
                         routine: replace_substring
                         args:
-                            - \.: ''
-                            - \,: ''
-                            - \#: ''
+                        - \.: ''
+                        - \,: ''
+                        - \#: ''
+                        - \D+: ''
                     - if:
                         match: \d
                         do:
@@ -291,7 +294,7 @@ do:
                             type: int
                     - parse:
                         filter:
-                            - '[0-9\,\.]\s+in\s+([^\(]+)\(?'
+                            - '^\s*\#?[0-9\,\.]+\s+in\s+([^\(]+)\(?'
                     - space_dedupe
                     - trim
                     - normalize:
@@ -303,7 +306,7 @@ do:
                         do:
                         - object_field_set:
                             object: item
-                            field: 08 Sales Rank 1 Caregory
+                            field: 08 Sales Rank 1 Category
                 - find: 
                     path: '#variation_color_name .selection'
                     do: 
