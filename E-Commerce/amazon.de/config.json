@@ -3,7 +3,7 @@
         "meta": {
             "title": "Amazon.de scraper",
             "description_short": "Using this scraper for the Amazon.de online marketplace, you can collect the following fields: ASIN, parent ASIN, bestseller ranking in different categories, product price, availability, FBA, BuyBox seller, and others.",
-            "description_long": "Amazon.de is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
+            "description_long": "Amazon.de ist ein riesiger Marktplatz, auf dem Menschen auf der ganzen Welt etwa eine halbe Milliarde verschiedener Produkte verkaufen. Mit diesem kostenlosen Web-Scraper können Sie Informationen über die Bestseller-Produkte in bestimmten Kategorien sammeln, die Preisdynamik und andere Indikatoren verfolgen, die eine wichtige Rolle bei der Markteinführung eines neuen Produkts spielen, sowie eine Position halten.<br>Amazon.de is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
             "keywords": "ecommerce scraper, marketplace scraper, amazon scraper, data extraction, web scraping",
             "article": "amazonde",
             "category": "E-Commerce",

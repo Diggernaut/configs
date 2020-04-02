@@ -3,7 +3,7 @@
         "meta": {
             "title": "Amazon.it scraper",
             "description_short": "Using this scraper for the Amazon.it online marketplace, you can collect the following fields: ASIN, parent ASIN, bestseller ranking in different categories, product price, availability, FBA, BuyBox seller, and others.",
-            "description_long": "Amazon.it is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
+            "description_long": "Amazon.it è un enorme mercato in cui persone in tutto il mondo vendono circa mezzo miliardo di prodotti diversi. Utilizzando questo raschietto web gratuito, è possibile raccogliere informazioni sui prodotti più venduti in determinate categorie, tenere traccia delle dinamiche dei prezzi e altri indicatori che svolgono un ruolo importante nel portare un nuovo prodotto sul mercato, nonché per mantenere una posizione.<br>Amazon.it is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
             "keywords": "ecommerce scraper, marketplace scraper, amazon scraper, data extraction, web scraping",
             "article": "amazonit",
             "category": "E-Commerce",

@@ -3,7 +3,7 @@
         "meta": {
             "title": "Amazon.fr scraper",
             "description_short": "Using this scraper for the Amazon.fr online marketplace, you can collect the following fields: ASIN, parent ASIN, bestseller ranking in different categories, product price, availability, FBA, BuyBox seller, and others.",
-            "description_long": "Amazon.fr is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
+            "description_long": "Amazon.fr est un immense marché, où les gens du monde entier vendent environ un demi-milliard de produits différents. En utilisant ce grattoir Web gratuit, vous pouvez collecter des informations sur les produits les plus vendus dans certaines catégories, suivre la dynamique des prix et d'autres indicateurs qui jouent un rôle important dans la mise sur le marché d'un nouveau produit, ainsi que pour occuper une position.<br>Amazon.fr is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
             "keywords": "ecommerce scraper, marketplace scraper, amazon scraper, data extraction, web scraping",
             "article": "amazonfr",
             "category": "E-Commerce",

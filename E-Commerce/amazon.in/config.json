@@ -3,7 +3,7 @@
         "meta": {
             "title": "Amazon.in scraper",
             "description_short": "Using this scraper for the Amazon.in online marketplace, you can collect the following fields: ASIN, parent ASIN, bestseller ranking in different categories, product price, availability, FBA, BuyBox seller, and others.",
-            "description_long": "Amazon.in is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
+            "description_long": "Amazon.in एक बहुत बड़ा बाज़ार है, जहाँ दुनिया भर के लोग लगभग आधे बिलियन विभिन्न उत्पाद बेचते हैं। इस मुफ्त वेब स्क्रैपर का उपयोग करके, आप कुछ श्रेणियों में बेस्टसेलिंग उत्पादों के बारे में जानकारी एकत्र कर सकते हैं, मूल्य की गतिशीलता और अन्य संकेतक ट्रैक कर सकते हैं जो बाज़ार में एक नया उत्पाद लाने में महत्वपूर्ण भूमिका निभाते हैं, साथ ही एक स्थिति धारण करने के लिए भी।<br>Amazon.in is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
             "keywords": "ecommerce scraper, marketplace scraper, amazon scraper, data extraction, web scraping",
             "article": "amazonfr",
             "category": "E-Commerce",
