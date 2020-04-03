@@ -2,7 +2,7 @@
     "english": {
         "meta": {
             "title": "Sandbox scraper",
-            "description_short": "Diggernaut sandbox example scraper for learning meta-language.",
+            "description_short": "The sandbox scraper is designed to study the basic features of the meta-language of the Diggernaut service. It will allow you to learn the basic methods of navigating, collecting and recording data from the required fields.",
             "description_long": "The sandbox scraper is designed to study the basic features of the meta-language of the Diggernaut service. It will allow you to learn the basic methods of navigating, collecting and recording data from the required fields.",
             "keywords": "education scraper, sandbox scraper, meta-language, data extraction, web scraping",
             "article": "sandbox",
@@ -28,7 +28,7 @@
     "russian": {
         "meta": {
             "title": "Парсер для Sandbox",
-            "description_short": "Парсер песочницы сервиса Diggernaut для изучения возможностей мета-языка.",
+            "description_short": "Парсер песочницы предназначен для изучения базовых возможностей мета-языка сервиса Diggernaut. Он позволит изучить основные методы навигации по ссылкам, сбор и запись данных из требуемых полей.",
             "description_long": "Парсер песочницы предназначен для изучения базовых возможностей мета-языка сервиса Diggernaut. Он позволит изучить основные методы навигации по ссылкам, сбор и запись данных из требуемых полей.",
             "keywords": "парсер образования, парсер sandbox, мета-язык, сбор данных, мониторинг цен",
             "article": "sandbox",
