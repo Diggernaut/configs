@@ -1,0 +1,54 @@
+{
+    "english": {
+        "meta": {
+            "title": "Sandbox scraper",
+            "description_short": "Diggernaut sandbox example scraper for learning meta-language.",
+            "description_long": "The sandbox scraper is designed to study the basic features of the meta-language of the Diggernaut service. It will allow you to learn the basic methods of navigating, collecting and recording data from the required fields.",
+            "keywords": "education scraper, sandbox scraper, meta-language, data extraction, web scraping",
+            "article": "sandbox",
+            "category": "Education",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data from sanbox",
+                "filename": "config.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Add suggested link",
+                        "example": "https://www.diggernaut.com/sandbox"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для Sandbox",
+            "description_short": "Парсер песочницы сервиса Diggernaut для изучения возможностей мета-языка.",
+            "description_long": "Парсер песочницы предназначен для изучения базовых возможностей мета-языка сервиса Diggernaut. Он позволит изучить основные методы навигации по ссылкам, сбор и запись данных из требуемых полей.",
+            "keywords": "парсер образования, парсер sandbox, мета-язык, сбор данных, мониторинг цен",
+            "article": "sandbox",
+            "category": "Образование",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Сбор данных из песочницы",
+                "filename": "config.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Добавьте предложенную ссылку",
+                        "example": "https://www.diggernaut.com/sandbox"
+                    }
+                }
+            }
+        ]
+    }
+}

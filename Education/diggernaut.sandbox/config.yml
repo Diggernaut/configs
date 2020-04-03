@@ -1,0 +1,165 @@
+---
+config:
+    debug: 2
+do:
+    - link_add: 'https://diggernaut.com/sandbox/'
+    - walk:
+          to: links
+          do:
+              - sleep: 1
+              - find:
+                    path: .result-content
+                    do:
+                        - variable_clear: name
+                        - variable_clear: descr
+                        - find:
+                              path: h3
+                              do:
+                                  - parse
+                                  - variable_set: name
+                        - find:
+                              path: p
+                              do:
+                                  - parse
+                                  - variable_set: descr
+                        - find:
+                              path: table
+                              do:
+                                  - find:
+                                        path: 'tbody > tr'
+                                        do:
+                                            - object_new: item
+                                            - variable_get: name
+                                            - object_field_set:
+                                                  object: item
+                                                  field: name
+                                            - variable_get: descr
+                                            - object_field_set:
+                                                  object: item
+                                                  field: descr
+                                            - find:
+                                                  path: .col2
+                                                  do:
+                                                      - parse
+                                                      - object_field_set:
+                                                            object: item
+                                                            field: number
+                                            - find:
+                                                  path: .col3
+                                                  do:
+                                                      - parse
+                                                      - object_field_set:
+                                                            object: item
+                                                            field: short_descr
+                                            - find:
+                                                  path: .col4
+                                                  do:
+                                                      - parse
+                                                      - object_field_set:
+                                                            object: item
+                                                            field: location
+                                            - find:
+                                                  path: .col5
+                                                  do:
+                                                      - object_new: date
+                                                      - find:
+                                                            path: ' .nowrap:nth-child(1)'
+                                                            do:
+                                                                - parse
+                                                                - object_field_set:
+                                                                      object: date
+                                                                      field: start
+                                                      - find:
+                                                            path: ' .nowrap:nth-child(2)'
+                                                            do:
+                                                                - parse
+                                                                - object_field_set:
+                                                                      object: date
+                                                                      field: end
+                                                      - object_save:
+                                                            name: date
+                                                            to: item
+                                            - find:
+                                                  path: .col6
+                                                  do:
+                                                      - object_new: time
+                                                      - find:
+                                                            path: ' .nowrap:nth-child(1)'
+                                                            do:
+                                                                - parse
+                                                                - object_field_set:
+                                                                      object: time
+                                                                      field: start
+                                                      - find:
+                                                            path: ' .nowrap:nth-child(2)'
+                                                            do:
+                                                                - parse
+                                                                - object_field_set:
+                                                                      object: time
+                                                                      field: end
+                                                      - object_save:
+                                                            name: time
+                                                            to: item
+                                            - find:
+                                                  path: .col7
+                                                  do:
+                                                      - parse
+                                                      - object_field_set:
+                                                            object: item
+                                                            field: days
+                                            - find:
+                                                  path: .col8
+                                                  do:
+                                                      - parse:
+                                                            filter:
+                                                                - \s*\$\s*(\d+)\/
+                                                                - \s*\$\s*(\d+)
+                                                      - object_field_set:
+                                                            object: item
+                                                            type: int
+                                                            field: member_fee
+                                                      - parse:
+                                                            filter:
+                                                                - \s*\/\s*\$\s*(\d+)
+                                                                - \s*\$\s*(\d+)
+                                                      - object_field_set:
+                                                            object: item
+                                                            type: int
+                                                            field: non_member_fee
+                                            - find:
+                                                  path: .col9
+                                                  do:
+                                                      - parse
+                                                      - object_field_set:
+                                                            object: item
+                                                            field: ages
+                                            - find:
+                                                  path: .col10
+                                                  do:
+                                                      - parse
+                                                      - object_field_set:
+                                                            object: item
+                                                            field: is_available
+                                            - find:
+                                                  path: .ajaxLoad.info-icon.tooltips
+                                                  do:
+                                                      - parse:
+                                                            attr: href
+                                                      - walk:
+                                                            to: value
+                                                            do:
+                                                                - find:
+                                                                      path: 'tr:nth-of-type(2) td:nth-of-type(2)'
+                                                                      do:
+                                                                          - parse
+                                                                          - object_field_set:
+                                                                                object: item
+                                                                                field: gender
+                                            - object_save:
+                                                  name: item
+               - find:
+                   path: .next a
+                   do:
+                     - parse:
+                         attr: href
+                     - link_add
