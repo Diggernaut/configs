@@ -2,10 +2,12 @@
     "english": {
         "meta": {
             "title": "Amazon.es scraper",
+            "title_short": "Amazon.es scraper",
             "description_short": "Using this scraper for the Amazon.es online marketplace, you can collect the following fields: ASIN, parent ASIN, bestseller ranking in different categories, product price, availability, FBA, BuyBox seller, and others.",
             "description_long": "Amazon.es es un mercado enorme, donde las personas de todo el mundo venden aproximadamente 500 millones de productos diferentes. Con este raspador web gratuito, puede recopilar información sobre los productos más vendidos en ciertas categorías, realizar un seguimiento de la dinámica de los precios y otros indicadores que desempeñan un papel importante en traer un nuevo producto al mercado, así como para mantener una posición.<br>Amazon.es is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
             "keywords": "ecommerce scraper, marketplace scraper, amazon scraper, data extraction, web scraping",
-            "article": "amazonfr",
+            "domain": "amazon.es",
+            "article": "amazones",
             "category": "E-Commerce",
             "price": 0.00,
             "currency": "USD"
@@ -40,10 +42,12 @@
     "russian": {
         "meta": {
             "title": "Парсер для магазина Amazon.es",
+            "title_short": "Amazon.es",
             "description_short": "Используя данный парсер для онлайн маркета Amazon.es, можно собирать следующие поля: ASIN, родительский ASIN, ранжирование по популярности в разных категориях, цена товара, его наличие, FBA, информацию о продавце в BuyBox и другие.",
             "description_long": "Amazon.es - огромный маркетплейс, используя который, люди по всему миру продают около полмиллиарда разных товаров. С помощью этого бесплатного парсера можно собирать информацию о наиболее продающихся товарах в определенных категориях, отслеживать динамику цен и другие индикаторы, играющие важную роль при выводе нового товара на маркетплейс, а также для удерживания позиции в выдаче.",
             "keywords": "парсер магазина, парсер маркетплейса, парсер amazon, сбор данных, мониторинг цен",
-            "article": "amazonfr",
+            "domain": "amazon.es",
+            "article": "amazones",
             "category": "Магазины",
             "price": 0.00,
             "currency": "USD"

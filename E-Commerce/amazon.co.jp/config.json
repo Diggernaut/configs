@@ -2,10 +2,12 @@
     "english": {
         "meta": {
             "title": "Amazon.co.jp scraper",
+            "title_short": "Amazon.co.jp scraper",
             "description_short": "Using this scraper for the Amazon.co.jp online marketplace, you can collect the following fields: ASIN, parent ASIN, bestseller ranking in different categories, product price, availability, FBA, BuyBox seller, and others.",
             "description_long": "Amazon.co.jpは巨大な市場であり、世界中の人々が約5億の異なる製品を販売しています。この無料のWebスクレイパーを使用すると、特定のカテゴリのベストセラー商品に関する情報を収集し、価格のダイナミクスや、新商品を市場に投入する際に重要な役割を果たす他の指標を追跡したり、ポジションを保持したりできます。<br>Amazon.co.jp is a huge marketplace, where people around the world sell about half a billion different products. Using this free web scraper, you can collect information about the bestselling products in certain categories, track price dynamics and other indicators that play an important role in bringing a new product to the marketplace, as well as for holding a position.",
             "keywords": "ecommerce scraper, marketplace scraper, amazon scraper, data extraction, web scraping",
-            "article": "amazonfr",
+            "domain": "amazon.co.jp",
+            "article": "amazoncojp",
             "category": "E-Commerce",
             "price": 0.00,
             "currency": "USD"
@@ -40,10 +42,12 @@
     "russian": {
         "meta": {
             "title": "Парсер для магазина Amazon.co.jp",
+            "title_short": "Amazon.co.jp",
             "description_short": "Используя данный парсер для онлайн маркета Amazon.co.jp, можно собирать следующие поля: ASIN, родительский ASIN, ранжирование по популярности в разных категориях, цена товара, его наличие, FBA, информацию о продавце в BuyBox и другие.",
             "description_long": "Amazon.co.jp - огромный маркетплейс, используя который, люди по всему миру продают около полмиллиарда разных товаров. С помощью этого бесплатного парсера можно собирать информацию о наиболее продающихся товарах в определенных категориях, отслеживать динамику цен и другие индикаторы, играющие важную роль при выводе нового товара на маркетплейс, а также для удерживания позиции в выдаче.",
             "keywords": "парсер магазина, парсер маркетплейса, парсер amazon, сбор данных, мониторинг цен",
-            "article": "amazonfr",
+            "domain": "amazon.co.jp",
+            "article": "amazoncojp",
             "category": "Магазины",
             "price": 0.00,
             "currency": "USD"

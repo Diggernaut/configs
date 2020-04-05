@@ -2,9 +2,11 @@
     "english": {
         "meta": {
             "title": "Adidas scraper",
+            "title_short": "Adidas scraper",
             "description_short": "The Adidas scraper extracts product and variations information such as product name, color, size, price and availability by a given list of categories or products.",
             "description_long": "Adidas is one of the leading manufacturers of sportswear and footwear. In their online store, Adidas sells new products developed by the German company, as well as many products with discounts. Using this web scraper, you can extract public information for all products sold on adidas.com. To run this web scraper, you will need to have a free account at Diggernaut.com, as all web scrapers we are offering are purposed to run in the cloud.",
             "keywords": "ecommerce scraper, adidas scraper, data extraction, web scraping",
+            "domain": "adidas.com",
             "article": "adidascom",
             "category": "E-Commerce",
             "price": 0.00,
@@ -52,9 +54,11 @@
     "russian": {
         "meta": {
             "title": "Парсер для магазина Adidas",
+            "title_short": "Adidas",
             "description_short": "Парсер магазина Adidas собирает информацию о товарах и вариациях, такую как наименование продукта, артикул, цвет, размер, цена и наличие по списку ссылок на категории магазина или товары.",
             "description_long": "Adidas — один из ведущих концернов по производству спортивной одежды и обуви. В интернет магазине Adidas представлены новинки, разработанные немецким концерном, а также множество товаров со скидками. С помощью бесплатного парсера, приведенного ниже, вы сможете собрать информацию о всех товарах, представленных на сайте adidas.com. Для запуска этого парсера вам потребуется бесплатный аккаунт на парсинговой платформе Diggernaut.ru, так как все предлагаемые нами парсеры запускаются в облаке, а не на вашем компьютере. Данные в дальнейшем могут быть использованы для мониторинга цен и наличия, а также для других маркетинговых нужд.",
             "keywords": "парсер магазина, парсер adidas, сбор данных, мониторинг цен",
+            "domain": "adidas.com",
             "article": "adidascom",
             "category": "Магазины",
             "price": 0.00,

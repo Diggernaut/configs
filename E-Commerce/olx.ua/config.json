@@ -2,9 +2,11 @@
     "english": {
         "meta": {
             "title": "Olx.ua scraper",
+            "title_short": "Olx.ua scraper",
             "description_short": "The olx scraper presented here will help you collect information about ads on the olx.ua classified ads system. The scraper collects both information about the ad: the name of the product or service, price, date of the placement and much more, and information about the seller: its name and phone.",
             "description_long": "Probably many people know what the OLX classified ads board is. OLX exists in many countries: Ukraine, Poland, Kazakhstan and others. Using this scraper, you can pick up information about the goods and services offered in a given category, as well as the seller’s contact information.",
             "keywords": "ecommerce scraper, classified ads scraper, olx scraper, data extraction, web scraping",
+            "domain": "olx.ua",
             "article": "olxua",
             "category": "E-Commerce",
             "price": 0.00,
@@ -40,9 +42,11 @@
     "russian": {
         "meta": {
             "title": "Парсер для доски объявлений Olx.ua",
+            "title_short": "Доска объявлений Olx.ua",
             "description_short": "Представленный здесь парсер olx поможет вам собрать информацию o товарах из объявлений на доске объявлений olx.ua. Парсер собирает как информацию об объявлении: название товара, цену, дату размещения объявления и многое другой, так и информацию о продавце: его имя, телефон",
             "description_long": "Наверное многие знают, что такое доска объявлений OLX. В России компания была поглощена Авито. Однако OLX до сих пор существует во многих других странах: Украине, Польше, Казахстане и многих других. С помощью этого парсера вы сможете забрать информацию о товарах и сервисах, предлагаемых в заданной категории, а также контактную информацию продавца.",
             "keywords": "парсер доски объявлений, парсер olx, сбор данных, мониторинг цен",
+            "domain": "olx.ua",
             "article": "olxua",
             "category": "Магазины",
             "price": 0.00,

@@ -2,9 +2,11 @@
     "english": {
         "meta": {
             "title": "Abercrombie & Fitch scraper",
+            "title_short": "Abercrombie & Fitch scraper",
             "description_short": "This Abercrombie & Fitch scraper can gather information about products, variations, prices, availability by a given list of categories or products.",
             "description_long": "Abercrombie & Fitch is a shop for people who love active life, who prefer high-quality and stylish things. The company has existed for more than one hundred years and was founded in California, USA. The free web scraper offered here can extract data of products sold at the abercrombie.com online store by the given list of categories or products. To run this web scraper, you will need to have a free account at Diggernaut.com, as all web scrapers we are offering are purposed to run in the cloud.",
             "keywords": "ecommerce scraper, abercrombie scraper, data extraction, web scraping",
+            "domain": "abercrombie.com",
             "article": "abercrombiecom",
             "category": "E-Commerce",
             "price": 0.00,
@@ -52,9 +54,11 @@
     "russian": {
         "meta": {
             "title": "Парсер для магазина Abercrombie & Fitch",
+            "title_short": "Abercrombie & Fitch",
             "description_short": "Парсер магазина Abercrombie & Fitch собирает информацию о товарах, вариациях, ценах и наличии по списку ссылок на категории магазина или товары.",
             "description_long": "Abercrombie & Fitch - это онлайн магазин одежды для людей, которые любят активную жизнь и предпочитают высококачественную и стильную одежду. Компания существует уже более ста лет и была основана в Калифорнии, США. Бесплатный парсер, предлагаемый нами может собирать информацию о товарах с сайта онлайн-магазина abercrombie.com по заданному списку ссылок на категории или товары. Для запуска этого парсера вам потребуется бесплатный аккаунт на парсинговой платформе Diggernaut.ru, так как все предлагаемые нами парсеры запускаются в облаке, а не на вашем компьютере. Данные в дальнейшем могут быть использованы для мониторинга цен и наличия, а также для других маркетинговых нужд.",
             "keywords": "парсер магазина, парсер abercrombie, сбор данных, мониторинг цен",
+            "domain": "abercrombie.com",
             "article": "abercrombiecom",
             "category": "Магазины",
             "price": 0.00,
