@@ -1,5 +1,5 @@
-# Avito.ru scraper
-Digger condigurations for avito.ru.
+# Olx.ua scraper
+Digger condigurations for olx.ua.
 
 config_by_category.yml - configuration file for scraping whole categories of the classified ads board
 config_by_ad.yml - configuration file for scraping specific ads
