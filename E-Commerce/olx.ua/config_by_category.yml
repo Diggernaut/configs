@@ -63,29 +63,28 @@ do:
                         object: item
                         field: description
                 - find:
-                    path: 'em > small'
+                    path: li.offer-bottombar__item:contains("Номер объявления:") > strong
                     do:
                     - parse:
                         filter: (\d+)
-                    - object_field_set:
-                        object: item
-                        field: ad_id
+                    - if:
+                        match: \d+
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: ad_id
                 - find:
-                    path: 'em'
+                    path: li.offer-bottombar__item:contains("Добавлено:") > em > strong
                     do:
-                    - node_remove: a,small
-                    - parse
+                    - parse:
+                        filter: (\d{2}\:\d{2},\s+\d+\D+\d{4})
                     - space_dedupe
                     - trim
-                    - normalize:
-                        routine: replace_substring
-                        args:
-                            \,$: ''
                     - object_field_set:
                         object: item
                         field: date
                 - find:
-                    path: div.price-label
+                    path: div.pricelabel > strong.pricelabel__value
                     do:
                     - parse
                     - space_dedupe
@@ -94,7 +93,7 @@ do:
                         object: item
                         field: price
                 - find:
-                    path: div.offer-user__details > h4
+                    path: div.offer-user__details h4
                     do:
                     - parse
                     - space_dedupe
@@ -112,10 +111,11 @@ do:
                         object: item
                         field: address
                 - find:
-                    path: div#photo-gallery-opener > img
+                    path: 'ul#descGallery > li > a'
+                    slice: 0
                     do:
                     - parse:
-                        attr: src
+                        attr: href
                         filter: ^([^;]+)
                     - object_field_set:
                         object: item
@@ -125,27 +125,24 @@ do:
                     object: item
                     field: url
                 - find:
-                    path: table.details
+                    path: li.offer-details__item
                     do:
                     - find:
-                        path: tr:haschild(td.value)
+                        path: span.offer-details__name
                         do:
-                        - find:
-                            path: th
-                            do:
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - variable_set: fieldname
-                        - find:
-                            path: td
-                            do:
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - object_field_set:
-                                object: item
-                                field: <%fieldname%>
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: fieldname
+                    - find:
+                        path: strong.offer-details__value
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - object_field_set:
+                            object: item
+                            field: <%fieldname%>
                 - find:
                     in: doc
                     path: script:contains("phoneToken")
