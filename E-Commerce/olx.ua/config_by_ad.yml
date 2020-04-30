@@ -38,7 +38,7 @@ do:
                 object: item
                 field: description
         - find:
-            path: li.offer-bottombar__item:contains("Íîìåð îáúÿâëåíèÿ:") > strong
+            path: li.offer-bottombar__item:contains("ÐÐ¾Ð¼ÐµÑ€ Ð¾Ð±ÑŠÑÐ²Ð»ÐµÐ½Ð¸Ñ:") > strong
             do:
             - parse:
                 filter: (\d+)
@@ -49,7 +49,7 @@ do:
                     object: item
                     field: ad_id
         - find:
-            path: li.offer-bottombar__item:contains("Äîáàâëåíî:") > em > strong
+            path: li.offer-bottombar__item:contains("Ð”Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ð¾:") > em > strong
             do:
             - parse:
                 filter: (\d{2}\:\d{2},\s+\d+\D+\d{4})
