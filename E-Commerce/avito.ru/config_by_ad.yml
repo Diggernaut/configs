@@ -1,3 +1,4 @@
+#avitoru digger
 ---
 config:
     debug: 2
@@ -51,8 +52,8 @@ do:
                             routine: Base64Decode
                         - filter:
                             args:
-                            - \,\s*<%filt%>\s*\=\s*\"([a-zA-Z0-9]+)\"\;
-                            - var\s*<%filt%>\s*\=\s*\"([a-zA-Z0-9]+)\"
+                            - \,\s*<%filt%>\s*\=\s*\"([a-z0-9]+)\"\;
+                            - var\s*<%filt%>\s*\=\s*\"([a-z0-9]+)\"
                         - if:
                             match: \S
                             do:
