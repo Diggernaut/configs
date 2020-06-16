@@ -1,4 +1,8 @@
 {
+    "digger": {
+        "updated": "2020-05-29",
+        "compile": false
+    },
     "english": {
         "meta": {
             "title": "Avito.ru scraper",

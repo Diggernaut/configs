@@ -1,4 +1,8 @@
 {
+    "digger": {
+        "updated": "2020-04-05",
+        "compile": false
+    },
     "english": {
         "meta": {
             "title": "Olx.ua scraper",

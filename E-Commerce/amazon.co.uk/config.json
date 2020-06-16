@@ -1,4 +1,8 @@
 {
+    "digger": {
+        "updated": "2020-04-09",
+        "compile": false
+    },
     "english": {
         "meta": {
             "title": "Amazon.co.uk scraper",

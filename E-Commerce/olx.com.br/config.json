@@ -1,4 +1,8 @@
 {
+    "digger": {
+        "updated": "2020-06-01",
+        "compile": false
+    },
     "english": {
         "meta": {
             "title": "Olx.com.br scraper",
