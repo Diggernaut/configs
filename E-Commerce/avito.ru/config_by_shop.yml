@@ -84,7 +84,7 @@ do:
                 - parse
                 - eval:
                     routine: js
-                    body: (function () {var window = {}; <%register%>; return JSON.stringify(window.__initialData__);})();
+                    body: (function () {var window = {}; <%register%>;if (typeof window.__initialData__ === 'string' || window.__initialData__ instanceof String) {return JSON.stringify(JSON.parse(window.__initialData__));} else {return JSON.stringify(window.__initialData__);};})();
                 - normalize:
                     routine: json2xml
                 - to_block
@@ -186,7 +186,7 @@ do:
                                     - parse
                                     - eval:
                                         routine: js
-                                        body: (function () {var window = {}; <%register%>; return JSON.stringify(window.__initialData__);})();
+                                        body: (function () {var window = {}; <%register%>;if (typeof window.__initialData__ === 'string' || window.__initialData__ instanceof String) {return JSON.stringify(JSON.parse(window.__initialData__));} else {return JSON.stringify(window.__initialData__);};})();
                                     - normalize:
                                         routine: json2xml
                                     - toblock
@@ -388,7 +388,7 @@ do:
                         - proxy_switch
                         - cookie_reset
             else:
-            - error: No key found, retrying
+            - error: No key found, probably proxy is banned, retrying
             - variable_set:
                 field: rip
                 value: "yes"
