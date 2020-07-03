@@ -1,4 +1,8 @@
 {
+    "digger": {
+        "updated": "2020-07-04",
+        "compile": true
+    },
     "english": {
         "meta": {
             "title": "Sandbox scraper",
