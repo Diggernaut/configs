@@ -15,7 +15,7 @@ do:
     - variable_clear: class
     # Find the link to the next page
     - find:
-        path: a[rel="next"]
+        path: a.pagination__next
         do:
         # Parse value from the href attribute
         - parse:
