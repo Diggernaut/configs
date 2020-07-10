@@ -81,7 +81,18 @@ do:
             - find:
                 path: script:contains('window.__initialData__')
                 do:
-                - parse
+                - parse:
+                    filter:
+                        - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;\s*window\.\_\_pluginsData
+                        - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;
+                        - (.+)
+                - normalize:
+                    routine: replace_substring
+                    args:
+                        - \": ""
+                
+                - normalize:
+                    routine: URLDecode
                 - eval:
                     routine: js
                     body: (function () {var window = {}; <%register%>;if (typeof window.__initialData__ === 'string' || window.__initialData__ instanceof String) {return JSON.stringify(JSON.parse(window.__initialData__));} else {return JSON.stringify(window.__initialData__);};})();
@@ -183,13 +194,24 @@ do:
                                     path: script:matches(window\.\_\_initialData\_\_\s*\=) 
                                     in: doc
                                     do: 
-                                    - parse
+                                    - parse:
+                                        filter:
+                                            - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;\s*window\.\_\_pluginsData
+                                            - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;
+                                            - (.+)
+                                    - normalize:
+                                        routine: replace_substring
+                                        args:
+                                            - \": ""
+                                    
+                                    - normalize:
+                                        routine: URLDecode
                                     - eval:
                                         routine: js
                                         body: (function () {var window = {}; <%register%>;if (typeof window.__initialData__ === 'string' || window.__initialData__ instanceof String) {return JSON.stringify(JSON.parse(window.__initialData__));} else {return JSON.stringify(window.__initialData__);};})();
                                     - normalize:
                                         routine: json2xml
-                                    - toblock
+                                    - to_block
                                     - find: 
                                         path: body_safe 
                                         do: 
