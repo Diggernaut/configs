@@ -1,0 +1,207 @@
+# olxuz digger
+---
+config:
+    agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36
+    debug: 2
+do:
+- variable_set:
+    field: rip
+    value: "yes"
+- walk:
+    to: links
+    repeat_in_pool: <%rip%>
+    do:
+    - variable_clear: okp
+    - find:
+        path: 'section#body-container'
+        do:
+        - variable_set:
+            field: okp
+            value: 1
+    - find:
+        path: a[data-cy="page-link-next"]
+        do:
+        - parse:
+            attr: href
+        - link_add
+    - find:
+        path: a.link.detailsLink
+        do:
+        - parse:
+            attr: href
+        - variable_set:
+            field: repeat
+            value: "yes"
+        - walk:
+            to: value
+            repeat: <%repeat%>
+            do:
+            - variable_clear: ok
+            - find:
+                path: 'div#offer_active'
+                do:
+                - variable_set:
+                    field: ok
+                    value: 1
+                - object_new: item
+                - find:
+                    path: h1
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: title
+                - find:
+                    path: 'div#textContent'
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: description
+                - find:
+                    path: li.offer-bottombar__item:contains("Номер объявления:") > strong
+                    do:
+                    - parse:
+                        filter: (\d+)
+                    - if:
+                        match: \d+
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: ad_id
+                - find:
+                    path: li.offer-bottombar__item:contains("Добавлено:") > em > strong
+                    do:
+                    - parse:
+                        filter: (\d{2}\:\d{2},\s+\d+\D+\d{4})
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: date
+                - find:
+                    path: div.pricelabel > strong.pricelabel__value
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: price
+                - find:
+                    path: div.offer-user__details h4
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: seller
+                - find:
+                    path: address > p
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: address
+                - find:
+                    path: 'ul#descGallery > li > a'
+                    slice: 0
+                    do:
+                    - parse:
+                        attr: href
+                        filter: ^([^;]+)
+                    - object_field_set:
+                        object: item
+                        field: image
+                - static_get: url
+                - object_field_set:
+                    object: item
+                    field: url
+                - find:
+                    path: li.offer-details__item
+                    do:
+                    - find:
+                        path: span.offer-details__name
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: fieldname
+                    - find:
+                        path: strong.offer-details__value
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - object_field_set:
+                            object: item
+                            field: <%fieldname%>
+                - find:
+                    in: doc
+                    path: script:contains("phoneToken")
+                    do:
+                    - parse:
+                        filter: \'([^']+)\'
+                    - variable_set: token
+                - find:
+                    path: li.link-phone
+                    do:
+                    - parse:
+                        attr: class
+                        filter: \'id\'\:\'([^']+)\'
+                    - variable_set: id
+                    - sleep: 5:10
+                    - walk:
+                        to: https://www.olx.uz/oz/ajax/misc/contact/phone/<%id%>/?pt=<%token%>
+                        headers:
+                            accept: '*/*'
+                            accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
+                            x-requested-with: XMLHttpRequest
+                        do:
+                        - find:
+                            path: body_safe > value
+                            do:
+                            - parse
+                            - object_field_set:
+                                object: item
+                                field: phone
+                - object_save:
+                    name: item
+                - cookie_reset
+            - find:
+                path: body
+                do:
+                - variable_get: ok
+                - if:
+                    match: 1
+                    do:
+                    - variable_clear: repeat
+                    else:
+                    - error: Proxy is banned or page layout has been changed
+                    - cookie_reset
+                    - proxy_switch
+    - find:
+        path: html
+        do:
+        - variable_get: okp
+        - if:
+            match: 1
+            do:
+            - cookie_reset
+            - variable_set:
+                field: rip
+                value: "no"
+            else:
+            - error: Proxy is banned or page layout has been changed
+            - cookie_reset
+            - proxy_switch
+            - variable_set:
+                field: rip
+                value: "yes"
