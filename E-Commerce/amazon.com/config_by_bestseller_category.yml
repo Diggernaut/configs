@@ -261,52 +261,88 @@ do:
                     - parse
                     - space_dedupe
                     - trim
+                    - normalize:
+                        routine: replace_substring
+                        args:
+                        - ^Brand\:\s+: ''
+                        - ^Visit\s+the\s+: ''
+                        - \s+[Ss]tore$: ''
                     - if:
                         match: \S
                         do:
                         - object_field_set:
                             object: item
                             field: 04 Brand
-                - find: 
-                    path: '#merchant-info > a'
-                    slice: 0
-                    do: 
-                    - parse
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \w+
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: 05 Seller
                 - register_set: "no"
                 - object_field_set:
                     object: item
                     field: 06 Fulfilled by Amazon
-                - find: 
-                    path: '#merchant-info'
-                    do: 
+                - find:
+                    path: td.buybox-tabular-column:matches(Ships from)+td.buybox-tabular-column
+                    do:
                     - parse
-                    - space_dedupe
-                    - trim
                     - if:
-                        match: sold by Amazon
-                        do:
-                        - register_set: Amazon
-                        - object_field_set:
-                            object: item
-                            field: 05 Seller
-                    - parse
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: Fulfilled by Amazon
+                        match: \s*[Aa]mazon
                         do:
                         - register_set: "yes"
                         - object_field_set:
                             object: item
                             field: 06 Fulfilled by Amazon
+                - find:
+                    path: td.buybox-tabular-column:matches(Sold by)+td.buybox-tabular-column
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \s*[aA]mazon
+                        do:
+                        - register_set: Amazon
+                        - object_field_set:
+                            object: item
+                            field: 05 Seller
+                        else:
+                        - object_field_set:
+                            object: item
+                            field: 05 Seller
+                - find: 
+                    path: a.badge-link:haschild(i:contains("Best Seller"))
+                    in: doc
+                    do:
+                    - find:
+                        path: i
+                        do:
+                        - parse:
+                            filter:
+                            - '^\s*\#?([0-9\,\.]+)\s+'
+                        - normalize:
+                            routine: replace_substring
+                            args:
+                            - \.: ''
+                            - \,: ''
+                            - \#: ''
+                            - \D+: ''
+                        - if:
+                            match: \d
+                            do:
+                            - object_field_set:
+                                object: item
+                                field: 07 Sales Rank 1
+                                type: int
+                    - find:
+                        path: span.cat-name
+                        do:
+                        - parse:
+                            filter:
+                            - '^\s*in\s+(.+)'
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \S
+                            do:
+                            - object_field_set:
+                                object: item
+                                field: 08 Sales Rank 1 Category
                 - find: 
                     path: th.prodDetSectionEntry:contains("Best Sellers Rank")+td>span>span
                     slice: 0

@@ -1,4 +1,3 @@
-# amazoncouk digger
 ---
 config:
     debug: 2
@@ -261,6 +260,12 @@ do:
                     - parse
                     - space_dedupe
                     - trim
+                    - normalize:
+                        routine: replace_substring
+                        args:
+                        - ^Brand\:\s+: ''
+                        - ^Visit\s+the\s+: ''
+                        - \s+[Ss]tore$: ''
                     - if:
                         match: \S
                         do:
@@ -307,105 +312,6 @@ do:
                         - object_field_set:
                             object: item
                             field: 06 Fulfilled by Amazon
-                - find: 
-                    path: th.prodDetSectionEntry:contains("Best Sellers Rank")+td>span>span
-                    slice: 0
-                    in: doc
-                    do:
-                    - parse:
-                        filter:
-                            - '^\s*\#?([0-9\,\.]+)\s+in\s+[^\(]+\(?'
-                    - normalize:
-                        routine: replace_substring
-                        args:
-                        - \.: ''
-                        - \,: ''
-                        - \#: ''
-                        - \D+: ''
-                    - if:
-                        match: \d
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: 07 Sales Rank 1
-                            type: int
-                    - parse:
-                        filter:
-                            - '^\s*\#?[0-9\,\.]+\s+in\s+([^\(]+)\(?'
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \S
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: 08 Sales Rank 1 Category
-                - find: 
-                    path: th.prodDetSectionEntry:contains("Best Sellers Rank")+td>span>span
-                    slice: 1
-                    in: doc
-                    do:
-                    - parse:
-                        filter:
-                            - '^\s*\#?([0-9\,\.]+)\s+in\s+[^\(]+\(?'
-                    - normalize:
-                        routine: replace_substring
-                        args:
-                        - \.: ''
-                        - \,: ''
-                        - \#: ''
-                        - \D+: ''
-                    - if:
-                        match: \d
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: 09 Sales Rank 2
-                            type: int
-                    - parse:
-                        filter:
-                            - '^\s*\#?[0-9\,\.]+\s+in\s+([^\(]+)\(?'
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \S
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: 10 Sales Rank 2 Category
-                - find: 
-                    path: th.prodDetSectionEntry:contains("Best Sellers Rank")+td>span>span
-                    slice: 2
-                    in: doc
-                    do:
-                    - parse:
-                        filter:
-                            - '^\s*\#?([0-9\,\.]+)\s+in\s+[^\(]+\(?'
-                    - normalize:
-                        routine: replace_substring
-                        args:
-                        - \.: ''
-                        - \,: ''
-                        - \#: ''
-                        - \D+: ''
-                    - if:
-                        match: \d
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: 11 Sales Rank 3
-                            type: int
-                    - parse:
-                        filter:
-                            - '^\s*\#?[0-9\,\.]+\s+in\s+([^\(]+)\(?'
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \S
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: 12 Sales Rank 3 Category
                 - find: 
                     path: '#SalesRank'
                     in: doc
@@ -695,32 +601,5 @@ do:
                                         object: item
                                         field: 21 Images
                                         joinby: "|"
-                - find: 
-                    path: 'div#averageCustomerReviews span#acrPopover' 
-                    slice: 0
-                    do:
-                    - parse:
-                        attr: title
-                        filter: ^([0-9\.]+)
-                    - if:
-                        match: \d+
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: 22 Rating
-                            type: float
-                - find: 
-                    path: 'div#averageCustomerReviews span#acrCustomerReviewText' 
-                    slice: 0
-                    do:
-                    - parse:
-                        filter: ^(\d+)
-                    - if:
-                        match: \d+
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: 23 Reviews
-                            type: int
                 - object_save:
                     name: item
