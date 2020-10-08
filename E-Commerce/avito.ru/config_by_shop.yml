@@ -3,6 +3,9 @@
 config:
     debug: 2
     agent: "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Mobile Safari/537.36"
+    ssl:
+        version: TLSv1.2
+        cipher: ECDHE ECDSA AES 256 GCM SHA384
 do:
 - variable_set:
     field: rip
@@ -49,7 +52,7 @@ do:
                             routine: Base64Decode
                         - filter: 
                             args:
-                                - params\:\s*\{\s*key\:\s*\"?([A-Za-z0-9\$]+)\"?\s*\}\,data
+                            - params\:\s*\{\s*key\:\s*\"?([A-Za-z0-9\$]+)\"?\s*\}\,data
                         - normalize:
                             routine: replace_substring
                             args:
@@ -60,8 +63,7 @@ do:
                             routine: Base64Decode
                         - filter:
                             args:
-                            - \,\s*<%filt%>\s*\=\s*\"([a-z0-9]+)\"\;
-                            - var\s*<%filt%>\s*\=\s*\"([a-z0-9]+)\"
+                            - <%filt%>\s*\=\s*\"([a-z0-9]{44})\"
                         - if:
                             match: \S
                             do:
