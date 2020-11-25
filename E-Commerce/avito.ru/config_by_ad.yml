@@ -6,6 +6,8 @@ config:
     ssl:
         version: TLSv1.2
         cipher: ECDHE ECDSA AES 256 GCM SHA384
+    proxy:
+        type: residential
 do:
 - variable_set:
     field: rip
@@ -177,23 +179,42 @@ do:
                                 - object_field_set:
                                     object: item
                                     field: id
-                                - walk:
-                                    to: https://m.avito.ru/api/1/items/<%register%>/phone?key=<%key%>
-                                    do:
-                                    - find: 
-                                        path: uri 
-                                        do: 
-                                        - parse:
-                                            filter:
-                                                - number\=([^?]+)
-                                        - if:
-                                            match: \d
-                                            do:
-                                            - normalize:
-                                                routine: URLDecode
-                                            - object_field_set:
-                                                object: item
-                                                field: phone
+                                            - variable_set:
+                                                field: pr
+                                                value: "yes"
+                                            - walk:
+                                                to: https://m.avito.ru/api/1/items/<%register%>/phone?key=<%key%>
+                                                repeat: <%pr%>
+                                                do:
+                                                - variable_set:
+                                                    field: pr
+                                                    value: "no"
+                                                - find:
+                                                    path: title
+                                                    do:
+                                                    - parse
+                                                    - if:
+                                                        match: Доступ с вашего IP-адреса временно ограничен
+                                                        do:
+                                                        - proxy_switch
+                                                        - cookie_reset
+                                                        - variable_set:
+                                                            field: pr
+                                                            value: "yes"
+                                                - find: 
+                                                    path: uri 
+                                                    do: 
+                                                    - parse:
+                                                        filter:
+                                                            - number\=([^?]+)
+                                                    - if:
+                                                        match: \d
+                                                        do:
+                                                        - normalize:
+                                                            routine: URLDecode
+                                                        - object_field_set:
+                                                            object: item
+                                                            field: phone
                                             
                             - find: 
                                 path: item > time
