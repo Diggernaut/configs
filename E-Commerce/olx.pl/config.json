@@ -1,7 +1,7 @@
 {
     "digger": {
         "updated": "2020-10-28",
-        "compile": true
+        "compile": false
     },
     "english": {
         "meta": {
