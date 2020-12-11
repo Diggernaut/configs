@@ -274,11 +274,12 @@ do:
                                             - object_field_set:
                                                 object: item
                                                 field: id
+                                            - variable_set: itemid
                                             - variable_set:
                                                 field: pr
                                                 value: "yes"
                                             - walk:
-                                                to: https://m.avito.ru/api/1/items/<%register%>/phone?key=<%key%>
+                                                to: https://m.avito.ru/api/1/items/<%itemid%>/phone?key=<%key%>
                                                 repeat: <%pr%>
                                                 do:
                                                 - variable_set:
