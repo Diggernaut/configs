@@ -10,6 +10,9 @@ config:
         type: residential
 do:
 - variable_set:
+    field: collectPhone
+    value: "yes"
+- variable_set:
     field: rip
     value: "yes"
 - walk:
@@ -275,31 +278,39 @@ do:
                                                 object: item
                                                 field: id
                                             - variable_set: itemid
-                                            - variable_set:
-                                                field: pr
-                                                value: "yes"
+                                            - variable_get: collectPhone
+                                            - variable_set: pr
                                             - walk:
                                                 to: https://m.avito.ru/api/1/items/<%itemid%>/phone?key=<%key%>
                                                 repeat: <%pr%>
                                                 do:
-                                                - variable_set:
-                                                    field: pr
-                                                    value: "no"
                                                 - find:
                                                     path: title
                                                     do:
                                                     - parse
                                                     - if:
-                                                        match: Доступ с вашего IP-адреса временно ограничен
+                                                        match: (Доступ с вашего IP-адреса временно ограничен)|(Доступ временно заблокирован)
                                                         do:
+                                                        - info: Proxy is banned, switching
                                                         - proxy_switch
                                                         - cookie_reset
                                                         - variable_set:
                                                             field: pr
                                                             value: "yes"
                                                 - find: 
+                                                    path: message
+                                                    do: 
+                                                    - parse
+                                                    - info: <%register%>
+                                                    - variable_set:
+                                                        field: pr
+                                                        value: "no"
+                                                - find: 
                                                     path: uri 
                                                     do: 
+                                                    - variable_set:
+                                                        field: pr
+                                                        value: "no"
                                                     - parse:
                                                         filter:
                                                             - number\=([^?]+)
@@ -311,6 +322,12 @@ do:
                                                         - object_field_set:
                                                             object: item
                                                             field: phone
+                                                        else:
+                                                        - parse
+                                                        - if:
+                                                            match: authenticate
+                                                            do:
+                                                            - info: You need to login to see this phone number
                                         - find: 
                                             path: item > time
                                             do: 

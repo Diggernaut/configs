@@ -1,6 +1,6 @@
 {
     "digger": {
-        "updated": "2020-12-11",
+        "updated": "2020-12-22",
         "compile": false
     },
     "english": {
@@ -10,7 +10,7 @@
             "description_short": "The Avito scraper presented here will help you collect information about products and services from ads in the Avito.ru classified ads board. The scraper collects both information about the ad: product name, price, date of placement of the ad and many others, as well as information about the seller: its name, phone number, geographical coordinates",
             "description_long": "Avito is one of the most popular classified ads boards in Russia with tens of millions of products. Using this web scraper, you can extract information about the products or services presented in a given category, as well as the seller’s contact information. Important: if you want to collect contact information and you are on free plan, you need to use your own residential proxies",
             "keywords": "ecommerce scraper, classified ads scraper, avito scraper, data extraction, web scraping",
-            "warning": "<span class=\"text-danger\">WARNING!</span><br/>To run this digger on the \"<strong>Free</strong>\" plan you need a proxy. There is no such requirement on paid subscription plans.",
+            "warning": "<span class=\"text-danger\">WARNING!</span><br/>To run this digger on the \"<strong>Free</strong>\" plan you need a proxy. There is no such requirement on paid subscription plans. Also recently, Avito doesnt show private phone numbers in some sections without authentication.",
             "domain": "avito.ru",
             "article": "avitoru",
             "category": "E-Commerce",
@@ -63,7 +63,7 @@
             "description_short": "Представленный здесь парсер авито поможет вам собрать информацию o товарах из объявлений в системе Avito.ru. Парсер собирает как информацию об объявлении: название товара, цену, дату размещения объявления и моногое другой, так и информацию о продавце: его имя, телефон, географические координаты",
             "description_long": "Авито является одной из самых популярных в России досок объявлений частных лиц, на которой представлены десятки миллионов товаров. С помощью этого парсера вы сможете забрать информацию о товарах, представленных в заданной категории, а также контактную информацию продавца. Внимание: если вы планируете собирать контактную информацию и вы находитесь на бесплатном плане, вам нужно будет использовать свои резидентные прокси.",
             "keywords": "парсер доски объявлений, парсер авито, сбор данных, мониторинг цен",
-            "warning": "<span class=\"text-danger\">ВНИМАНИЕ!</span><br/>Запуск данного диггера на \"<strong>Бесплатном</strong>\" плане возможен только при наличии у вас прокси. На платных планах подписки подобное ограничение отсутствует.",
+            "warning": "<span class=\"text-danger\">ВНИМАНИЕ!</span><br/>Запуск данного диггера на \"<strong>Бесплатном</strong>\" плане возможен только при наличии у вас прокси. На платных планах подписки подобное ограничение отсутствует. Также, с недавних пор Авито перестало показывать номера телефонов частных лиц в обределенных разделах сайта без логина.",
             "domain": "avito.ru",
             "article": "avitoru",
             "category": "Магазины",
