@@ -186,7 +186,7 @@ do:
                     else:
                     - parse
                     - if:
-                        match: To ogłoszenie nie jest już dostępne
+                        match: (To ogłoszenie nie jest już dostępne)|(To ogłoszenie jest nieaktualne)
                         do:
                         - info: item is not exist anymore, skipping
                         else:
