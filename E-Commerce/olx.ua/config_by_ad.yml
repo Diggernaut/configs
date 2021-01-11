@@ -164,6 +164,7 @@ do:
                 match: Объявление не активно
                 do:
                 - info: item is not exist anymore, skipping
+                - variable_clear: repeat
                 else:
                 - error: Proxy is banned or page layout has been changed
                 - cookie_reset

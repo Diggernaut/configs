@@ -162,6 +162,7 @@ do:
             - parse
             - if:
                 match: (To ogłoszenie nie jest już dostępne)|(To ogłoszenie jest nieaktualne)
+                - variable_clear: repeat
                 do:
                 - info: item is not exist anymore, skipping
                 else:
