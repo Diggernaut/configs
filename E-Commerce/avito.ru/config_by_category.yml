@@ -285,49 +285,114 @@ do:
                                                 repeat: <%pr%>
                                                 do:
                                                 - find:
-                                                    path: title
+                                                    path: html
                                                     do:
-                                                    - parse
-                                                    - if:
-                                                        match: (Доступ с вашего IP-адреса временно ограничен)|(Доступ временно заблокирован)
-                                                        do:
-                                                        - info: Proxy is banned, switching
-                                                        - proxy_switch
-                                                        - cookie_reset
-                                                        - variable_set:
-                                                            field: pr
-                                                            value: "yes"
-                                                - find: 
-                                                    path: message
-                                                    do: 
-                                                    - parse
-                                                    - info: <%register%>
-                                                    - variable_set:
-                                                        field: pr
-                                                        value: "no"
-                                                - find: 
-                                                    path: uri 
-                                                    do: 
-                                                    - variable_set:
-                                                        field: pr
-                                                        value: "no"
                                                     - parse:
-                                                        filter:
-                                                            - number\=([^?]+)
+                                                        format: html
                                                     - if:
-                                                        match: \d
+                                                        match: '\&\#34\;\:'
                                                         do:
-                                                        - normalize:
-                                                            routine: URLDecode
-                                                        - object_field_set:
-                                                            object: item
-                                                            field: phone
-                                                        else:
                                                         - parse
-                                                        - if:
-                                                            match: authenticate
+                                                        - normalize:
+                                                            routine: json2xml
+                                                        - to_block
+                                                        - variable_clear: code
+                                                        - find:
+                                                            path: code
                                                             do:
-                                                            - info: You need to login to see this phone number
+                                                            - parse
+                                                            - variable_set: code
+                                                        - variable_get: code
+                                                        - if:
+                                                            match: 403
+                                                            do:
+                                                            - info: Proxy is banned, switching
+                                                            - proxy_switch
+                                                            - cookie_reset
+                                                            - variable_set:
+                                                                field: pr
+                                                                value: "yes"
+                                                            else:
+                                                            - find: 
+                                                                path: message
+                                                                do: 
+                                                                - parse
+                                                                - info: <%register%>
+                                                                - variable_set:
+                                                                    field: pr
+                                                                    value: "no"
+                                                            - find: 
+                                                                path: uri 
+                                                                do: 
+                                                                - variable_set:
+                                                                    field: pr
+                                                                    value: "no"
+                                                                - parse:
+                                                                    filter:
+                                                                        - number\=([^?]+)
+                                                                - if:
+                                                                    match: \d
+                                                                    do:
+                                                                    - normalize:
+                                                                        routine: URLDecode
+                                                                    - object_field_set:
+                                                                        object: item
+                                                                        field: phone
+                                                                    else:
+                                                                    - parse
+                                                                    - if:
+                                                                        match: authenticate
+                                                                        do:
+                                                                        - info: You need to login to see this phone number
+                                                        else:
+                                                        - variable_clear: code
+                                                        - find:
+                                                            path: code
+                                                            do:
+                                                            - parse
+                                                            - variable_set: code
+                                                        - variable_get: code
+                                                        - if:
+                                                            match: 403
+                                                            do:
+                                                            - info: Proxy is banned, switching
+                                                            - proxy_switch
+                                                            - cookie_reset
+                                                            - variable_set:
+                                                                field: pr
+                                                                value: "yes"
+                                                            else:
+                                                            - find: 
+                                                                path: message
+                                                                do: 
+                                                                - parse
+                                                                - info: <%register%>
+                                                                - variable_set:
+                                                                    field: pr
+                                                                    value: "no"
+                                                            - find: 
+                                                                path: uri 
+                                                                do: 
+                                                                - variable_set:
+                                                                    field: pr
+                                                                    value: "no"
+                                                                - parse:
+                                                                    filter:
+                                                                        - number\=([^?]+)
+                                                                - if:
+                                                                    match: \d
+                                                                    do:
+                                                                    - normalize:
+                                                                        routine: URLDecode
+                                                                    - object_field_set:
+                                                                        object: item
+                                                                        field: phone
+                                                                    else:
+                                                                    - parse
+                                                                    - if:
+                                                                        match: authenticate
+                                                                        do:
+                                                                        - info: You need to login to see this phone number
                                         - find: 
                                             path: item > time
                                             do: 
