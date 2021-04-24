@@ -33,7 +33,7 @@ do:
             field: repeat
             value: "yes"
         - walk:
-            to: 'https://www.olx.kz/obyavlenie/gruzoperevozki-po-gorodu-i-mezhgorod-gazel-gruzchiki-mebelschiki-deshevots-IDkkbv4.html#6318545eda' #value
+            to: value
             repeat: <%repeat%>
             do:
             - variable_clear: ok
