@@ -159,6 +159,20 @@ do:
             do:
             - variable_clear: repeat
             else:
-            - error: Proxy is banned or page layout has been changed
-            - cookie_reset
-            - proxy_switch
+            - parse
+            - if:
+                match: Объявление не активно
+                do:
+                - info: item is not exist anymore, skipping
+                - variable_clear: repeat
+                else:
+                - static_get: url
+                - if:
+                    match: '#from404'
+                    do:
+                    - info: item is not exist anymore, skipping
+                    - variable_clear: repeat
+                    else:
+                    - error: Proxy is banned or page layout has been changed
+                    - cookie_reset
+                    - proxy_switch
