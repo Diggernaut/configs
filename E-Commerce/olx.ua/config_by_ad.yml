@@ -12,7 +12,7 @@ do:
     value: "yes"
 - walk:
     to: links
-    repeat: <%repeat%>
+    repeat_in_pool: <%repeat%>
     do:
     - variable_clear: ok
     - find:
