@@ -53,207 +53,214 @@ do:
                     routine: json2xml
                 - to_block
                 - find:
-                    path: body_safe > ad > ad
+                    path: body_safe
                     do:
-                    - variable_clear: id
-                    - variable_set:
-                        field: ok
-                        value: 1
-                    - object_new: item
-                    - static_get: url
-                    - object_field_set:
-                        object: item
-                        field: url
+                    - parse
+                    - normalize:
+                        routine: json2xml
+                    - to_block
                     - find:
-                        in: current
-                        path: title
+                        path: body_safe > ad > ad
                         do:
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - object_field_set:
-                            object: item
-                            field: title
-                    - find:
-                        in: current
-                        path: id
-                        do:
-                        - parse:
-                            filter: (\d+)
-                        - if:
-                            match: \d+
-                            do:
-                            - object_field_set:
-                                object: item
-                                field: ad_id
-                            - variable_set: id
-                    - find:
-                        in: current
-                        path: lastrefreshtime
-                        do:
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - object_field_set:
-                            object: item
-                            field: date
-                    - find:
-                        path: contact > name
-                        do:
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - object_field_set:
-                            object: item
-                            field: seller
-                    - find:
-                        path: location > pathname
-                        do:
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - object_field_set:
-                            object: item
-                            field: address
-                    - find:
-                        path: price > regularprice > value
-                        do:
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - object_field_set:
-                            object: item
-                            field: price
-                    - find:
-                        path: price > regularprice > currencycode
-                        do:
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - object_field_set:
-                            object: item
-                            field: currency
-                    - find:
-                        path: isbusiness
-                        do:
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - normalize:
-                            routine: replace_matched
-                            args:
-                            - 'true': Компания
-                            - 'false': Частное лицо
-                        - object_field_set:
-                            object: item
-                            field: seller_type
-                    - find:
-                        in: current
-                        path: params
-                        do:
-                        - find:
-                            path: name
-                            do:
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - variable_set: fieldname
-                        - find:
-                            path: value
-                            do:
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - object_field_set:
-                                object: item
-                                field: <%fieldname%>
-                    - find:
-                        in: current
-                        path: description
-                        do:
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - normalize:
-                            routine: replace_substring
-                            args:
-                            - \&lt;br\s*\/\&gt;: ''
-                            - <br\s*\/>: ''
-                        - object_field_set:
-                            object: item
-                            field: description
-                    - find:
-                        path: photos
-                        slice: 0
-                        do:
-                        - parse:
-                            filter: ^([^;]+)
-                        - object_field_set:
-                            object: item
-                            field: image
-                    - register_set: ''
-                    - variable_get: token
-                    - if:
-                        match: \w+
-                        else:
-                        - set_engine: selenium
+                        - variable_clear: id
+                        - variable_set:
+                            field: ok
+                            value: 1
+                        - object_new: item
                         - static_get: url
-                        - walk:
-                            to: value
-                            do:
-                            - find:
-                                path: body
-                                do:
-                                - sleep: 5:10
-                                - cookie_get: a_access_token
-                                - variable_set: token
-                        - set_engine: surf
-                    - sleep: 5:10
-                    - walk:
-                        to: https://www.olx.kz/api/v1/offers/<%id%>/phones/
-                        headers:
-                            authorization: Bearer <%token%>
-                            cache-control: 'no-cache'
-                            pragma: 'no-cache'
-                            sec-ch-ua: '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"'
-                            sec-ch-ua-mobile: '?0'
-                            sec-fetch-dest: empty
-                            sec-fetch-mode: cors
-                            sec-fetch-site: same-origin
-                            version: 'v1.19'
-                            x-client: DESKTOP
-                            x-platform-type: mobile-html5
-                        do:
-                        - variable_clear: pf
+                        - object_field_set:
+                            object: item
+                            field: url
                         - find:
-                            path: data > phones
+                            in: current
+                            path: title
                             do:
                             - parse
                             - space_dedupe
                             - trim
+                            - object_field_set:
+                                object: item
+                                field: title
+                        - find:
+                            in: current
+                            path: id
+                            do:
+                            - parse:
+                                filter: (\d+)
                             - if:
                                 match: \d+
                                 do:
                                 - object_field_set:
                                     object: item
-                                    field: phone
-                                    joinby: ","
-                            - variable_set:
-                                field: pf
-                                value: 1
+                                    field: ad_id
+                                - variable_set: id
                         - find:
-                            path: body
+                            in: current
+                            path: lastrefreshtime
                             do:
-                            - variable_get: pf
-                            - if:
-                                match: 1
-                                else:
-                                - parse:
-                                    format: html
-                                - info: <%register%>
-                    - object_save:
-                        name: item
-                    - cookie_reset
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: item
+                                field: date
+                        - find:
+                            path: contact > name
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: item
+                                field: seller
+                        - find:
+                            path: location > pathname
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: item
+                                field: address
+                        - find:
+                            path: price > regularprice > value
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: item
+                                field: price
+                        - find:
+                            path: price > regularprice > currencycode
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: item
+                                field: currency
+                        - find:
+                            path: isbusiness
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - normalize:
+                                routine: replace_matched
+                                args:
+                                - 'true': Компания
+                                - 'false': Частное лицо
+                            - object_field_set:
+                                object: item
+                                field: seller_type
+                        - find:
+                            in: current
+                            path: params
+                            do:
+                            - find:
+                                path: name
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - variable_set: fieldname
+                            - find:
+                                path: value
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - object_field_set:
+                                    object: item
+                                    field: <%fieldname%>
+                        - find:
+                            in: current
+                            path: description
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - normalize:
+                                routine: replace_substring
+                                args:
+                                - \&lt;br\s*\/\&gt;: ''
+                                - <br\s*\/>: ''
+                            - object_field_set:
+                                object: item
+                                field: description
+                        - find:
+                            path: photos
+                            slice: 0
+                            do:
+                            - parse:
+                                filter: ^([^;]+)
+                            - object_field_set:
+                                object: item
+                                field: image
+                        - register_set: ''
+                        - variable_get: token
+                        - if:
+                            match: \w+
+                            else:
+                            - set_engine: selenium
+                            - static_get: url
+                            - walk:
+                                to: value
+                                do:
+                                - find:
+                                    path: body
+                                    do:
+                                    - sleep: 5:10
+                                    - cookie_get: a_access_token
+                                    - variable_set: token
+                            - set_engine: surf
+                        - sleep: 5:10
+                        - walk:
+                            to: https://www.olx.kz/api/v1/offers/<%id%>/phones/
+                            headers:
+                                authorization: Bearer <%token%>
+                                cache-control: 'no-cache'
+                                pragma: 'no-cache'
+                                sec-ch-ua: '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"'
+                                sec-ch-ua-mobile: '?0'
+                                sec-fetch-dest: empty
+                                sec-fetch-mode: cors
+                                sec-fetch-site: same-origin
+                                version: 'v1.19'
+                                x-client: DESKTOP
+                                x-platform-type: mobile-html5
+                            do:
+                            - variable_clear: pf
+                            - find:
+                                path: data > phones
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - if:
+                                    match: \d+
+                                    do:
+                                    - object_field_set:
+                                        object: item
+                                        field: phone
+                                        joinby: ","
+                                - variable_set:
+                                    field: pf
+                                    value: 1
+                            - find:
+                                path: body
+                                do:
+                                - variable_get: pf
+                                - if:
+                                    match: 1
+                                    else:
+                                    - parse:
+                                        format: html
+                                    - info: <%register%>
+                        - object_save:
+                            name: item
+                        - cookie_reset
             - find:
                 path: body
                 do:
