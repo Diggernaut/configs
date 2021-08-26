@@ -115,10 +115,12 @@ do:
                         args:
                         - categoryid: categoryId
                         - locationid: locationId
+                        - searchradius: searchRadius
+                        - privateonly: privateOnly
                     - if:
                         match: 'owner'
                         do:
-                        - register_set: owner%5B0%5D
+                        - register_set: 'owner[]'
                         - variable_set: nodeName
                     - variable_set: nodeName
                     - parse

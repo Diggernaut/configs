@@ -107,10 +107,12 @@ do:
                         args:
                         - categoryid: categoryId
                         - locationid: locationId
+                        - searchradius: searchRadius
+                        - privateonly: privateOnly
                     - if:
                         match: 'owner'
                         do:
-                        - register_set: owner%5B0%5D
+                        - register_set: 'owner[]'
                         - variable_set: nodeName
                     - variable_set: nodeName
                     - parse
@@ -132,7 +134,7 @@ do:
                 field: page
                 value: 1
             - walk:
-                to: https://m.avito.ru/api/9/items?<%sp%>&page=<%page%>&lastStamp=<%laststamp%>&display=list&limit=30
+                to: https://m.avito.ru/api/11/items?<%sp%>&page=<%page%>&lastStamp=<%laststamp%>&display=list&limit=30
                 header:
                     Referer: ''
                 repeat: <%repeat%>
