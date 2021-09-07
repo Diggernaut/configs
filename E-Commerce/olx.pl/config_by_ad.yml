@@ -43,6 +43,7 @@ do:
                     value: 1
                 - object_new: item
                 - static_get: url
+                - variable_set: url
                 - object_field_set:
                     object: item
                     field: url
@@ -191,8 +192,15 @@ do:
                             - variable_set: token
                     - set_engine: surf
                 - sleep: 5:10
+                - variable_set:
+                    field: pr
+                    value: "yes"
+                - counter_set:
+                    name: ptries
+                    value: 0
                 - walk:
                     to: https://www.olx.pl/api/v1/offers/<%id%>/phones/
+                    repeat: <%pr%>
                     headers:
                         authorization: Bearer <%token%>
                         cache-control: 'no-cache'
@@ -206,6 +214,7 @@ do:
                         x-client: DESKTOP
                         x-platform-type: mobile-html5
                     do:
+                    - variable_clear: pr
                     - variable_clear: pf
                     - find:
                         path: data > phones
@@ -220,11 +229,63 @@ do:
                                 object: item
                                 field: phone
                                 joinby: ","
+                            - variable_set:
+                                field: pf
+                                value: 1
+                    - find:
+                        path: error > detail
+                        do:
+                        - parse
+                        - variable_set: err
+                        - info: <%err%>
                         - variable_set:
                             field: pf
                             value: 1
                     - find:
-                        path: body
+                        path: data > phones
+                        do:
+                        - variable_get: pf
+                        - if:
+                            match: 1
+                            else:
+                            - info: empty phone
+                            - counter_get: tries
+                            - if:
+                                gt: 5
+                                type: int
+                                do:
+                                - error: cannot get phone number after 5 tries, aborting
+                                - variable_set:
+                                    field: pf
+                                    value: 1
+                                else:                                        
+                                - counter_increment:
+                                    name: ptries
+                                    by: 1
+                                - info: switching proxy and retrying
+                                - info: current token <%token%>
+                                - set_engine: selenium
+                                - proxy_switch
+                                - variable_get: url
+                                - walk:
+                                    to: value
+                                    do:
+                                    - find:
+                                        path: body
+                                        do:
+                                        - sleep: 5:10
+                                        - cookie_get: a_access_token
+                                        - variable_set: token
+                                - info: new token <%token%>
+                                - variable_set:
+                                    field: pr
+                                    value: "yes"
+                                - set_engine: surf
+                                - variable_set:
+                                    field: pf
+                                    value: 1
+                    - find:
+                        path: html
                         do:
                         - variable_get: pf
                         - if:
@@ -232,7 +293,8 @@ do:
                             else:
                             - parse:
                                 format: html
-                            - info: <%register%>
+                            - variable_set: ht
+                            - info: <%ht%>
                 - object_save:
                     name: item
                 - cookie_reset
