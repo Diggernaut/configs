@@ -37,6 +37,7 @@ do:
             - find:
                 path: body_safe > ad > ad
                 do:
+                - variable_clear: skipphone
                 - variable_clear: id
                 - variable_set:
                     field: ok
@@ -89,6 +90,32 @@ do:
                     - object_field_set:
                         object: item
                         field: seller
+                - find:
+                    path: contact > phone
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: "false"
+                        do:
+                        - info: No phone available
+                        - variable_set:
+                            field: skipphone
+                            value: 1
+                - find:
+                    path: protectphone
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: "true"
+                        do:
+                        - info: Phone number is protected
+                        - variable_set:
+                            field: skipphone
+                            value: 1
                 - find:
                     path: location > pathname
                     do:
@@ -191,110 +218,116 @@ do:
                             - cookie_get: a_access_token
                             - variable_set: token
                     - set_engine: surf
-                - sleep: 5:10
-                - variable_set:
-                    field: pr
-                    value: "yes"
-                - counter_set:
-                    name: ptries
-                    value: 0
-                - walk:
-                    to: https://www.olx.ua/api/v1/offers/<%id%>/phones/
-                    repeat: <%pr%>
-                    headers:
-                        authorization: Bearer <%token%>
-                        cache-control: 'no-cache'
-                        pragma: 'no-cache'
-                        sec-ch-ua: '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"'
-                        sec-ch-ua-mobile: '?0'
-                        sec-fetch-dest: empty
-                        sec-fetch-mode: cors
-                        sec-fetch-site: same-origin
-                        version: 'v1.19'
-                        x-client: DESKTOP
-                        x-platform-type: mobile-html5
+                - variable_get: skipphone
+                - if:
+                    match: 1
                     do:
-                    - variable_clear: pr
-                    - variable_clear: pf
-                    - find:
-                        path: data > phones
+                    - info: Skipping phone extraction
+                    else:
+                    - sleep: 5:10
+                    - variable_set:
+                        field: pr
+                        value: "yes"
+                    - counter_set:
+                        name: ptries
+                        value: 0
+                    - walk:
+                        to: https://www.olx.ua/api/v1/offers/<%id%>/phones/
+                        repeat: <%pr%>
+                        headers:
+                            authorization: Bearer <%token%>
+                            cache-control: 'no-cache'
+                            pragma: 'no-cache'
+                            sec-ch-ua: '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"'
+                            sec-ch-ua-mobile: '?0'
+                            sec-fetch-dest: empty
+                            sec-fetch-mode: cors
+                            sec-fetch-site: same-origin
+                            version: 'v1.19'
+                            x-client: DESKTOP
+                            x-platform-type: mobile-html5
                         do:
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - if:
-                            match: \d+
+                        - variable_clear: pr
+                        - variable_clear: pf
+                        - find:
+                            path: data > phones
                             do:
-                            - object_field_set:
-                                object: item
-                                field: phone
-                                joinby: ","
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \d+
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: phone
+                                    joinby: ","
+                                - variable_set:
+                                    field: pf
+                                    value: 1
+                        - find:
+                            path: error > detail
+                            do:
+                            - parse
+                            - variable_set: err
+                            - info: <%err%>
                             - variable_set:
                                 field: pf
                                 value: 1
-                    - find:
-                        path: error > detail
-                        do:
-                        - parse
-                        - variable_set: err
-                        - info: <%err%>
-                        - variable_set:
-                            field: pf
-                            value: 1
-                    - find:
-                        path: data > phones
-                        do:
-                        - variable_get: pf
-                        - if:
-                            match: 1
-                            else:
-                            - info: empty phone
-                            - counter_get: tries
+                        - find:
+                            path: data > phones
+                            do:
+                            - variable_get: pf
                             - if:
-                                gt: 5
-                                type: int
-                                do:
-                                - error: cannot get phone number after 5 tries, aborting
-                                - variable_set:
-                                    field: pf
-                                    value: 1
-                                else:                                        
-                                - counter_increment:
-                                    name: ptries
-                                    by: 1
-                                - info: switching proxy and retrying
-                                - info: current token <%token%>
-                                - set_engine: selenium
-                                - proxy_switch
-                                - variable_get: url
-                                - walk:
-                                    to: value
+                                match: 1
+                                else:
+                                - info: empty phone
+                                - counter_get: ptries
+                                - if:
+                                    gt: 5
+                                    type: int
                                     do:
-                                    - find:
-                                        path: body
+                                    - error: cannot get phone number after 5 tries, aborting
+                                    - variable_set:
+                                        field: pf
+                                        value: 1
+                                    else:                                        
+                                    - counter_increment:
+                                        name: ptries
+                                        by: 1
+                                    - info: switching proxy and retrying
+                                    - info: current token <%token%>
+                                    - set_engine: selenium
+                                    - proxy_switch
+                                    - variable_get: url
+                                    - walk:
+                                        to: value
                                         do:
-                                        - sleep: 5:10
-                                        - cookie_get: a_access_token
-                                        - variable_set: token
-                                - info: new token <%token%>
-                                - variable_set:
-                                    field: pr
-                                    value: "yes"
-                                - set_engine: surf
-                                - variable_set:
-                                    field: pf
-                                    value: 1
-                    - find:
-                        path: html
-                        do:
-                        - variable_get: pf
-                        - if:
-                            match: 1
-                            else:
-                            - parse:
-                                format: html
-                            - variable_set: ht
-                            - info: <%ht%>
+                                        - find:
+                                            path: body
+                                            do:
+                                            - sleep: 5:10
+                                            - cookie_get: a_access_token
+                                            - variable_set: token
+                                    - info: new token <%token%>
+                                    - variable_set:
+                                        field: pr
+                                        value: "yes"
+                                    - set_engine: surf
+                                    - variable_set:
+                                        field: pf
+                                        value: 1
+                        - find:
+                            path: html
+                            do:
+                            - variable_get: pf
+                            - if:
+                                match: 1
+                                else:
+                                - parse:
+                                    format: html
+                                - variable_set: ht
+                                - info: <%ht%>
                 - object_save:
                     name: item
                 - cookie_reset
