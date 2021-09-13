@@ -342,7 +342,7 @@ do:
             else:
             - parse
             - if:
-                match: Объявление не активно
+                match: (Объявление не активно)|(Объявление больше не доступно)|(Бұл хабарландыру өшірілген)|(Парақша табылмады)
                 do:
                 - info: item is not exist anymore, skipping
                 - variable_clear: repeat
@@ -357,3 +357,6 @@ do:
                     - error: Proxy is banned or page layout has been changed
                     - cookie_reset
                     - proxy_switch
+                    - variable_set:
+                        field: repeat
+                        value: "yes"

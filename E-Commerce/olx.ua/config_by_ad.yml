@@ -342,11 +342,21 @@ do:
             else:
             - parse
             - if:
-                match: Объявление не активно
+                match: (Объявление не активно)|(Объявление больше не доступно)|(Це оголошення більше не доступне)|(Сторінку не знайдено)
                 do:
                 - info: item is not exist anymore, skipping
                 - variable_clear: repeat
                 else:
-                - error: Proxy is banned or page layout has been changed
-                - cookie_reset
-                - proxy_switch
+                - static_get: url
+                - if:
+                    match: '#from404'
+                    do:
+                    - info: item is not exist anymore, skipping
+                    - variable_clear: repeat
+                    else:
+                    - error: Proxy is banned or page layout has been changed
+                    - cookie_reset
+                    - proxy_switch
+                    - variable_set:
+                        field: repeat
+                        value: "yes"
