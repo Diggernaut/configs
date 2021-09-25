@@ -346,6 +346,15 @@ do:
                                     - object_field_set:
                                         object: item
                                         field: views_today
+                            - find:
+                                path: item > description
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - object_field_set:
+                                    object: item
+                                    field: description
                     - find:
                         path: 'h1[itemprop="name"]'
                         in: doc
@@ -372,16 +381,6 @@ do:
                         - object_field_set:
                             object: item
                             field: price
-                    - find:
-                        path: 'meta[itemprop="description"]'
-                        do:
-                        - parse:
-                            attr: content
-                        - space_dedupe
-                        - trim
-                        - object_field_set:
-                            object: item
-                            field: description
                     - find:
                         path: 'span[data-marker="delivery/location"]'
                         do:
