@@ -21,8 +21,7 @@ do:
     do:
     - variable_clear: shopid
     - variable_clear: key
-    - variable_clear: sp
-    - variable_clear: laststamp
+    - variable_clear: query
     - find:
         path: body
         do:
@@ -30,6 +29,10 @@ do:
         - filter:
             args: avito\.ru\/([^\/]+)
         - variable_set: shopid
+        - static_get: url
+        - filter:
+            args: q=([^\&]+)
+        - variable_set: query
     - find:
         path: script
         do:
@@ -78,7 +81,6 @@ do:
     - find:
         path: html
         do:
-        - variable_clear: parok
         - variable_get: key
         - if:
             match: \w+
@@ -86,172 +88,126 @@ do:
             - variable_set:
                 field: rip
                 value: "no"
-            - find:
-                path: script:contains('window.__initialData__')
+            - variable_set:
+                field: repeat
+                value: "yes"
+            - variable_set:
+                field: offset
+                value: 0
+            - walk:
+                to: https://m.avito.ru/api/4/shops/<%shopid%>/items?key=<%key%>&query=<%query%>&display=list&limit=20&offset=<%offset%>
+                repeat: <%repeat%>
                 do:
-                - parse:
-                    filter:
-                        - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;\s*window\.\_\_pluginsData
-                        - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;
-                        - (.+)
-                - normalize:
-                    routine: replace_substring
-                    args:
-                        - \": ""
-                
-                - normalize:
-                    routine: URLDecode
-                - eval:
-                    routine: js
-                    body: (function () {var window = {}; <%register%>;if (typeof window.__initialData__ === 'string' || window.__initialData__ instanceof String) {return JSON.stringify(JSON.parse(window.__initialData__));} else {return JSON.stringify(window.__initialData__);};})();
-                - normalize:
-                    routine: json2xml
-                - to_block
-                - find:
-                    path: search > searchparams > *
-                    do:
-                    - variable_set:
-                        field: parok
-                        value: 1
-                    - variable_get: nodeName
-                    - normalize:
-                        routine: replace_substring
-                        args:
-                        - categoryid: categoryId
-                        - locationid: locationId
-                        - searchradius: searchRadius
-                        - privateonly: privateOnly
-                    - if:
-                        match: 'owner'
-                        do:
-                        - register_set: 'owner[]'
-                        - variable_set: nodeName
-                    - variable_set: nodeName
-                    - parse
-                    - normalize:
-                        routine: urlencode
-                    - register_set: <%sp%>&<%nodeName%>=<%register%>
-                    - variable_set: sp
-                - register_set: key=<%key%><%sp%>
-                - variable_set: sp
-                - find:
-                    path: search > laststamp
-                    do:
-                    - parse
-                    - variable_set: laststamp
-            - variable_get: parok
-            - if:
-                match: 1
-                else:
-                - error: data structure changed on the source website, exiting
-                - exit
-                do:
+                - sleep: 3
+                - variable_clear: catok
                 - variable_set:
                     field: repeat
                     value: "yes"
-                - variable_set:
-                    field: offset
-                    value: 0
-                - walk:
-                    to: https://m.avito.ru/api/4/shops/<%shopid%>/items?<%sp%>&lastStamp=<%laststamp%>&display=list&limit=20&offset=<%offset%>
-                    repeat: <%repeat%>
+                - find:
+                    path: status
                     do:
-                    - sleep: 3
-                    - variable_clear: catok
+                    - variable_set:
+                        field: repeat
+                        value: "no"
+                    - variable_set:
+                        field: catok
+                        value: 1
+                    - eval:
+                        routine: js
+                        body: (function () {var offset = <%offset%>; return offset + 20;})();
+                    - variable_set: offset
+                - find:
+                    path: result > laststamp
+                    do:
+                    - parse
+                    - variable_set: laststamp
+                - find:
+                    path: result > list > value > uri_mweb
+                    do:
                     - variable_set:
                         field: repeat
                         value: "yes"
-                    - find:
-                        path: status
+                    - parse
+                    - if:
+                        match: \w+
                         do:
+                        - normalize:
+                            routine: url
                         - variable_set:
-                            field: repeat
-                            value: "no"
-                        - variable_set:
-                            field: catok
-                            value: 1
-                        - eval:
-                            routine: js
-                            body: (function () {var offset = <%offset%>; return offset + 20;})();
-                        - variable_set: offset
-                    - find:
-                        path: result > laststamp
-                        do:
-                        - parse
-                        - variable_set: laststamp
-                    - find:
-                        path: result > list > value > uri_mweb
-                        do:
-                        - variable_set:
-                            field: repeat
+                            field: repeat2
                             value: "yes"
-                        - parse
-                        - if:
-                            match: \w+
+                        - walk:
+                            to: value
+                            repeat: <%repeat2%>
                             do:
-                            - normalize:
-                                routine: url
-                            - variable_set:
-                                field: repeat2
-                                value: "yes"
-                            - walk:
-                                to: value
-                                repeat: <%repeat2%>
+                            - sleep: 3
+                            - find:
+                                path: 'div#app'
                                 do:
-                                - sleep: 3
-                                - find:
-                                    path: 'div#app'
-                                    do:
-                                    - variable_set:
-                                        field: repeat2
-                                        value: "no"
-                                    - object_new: item
-                                    - static_get: url
-                                    - object_field_set:
-                                        object: item
-                                        field: url
+                                - variable_set:
+                                    field: repeat2
+                                    value: "no"
+                                - object_new: item
+                                - static_get: url
+                                - object_field_set:
+                                    object: item
+                                    field: url
+                                - find: 
+                                    path: script:matches(window\.\_\_initialData\_\_\s*\=) 
+                                    in: doc
+                                    do: 
+                                    - parse:
+                                        filter:
+                                            - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;\s*window\.\_\_pluginsData
+                                            - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;
+                                            - (.+)
+                                    - normalize:
+                                        routine: replace_substring
+                                        args:
+                                            - \": ""
+                                    
+                                    - normalize:
+                                        routine: URLDecode
+                                    - eval:
+                                        routine: js
+                                        body: (function () {var window = {}; <%register%>;if (typeof window.__initialData__ === 'string' || window.__initialData__ instanceof String) {return JSON.stringify(JSON.parse(window.__initialData__));} else {return JSON.stringify(window.__initialData__);};})();
+                                    - normalize:
+                                        routine: json2xml
+                                    - to_block
                                     - find: 
-                                        path: script:matches(window\.\_\_initialData\_\_\s*\=) 
-                                        in: doc
+                                        path: body_safe 
                                         do: 
-                                        - parse:
-                                            filter:
-                                                - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;\s*window\.\_\_pluginsData
-                                                - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;
-                                                - (.+)
-                                        - normalize:
-                                            routine: replace_substring
-                                            args:
-                                                - \": ""
-                                        
-                                        - normalize:
-                                            routine: URLDecode
-                                        - eval:
-                                            routine: js
-                                            body: (function () {var window = {}; <%register%>;if (typeof window.__initialData__ === 'string' || window.__initialData__ instanceof String) {return JSON.stringify(JSON.parse(window.__initialData__));} else {return JSON.stringify(window.__initialData__);};})();
-                                        - normalize:
-                                            routine: json2xml
-                                        - to_block
                                         - find: 
-                                            path: body_safe 
+                                            path: list:hasChild(type:matches(phone)) > value > uri
+                                            do: 
+                                            - parse:
+                                                filter: 
+                                                    - number\=(.+)\s*$
+                                            - if:
+                                                match: \d
+                                                do:
+                                                - normalize:
+                                                    routine: URLDecode
+                                                - object_field_set:
+                                                    object: item
+                                                    field: phone
+        
+                                        - find: 
+                                            path: 'images > safe_640x480'
+                                            do: 
+                                            - parse
+                                            - if:
+                                                match: \S
+                                                do:
+                                                - object_field_set:
+                                                    object: item
+                                                    field: image
+                                                    joinby: "|"
+                                        - find: 
+                                            path: coords 
                                             do: 
                                             - find: 
-                                                path: list:hasChild(type:matches(phone)) > value > uri
-                                                do: 
-                                                - parse:
-                                                    filter: 
-                                                        - number\=(.+)\s*$
-                                                - if:
-                                                    match: \d
-                                                    do:
-                                                    - normalize:
-                                                        routine: URLDecode
-                                                    - object_field_set:
-                                                        object: item
-                                                        field: phone
-            
-                                            - find: 
-                                                path: 'images > safe_640x480'
+                                                path: lat
                                                 do: 
                                                 - parse
                                                 - if:
@@ -259,283 +215,269 @@ do:
                                                     do:
                                                     - object_field_set:
                                                         object: item
-                                                        field: image
-                                                        joinby: "|"
+                                                        field: lat
+                                                        type: float
                                             - find: 
-                                                path: coords 
+                                                path: lng 
                                                 do: 
-                                                - find: 
-                                                    path: lat
-                                                    do: 
-                                                    - parse
-                                                    - if:
-                                                        match: \S
-                                                        do:
-                                                        - object_field_set:
-                                                            object: item
-                                                            field: lat
-                                                            type: float
-                                                - find: 
-                                                    path: lng 
-                                                    do: 
-                                                    - parse
-                                                    - if:
-                                                        match: \S
-                                                        do:
-                                                        - object_field_set:
-                                                            object: item
-                                                            field: lng
-                                                            type: float
-                                            - find: 
-                                                path: item > id
-                                                do: 
-                                                - parse:
-                                                    filter: (\d+)
-                                                - space_dedupe
-                                                - trim
-                                                - object_field_set:
-                                                    object: item
-                                                    field: id
-                                                - variable_set: itemid
-                                                - variable_get: collectPhone
-                                                - variable_set: pr
-                                                - walk:
-                                                    to: https://m.avito.ru/api/1/items/<%itemid%>/phone?key=<%key%>
-                                                    repeat: <%pr%>
+                                                - parse
+                                                - if:
+                                                    match: \S
                                                     do:
-                                                    - find:
-                                                        path: html
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: lng
+                                                        type: float
+                                        - find: 
+                                            path: item > id
+                                            do: 
+                                            - parse:
+                                                filter: (\d+)
+                                            - space_dedupe
+                                            - trim
+                                            - object_field_set:
+                                                object: item
+                                                field: id
+                                            - variable_set: itemid
+                                            - variable_get: collectPhone
+                                            - variable_set: pr
+                                            - walk:
+                                                to: https://m.avito.ru/api/1/items/<%itemid%>/phone?key=<%key%>
+                                                repeat: <%pr%>
+                                                do:
+                                                - find:
+                                                    path: html
+                                                    do:
+                                                    - parse:
+                                                        format: html
+                                                    - if:
+                                                        match: HTTP 502
                                                         do:
-                                                        - parse:
-                                                            format: html
+                                                        - info: Proxy is banned (502), switching
+                                                        - proxy_switch
+                                                        - cookie_reset
+                                                        - variable_set:
+                                                            field: pr
+                                                            value: "yes"
+                                                        else:   
                                                         - if:
-                                                            match: HTTP 502
+                                                            match: '\&\#34\;\:'
                                                             do:
-                                                            - info: Proxy is banned (502), switching
-                                                            - proxy_switch
-                                                            - cookie_reset
-                                                            - variable_set:
-                                                                field: pr
-                                                                value: "yes"
-                                                            else:   
-                                                            - if:
-                                                                match: '\&\#34\;\:'
+                                                            - parse
+                                                            - normalize:
+                                                                routine: json2xml
+                                                            - to_block
+                                                            - variable_clear: code
+                                                            - find:
+                                                                path: code
                                                                 do:
                                                                 - parse
-                                                                - normalize:
-                                                                    routine: json2xml
-                                                                - to_block
-                                                                - variable_clear: code
-                                                                - find:
-                                                                    path: code
-                                                                    do:
-                                                                    - parse
-                                                                    - variable_set: code
-                                                                - variable_get: code
-                                                                - if:
-                                                                    match: 403
-                                                                    do:
-                                                                    - info: Proxy is banned, switching
-                                                                    - proxy_switch
-                                                                    - cookie_reset
-                                                                    - variable_set:
-                                                                        field: pr
-                                                                        value: "yes"
-                                                                    else:
-                                                                    - find: 
-                                                                        path: message
-                                                                        do: 
-                                                                        - parse
-                                                                        - info: <%register%>
-                                                                        - variable_set:
-                                                                            field: pr
-                                                                            value: "no"
-                                                                    - find: 
-                                                                        path: uri 
-                                                                        do: 
-                                                                        - variable_set:
-                                                                            field: pr
-                                                                            value: "no"
-                                                                        - parse:
-                                                                            filter:
-                                                                                - number\=([^?]+)
-                                                                        - if:
-                                                                            match: \d
-                                                                            do:
-                                                                            - normalize:
-                                                                                routine: URLDecode
-                                                                            - object_field_set:
-                                                                                object: item
-                                                                                field: phone
-                                                                            else:
-                                                                            - parse
-                                                                            - if:
-                                                                                match: authenticate
-                                                                                do:
-                                                                                - info: You need to login to see this phone number
+                                                                - variable_set: code
+                                                            - variable_get: code
+                                                            - if:
+                                                                match: 403
+                                                                do:
+                                                                - info: Proxy is banned, switching
+                                                                - proxy_switch
+                                                                - cookie_reset
+                                                                - variable_set:
+                                                                    field: pr
+                                                                    value: "yes"
                                                                 else:
-                                                                - variable_clear: code
-                                                                - find:
-                                                                    path: code
-                                                                    do:
+                                                                - find: 
+                                                                    path: message
+                                                                    do: 
                                                                     - parse
-                                                                    - variable_set: code
-                                                                - variable_get: code
-                                                                - if:
-                                                                    match: 403
-                                                                    do:
-                                                                    - info: Proxy is banned, switching
-                                                                    - proxy_switch
-                                                                    - cookie_reset
+                                                                    - info: <%register%>
                                                                     - variable_set:
                                                                         field: pr
-                                                                        value: "yes"
-                                                                    else:
-                                                                    - find: 
-                                                                        path: message
-                                                                        do: 
+                                                                        value: "no"
+                                                                - find: 
+                                                                    path: uri 
+                                                                    do: 
+                                                                    - variable_set:
+                                                                        field: pr
+                                                                        value: "no"
+                                                                    - parse:
+                                                                        filter:
+                                                                            - number\=([^?]+)
+                                                                    - if:
+                                                                        match: \d
+                                                                        do:
+                                                                        - normalize:
+                                                                            routine: URLDecode
+                                                                        - object_field_set:
+                                                                            object: item
+                                                                            field: phone
+                                                                        else:
                                                                         - parse
-                                                                        - info: <%register%>
-                                                                        - variable_set:
-                                                                            field: pr
-                                                                            value: "no"
-                                                                    - find: 
-                                                                        path: uri 
-                                                                        do: 
-                                                                        - variable_set:
-                                                                            field: pr
-                                                                            value: "no"
-                                                                        - parse:
-                                                                            filter:
-                                                                                - number\=([^?]+)
                                                                         - if:
-                                                                            match: \d
+                                                                            match: authenticate
                                                                             do:
-                                                                            - normalize:
-                                                                                routine: URLDecode
-                                                                            - object_field_set:
-                                                                                object: item
-                                                                                field: phone
-                                                                            else:
-                                                                            - parse
-                                                                            - if:
-                                                                                match: authenticate
-                                                                                do:
-                                                                                - info: You need to login to see this phone number
-                                            - find: 
-                                                path: item > time
-                                                do: 
-                                                - parse:
-                                                    filter: (\d+)
-                                                - if:
-                                                    match: \d+
-                                                    do:
-                                                    - normalize:
-                                                        routine: date_format
-                                                        args:
-                                                            format_in: "%s"
-                                                            format_out: "%Y-%m-%d %T"
-                                                    - object_field_set:
-                                                        object: item
-                                                        field: actualized
-                                            - find: 
-                                                path: item > stats > views > total
-                                                do: 
-                                                - parse:
-                                                    filter: (\d+)
-                                                - if:
-                                                    match: \d+
-                                                    do:
-                                                    - object_field_set:
-                                                        object: item
-                                                        field: views_total
-                                            - find: 
-                                                path: item > stats > views > today
-                                                do: 
-                                                - parse:
-                                                    filter: (\d+)
-                                                - if:
-                                                    match: \d+
-                                                    do:
-                                                    - object_field_set:
-                                                        object: item
-                                                        field: views_today
-                                            - find:
-                                                path: item > description
+                                                                            - info: You need to login to see this phone number
+                                                            else:
+                                                            - variable_clear: code
+                                                            - find:
+                                                                path: code
+                                                                do:
+                                                                - parse
+                                                                - variable_set: code
+                                                            - variable_get: code
+                                                            - if:
+                                                                match: 403
+                                                                do:
+                                                                - info: Proxy is banned, switching
+                                                                - proxy_switch
+                                                                - cookie_reset
+                                                                - variable_set:
+                                                                    field: pr
+                                                                    value: "yes"
+                                                                else:
+                                                                - find: 
+                                                                    path: message
+                                                                    do: 
+                                                                    - parse
+                                                                    - info: <%register%>
+                                                                    - variable_set:
+                                                                        field: pr
+                                                                        value: "no"
+                                                                - find: 
+                                                                    path: uri 
+                                                                    do: 
+                                                                    - variable_set:
+                                                                        field: pr
+                                                                        value: "no"
+                                                                    - parse:
+                                                                        filter:
+                                                                            - number\=([^?]+)
+                                                                    - if:
+                                                                        match: \d
+                                                                        do:
+                                                                        - normalize:
+                                                                            routine: URLDecode
+                                                                        - object_field_set:
+                                                                            object: item
+                                                                            field: phone
+                                                                        else:
+                                                                        - parse
+                                                                        - if:
+                                                                            match: authenticate
+                                                                            do:
+                                                                            - info: You need to login to see this phone number
+                                        - find: 
+                                            path: item > time
+                                            do: 
+                                            - parse:
+                                                filter: (\d+)
+                                            - if:
+                                                match: \d+
                                                 do:
-                                                - parse
-                                                - space_dedupe
-                                                - trim
+                                                - normalize:
+                                                    routine: date_format
+                                                    args:
+                                                        format_in: "%s"
+                                                        format_out: "%Y-%m-%d %T"
                                                 - object_field_set:
                                                     object: item
-                                                    field: description
-                                    - find:
-                                        path: 'h1[itemprop="name"]'
-                                        in: doc
-                                        do:
-                                        - parse
-                                        - space_dedupe
-                                        - trim
-                                        - object_field_set:
-                                            object: item
-                                            field: title
-                                    - find:
-                                        path: 'meta[itemprop="priceCurrency"]'
-                                        do:
-                                        - parse:
-                                            attr: content
-                                        - object_field_set:
-                                            object: item
-                                            field: currency
-                                    - find: 
-                                        path: 'meta[itemprop="price"]' 
-                                        do: 
-                                        - parse:
-                                            attr: content
-                                        - object_field_set:
-                                            object: item
-                                            field: price
-                                    - find:
-                                        path: 'span[data-marker="delivery/location"]'
-                                        do:
-                                        - parse
-                                        - space_dedupe
-                                        - trim
-                                        - object_field_set:
-                                            object: item
-                                            field: address
-            
-                                    - find:
-                                        path: 'span[data-marker="seller-info/name"]'
-                                        do:
-                                        - parse
-                                        - space_dedupe
-                                        - trim
-                                        - object_field_set:
-                                            object: item
-                                            field: seller
-                                    - object_save:
-                                        name: item
+                                                    field: actualized
+                                        - find: 
+                                            path: item > stats > views > total
+                                            do: 
+                                            - parse:
+                                                filter: (\d+)
+                                            - if:
+                                                match: \d+
+                                                do:
+                                                - object_field_set:
+                                                    object: item
+                                                    field: views_total
+                                        - find: 
+                                            path: item > stats > views > today
+                                            do: 
+                                            - parse:
+                                                filter: (\d+)
+                                            - if:
+                                                match: \d+
+                                                do:
+                                                - object_field_set:
+                                                    object: item
+                                                    field: views_today
+                                        - find:
+                                            path: item > description
+                                            do:
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - object_field_set:
+                                                object: item
+                                                field: description
                                 - find:
-                                    path: body
+                                    path: 'h1[itemprop="name"]'
+                                    in: doc
                                     do:
-                                    - variable_get: repeat2
-                                    - if:
-                                        match: "yes"
-                                        do:
-                                        - error: Page changed layout or proxy is banned, retrying
-                                        - proxy_switch
-                                        - cookie_reset
-                    - find:
-                        path: html
-                        do:
-                        - variable_get: catok
-                        - if:
-                            match: 1
-                            else:
-                            - error: "no data returned, retrying"
-                            - proxy_switch
-                            - cookie_reset
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - object_field_set:
+                                        object: item
+                                        field: title
+                                - find:
+                                    path: 'meta[itemprop="priceCurrency"]'
+                                    do:
+                                    - parse:
+                                        attr: content
+                                    - object_field_set:
+                                        object: item
+                                        field: currency
+                                - find: 
+                                    path: 'meta[itemprop="price"]' 
+                                    do: 
+                                    - parse:
+                                        attr: content
+                                    - object_field_set:
+                                        object: item
+                                        field: price
+                                - find:
+                                    path: 'span[data-marker="delivery/location"]'
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - object_field_set:
+                                        object: item
+                                        field: address
+        
+                                - find:
+                                    path: 'span[data-marker="seller-info/name"]'
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - object_field_set:
+                                        object: item
+                                        field: seller
+                                - object_save:
+                                    name: item
+                            - find:
+                                path: body
+                                do:
+                                - variable_get: repeat2
+                                - if:
+                                    match: "yes"
+                                    do:
+                                    - error: Page changed layout or proxy is banned, retrying
+                                    - proxy_switch
+                                    - cookie_reset
+                - find:
+                    path: html
+                    do:
+                    - variable_get: catok
+                    - if:
+                        match: 1
+                        else:
+                        - error: "no data returned, retrying"
+                        - proxy_switch
+                        - cookie_reset
             else:
             - error: No key found, probably proxy is banned, retrying
             - variable_set:
