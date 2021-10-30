@@ -142,56 +142,29 @@ do:
                             do:
                             - sleep: 3
                             - find:
-                                path: 'div#app'
+                                path: a[data-marker="full-version"]
                                 do:
-                                - variable_set:
-                                    field: repeat2
-                                    value: "no"
-                                - object_new: item
-                                - static_get: url
-                                - object_field_set:
-                                    object: item
-                                    field: url
-                                - find: 
-                                    path: script:matches(window\.\_\_initialData\_\_\s*\=) 
-                                    in: doc
-                                    do: 
-                                    - parse:
-                                        filter:
-                                            - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;\s*window\.\_\_pluginsData
-                                            - (window\.\_\_initialData\_\_\s*\=\s*\"[^\"]+\s*\")\s*;
-                                            - (.+)
-                                    - normalize:
-                                        routine: replace_substring
-                                        args:
-                                            - \": ""
-                                    
-                                    - normalize:
-                                        routine: URLDecode
-                                    - eval:
-                                        routine: js
-                                        body: (function () {var window = {}; <%register%>;if (typeof window.__initialData__ === 'string' || window.__initialData__ instanceof String) {return JSON.stringify(JSON.parse(window.__initialData__));} else {return JSON.stringify(window.__initialData__);};})();
-                                    - normalize:
-                                        routine: json2xml
-                                    - to_block
-                                    - find: 
-                                        path: body_safe 
-                                        do: 
-                                        - find: 
-                                            path: list:hasChild(type:matches(phone)) > value > uri
-                                            do: 
-                                            - parse:
-                                                filter: 
-                                                    - number\=(.+)\s*$
-                                            - if:
-                                                match: \d
-                                                do:
-                                                - normalize:
-                                                    routine: URLDecode
-                                                - object_field_set:
-                                                    object: item
-                                                    field: phone
-        
+                                - parse:
+                                    attr: href
+                                    filter: (\d+)\?
+                                - if:
+                                    match: \d+
+                                    else:
+                                    - error: Cannot find product id, layout is changed
+                                    - exit
+                                    do:
+                                    - variable_set: pid
+                                    - variable_set:
+                                        field: repeat2
+                                        value: "no"
+                                    - object_new: item
+                                    - static_get: url
+                                    - object_field_set:
+                                        object: item
+                                        field: url
+                                    - walk:
+                                        to: https://m.avito.ru/api/17/items/<%pid%>?key=<%key%>&action=view
+                                        do:
                                         - find: 
                                             path: 'images > safe_640x480'
                                             do: 
@@ -229,7 +202,7 @@ do:
                                                         field: lng
                                                         type: float
                                         - find: 
-                                            path: item > id
+                                            path: body_safe > body_safe > id
                                             do: 
                                             - parse:
                                                 filter: (\d+)
@@ -259,7 +232,7 @@ do:
                                                         - variable_set:
                                                             field: pr
                                                             value: "yes"
-                                                        else:   
+                                                        else:
                                                         - if:
                                                             match: '\&\#34\;\:'
                                                             do:
@@ -365,7 +338,7 @@ do:
                                                                             do:
                                                                             - info: You need to login to see this phone number
                                         - find: 
-                                            path: item > time
+                                            path: body_safe > body_safe > time
                                             do: 
                                             - parse:
                                                 filter: (\d+)
@@ -381,7 +354,7 @@ do:
                                                     object: item
                                                     field: actualized
                                         - find: 
-                                            path: item > stats > views > total
+                                            path: body_safe > body_safe > stats > views > total
                                             do: 
                                             - parse:
                                                 filter: (\d+)
@@ -392,7 +365,7 @@ do:
                                                     object: item
                                                     field: views_total
                                         - find: 
-                                            path: item > stats > views > today
+                                            path: body_safe > body_safe > stats > views > today
                                             do: 
                                             - parse:
                                                 filter: (\d+)
@@ -403,7 +376,7 @@ do:
                                                     object: item
                                                     field: views_today
                                         - find:
-                                            path: item > description
+                                            path: body_safe > body_safe > description
                                             do:
                                             - parse
                                             - space_dedupe
@@ -411,53 +384,53 @@ do:
                                             - object_field_set:
                                                 object: item
                                                 field: description
-                                - find:
-                                    path: 'h1[itemprop="name"]'
-                                    in: doc
-                                    do:
-                                    - parse
-                                    - space_dedupe
-                                    - trim
-                                    - object_field_set:
-                                        object: item
-                                        field: title
-                                - find:
-                                    path: 'meta[itemprop="priceCurrency"]'
-                                    do:
-                                    - parse:
-                                        attr: content
-                                    - object_field_set:
-                                        object: item
-                                        field: currency
-                                - find: 
-                                    path: 'meta[itemprop="price"]' 
-                                    do: 
-                                    - parse:
-                                        attr: content
-                                    - object_field_set:
-                                        object: item
-                                        field: price
-                                - find:
-                                    path: 'span[data-marker="delivery/location"]'
-                                    do:
-                                    - parse
-                                    - space_dedupe
-                                    - trim
-                                    - object_field_set:
-                                        object: item
-                                        field: address
-        
-                                - find:
-                                    path: 'span[data-marker="seller-info/name"]'
-                                    do:
-                                    - parse
-                                    - space_dedupe
-                                    - trim
-                                    - object_field_set:
-                                        object: item
-                                        field: seller
-                                - object_save:
-                                    name: item
+                                        - find:
+                                            path: body_safe > body_safe > title
+                                            do:
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - object_field_set:
+                                                object: item
+                                                field: title
+                                        - find:
+                                            path: body_safe > body_safe > price > metric
+                                            do:
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - object_field_set:
+                                                object: item
+                                                field: currency
+                                        - find:
+                                            path: body_safe > body_safe > price > value
+                                            do:
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - object_field_set:
+                                                object: item
+                                                field: price
+                                        - find:
+                                            path: body_safe > body_safe > address
+                                            do:
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - object_field_set:
+                                                object: item
+                                                field: address
+                                        - find:
+                                            path: body_safe > body_safe > seller > name
+                                            do:
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - object_field_set:
+                                                object: item
+                                                field: seller
+                                    - object_save:
+                                        name: item
                             - find:
                                 path: body
                                 do:
