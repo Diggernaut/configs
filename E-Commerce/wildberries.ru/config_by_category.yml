@@ -1,0 +1,578 @@
+#lamodaru digger
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- counter_reset: pool
+- variable_set: 
+    field: repc
+    value: "yes"
+- walk:
+    to: links
+    repeat_in_pool: <%repc%>
+    do:
+    - variable_clear: repc
+    - counter_increment:
+        name: pool
+    - find: 
+        path: body 
+        do: 
+        - static_get: responseCode
+        - if:
+            match: 503|423
+            do:
+            - proxy_switch
+            - cookie_reset
+            - variable_set: 
+                field: repc
+                value: "yes"
+            - counter_get: pool
+            - if:
+                gt: 5
+                type: int
+                do:
+                - error: Server return 503 error code after 5 retries, exiting
+                - exit
+            - info: Server return 503 error code, retrying
+    - find:
+        path: body
+        do:
+        - variable_clear: total
+        - variable_clear: category
+        - variable_clear: date
+        - variable_clear: page
+        - static_get: url
+        - normalize:
+            routine: replace_substring
+            args:
+            - .+\/c\/: ' '
+            - \/\?.+: ' '
+            - ^\s+|\s+$: ''
+        - variable_set: category
+        - find:
+            path: .d-catalog-header__product-counter
+            do:
+            - parse:
+                filter: (\d+)
+            - variable_set: total
+            - counter_reset: pool
+            - eval:
+                routine: js
+                body: (function(){var t = <%total%>;var offset = [];for(var i = 1; (i-1)*60 < t; i++){offset.push(i)}; return offset.join(",");})();
+            - to_block
+            - split:
+                context: text
+                delimiter: ","
+            - find:
+                path: div
+                do:
+                - parse
+                - if:
+                    match: \d+
+                    do:
+                    - variable_set: page
+                    - register_set: https://www.lamoda.ru/c/<%category%>?json=1&page=<%page%>
+                    - link_add:
+                        pool: catalog
+        - variable_get: total
+        - if:
+            match: \d
+            else:
+            - proxy_switch
+            - cookie_reset
+            - variable_set: 
+                field: rep
+                value: "yes"
+            - counter_get: pool
+            - if:
+                gt: 5
+                type: int
+                do:
+                - find: 
+                    path: html
+                    in: doc
+                    do: 
+                    - parse:
+                        format: html
+                    - info: 'HTML: <%register%>'
+                - error: total product count not found after 5 retries, probably layout changed
+                - exit
+            - info: total product count not found, retry
+- counter_reset: pool2
+- variable_set: 
+    field: repc
+    value: "yes"
+- walk:
+    to: links
+    repeat_in_pool: <%repc%>
+    pool: catalog
+    do:
+    - counter_increment:
+        name: pool2
+    - variable_clear: repc
+    - find: 
+        path: body 
+        do: 
+        - static_get: responseCode
+        - if:
+            match: 503|423
+            do:
+            - proxy_switch
+            - cookie_reset
+            - variable_set: 
+                field: repc
+                value: "yes"
+            - counter_get: pool2
+            - if:
+                gt: 5
+                type: int
+                do:
+                - error: Server returns 503 error code after 5 retries, exiting
+                - exit
+            - info: Server returns 503 error code, retrying
+    - variable_clear: plistok
+    - find:
+        path: products
+        do:
+        - counter_reset: pool2
+        - variable_set: 
+            field: plistok
+            value: 1
+        - find: 
+            path: sku 
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \w+
+                do:
+                - register_set: https://www.lamoda.ru/p/<%register%>/
+                - variable_set: purl
+                - variable_set: 
+                    field: rep
+                    value: "yes"
+                - walk:
+                    to: <%purl%>
+                    repeat: <%rep%>
+                    do:
+                    - variable_clear: rep
+                    - counter_increment:
+                        name: pool1
+                    - find: 
+                        path: body 
+                        do: 
+                        - static_get: responseCode
+                        - if:
+                            match: 503
+                            do:
+                            - proxy_switch
+                            - cookie_reset
+                            - variable_set: 
+                                field: rep
+                                value: "yes"
+                            - counter_get: pool1
+                            - if:
+                                gt: 5
+                                type: int
+                                do:
+                                - variable_clear: rep
+                                - counter_reset: pool1
+                                - info: server returns 503 error after 5 retries, skip URL
+                                # - exit
+                            - info: server returns 503 error, retry
+                            else:
+                            - variable_clear: categories
+                            - variable_clear: sku
+                            - variable_clear: image
+                            - variable_clear: brand
+                            - variable_clear: color
+                            - variable_clear: gender
+                            - variable_clear: seller
+                            - variable_clear: title
+                            - variable_clear: description
+                            - variable_clear: categories
+                            - variable_clear: price
+                            - variable_clear: rating
+                            - variable_clear: reviews
+                            - variable_clear: instock
+                            - variable_clear: pageok
+                            - object_new: item
+                            - static_get: url
+                            - object_field_set:
+                                object: item
+                                field: url
+                            - find: 
+                                path: x-app-content > div[data-sku]
+                                do: 
+                                - register_set: ''
+                                - parse:
+                                    attr: data-sku
+                                - variable_set: sku
+                                - register_set: ''
+                                - parse:
+                                    attr: data-image
+                                - normalize:
+                                    routine: replace_substring
+                                    args:
+                                        img\d+x\d+: 'img600x866'
+                                - normalize:
+                                    routine: url
+                                - variable_set: image
+                                - register_set: ''
+                                - parse:
+                                    attr: data-brand
+                                - variable_set: brand
+                                - register_set: ''
+                                - parse:
+                                    attr: data-size_gender
+                                - variable_set: gender
+                                - register_set: ''
+                                - parse:
+                                    attr: data-color
+                                - variable_set: color
+                                - register_set: ''
+                                - parse:
+                                    attr: data-seller_name
+                                - variable_set: seller
+                            - find: 
+                                path: p.product-description__description
+                                do: 
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - if:
+                                    match: \S
+                                    do:
+                                    - variable_set: description
+                            - find:
+                                path: .product-title__model-name
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - if:
+                                    match: \S+
+                                    do:
+                                    - variable_set: title
+                            - find:
+                                path: script:contains('d.breadcrumbs')
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - filter: 
+                                    args:
+                                        - d\.breadcrumbs\s*\=\s*([^;]+)
+                                - eval:
+                                    routine: js
+                                    body: (function () {return JSON.stringify(<%register%>);})();
+                                - normalize:
+                                    routine: json2xml
+                                - to_block
+                                - find:
+                                    path: title
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - if:
+                                        match: \S
+                                        do:
+                                        - variable_set: cat
+                                        - variable_get: categories
+                                        - if:
+                                            match: \S+
+                                            do:
+                                            - register_set: <%categories%>, <%cat%>
+                                            - variable_set: categories
+                                            else:
+                                            - register_set: <%cat%>
+                                            - variable_set: categories
+                            - find: 
+                                path: script:matches(current\:) 
+                                do: 
+                                - parse:
+                                    filter:
+                                    - current\:\s*\'?\"?(\d+)\"?\'?
+                                - if:
+                                    match: \d
+                                    do:
+                                    - variable_set: price
+                            - find:
+                                path: script[type="application/ld+json"]:contains("\"Product\"")
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - normalize:
+                                    routine: json2xml
+                                - to_block
+                                - find:
+                                    path: ratingValue
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - variable_set: rating
+                                - find:
+                                    path: reviewCount
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - variable_set: reviews
+                                - find:
+                                    path: availability
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - if:
+                                        match: InStock
+                                        do:
+                                        - register_set: "yes"
+                                        - variable_set: instock
+                                        else:
+                                        - register_set: "no"
+                                        - variable_set: instock
+                            - find: 
+                                path: script:contains('window.LMDA.pageState') 
+                                do: 
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - filter: 
+                                    args:
+                                    - \"\,\"sizes\":(\[[^\]]*])
+                                - eval:
+                                    routine: js
+                                    body: (function () {var p = <%register%>; return JSON.stringify(p);})();
+                                - normalize:
+                                    routine: json2xml
+                                - to_block
+                                - find:
+                                    path: body_safe
+                                    do:
+                                    - variable_set: 
+                                        field: pageok
+                                        value: 1
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - if:
+                                        match: \S+
+                                        do:
+                                        - find:
+                                            path: element
+                                            do:
+                                            - object_new: item
+                                            - variable_get: sku
+                                            - object_field_set:
+                                                object: item
+                                                field: sku
+                                            - variable_get: image
+                                            - object_field_set:
+                                                object: item
+                                                field: image
+                                            - static_get: url
+                                            - object_field_set:
+                                                object: item
+                                                field: url
+                                            - variable_get: brand
+                                            - object_field_set:
+                                                object: item
+                                                field: brand
+                                            - variable_get: seller
+                                            - object_field_set:
+                                                object: item
+                                                field: seller
+                                            - variable_get: color
+                                            - object_field_set:
+                                                object: item
+                                                field: color
+                                            - variable_get: gender
+                                            - object_field_set:
+                                                object: item
+                                                field: gender
+                                            - variable_get: title
+                                            - object_field_set:
+                                                object: item
+                                                field: title
+                                            - variable_get: description
+                                            - object_field_set:
+                                                object: item
+                                                field: description
+                                            - variable_get: categories
+                                            - object_field_set:
+                                                object: item
+                                                field: categories
+                                            - variable_get: price
+                                            - object_field_set:
+                                                object: item
+                                                field: price
+                                            - variable_get: rating
+                                            - object_field_set:
+                                                object: item
+                                                field: rating
+                                            - variable_get: reviews
+                                            - object_field_set:
+                                                object: item
+                                                field: reviews
+                                            - find:
+                                                path: full_sku
+                                                do:
+                                                - parse
+                                                - space_dedupe
+                                                - trim
+                                                - object_field_set:
+                                                    object: item
+                                                    field: sku
+                                            - find:
+                                                path: brand_size
+                                                do:
+                                                - parse
+                                                - space_dedupe
+                                                - trim
+                                                - object_field_set:
+                                                    object: item
+                                                    field: size
+                                            - find:
+                                                path: is_available
+                                                do:
+                                                - parse
+                                                - space_dedupe
+                                                - trim
+                                                - if:
+                                                    match: 'true'
+                                                    do:
+                                                    - register_set: "yes"
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: instock
+                                                    else:
+                                                    - register_set: "no"
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: instock
+                                            - find:
+                                                path: left
+                                                do:
+                                                - parse
+                                                - space_dedupe
+                                                - trim
+                                                - if:
+                                                    match: \d+
+                                                    do:
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: stock
+                                            - object_save:
+                                                name: item
+                                        else:
+                                        - object_new: item
+                                        - variable_get: sku
+                                        - object_field_set:
+                                            object: item
+                                            field: sku
+                                        - variable_get: image
+                                        - object_field_set:
+                                            object: item
+                                            field: image
+                                        - static_get: url
+                                        - object_field_set:
+                                            object: item
+                                            field: url
+                                        - variable_get: brand
+                                        - object_field_set:
+                                            object: item
+                                            field: brand
+                                        - variable_get: seller
+                                        - object_field_set:
+                                            object: item
+                                            field: seller
+                                        - variable_get: color
+                                        - object_field_set:
+                                            object: item
+                                            field: color
+                                        - variable_get: gender
+                                        - object_field_set:
+                                            object: item
+                                            field: gender
+                                        - variable_get: title
+                                        - object_field_set:
+                                            object: item
+                                            field: title
+                                        - variable_get: description
+                                        - object_field_set:
+                                            object: item
+                                            field: description
+                                        - variable_get: categories
+                                        - object_field_set:
+                                            object: item
+                                            field: categories
+                                        - variable_get: price
+                                        - object_field_set:
+                                            object: item
+                                            field: price
+                                        - variable_get: rating
+                                        - object_field_set:
+                                            object: item
+                                            field: rating
+                                        - variable_get: reviews
+                                        - object_field_set:
+                                            object: item
+                                            field: reviews
+                                        - variable_get: instock
+                                        - object_field_set:
+                                            object: item
+                                            field: instock
+                                        - object_save:
+                                            name: item
+                            - register_set: ''
+                            - variable_get: pageok
+                            - if:
+                                match: \d
+                                else:
+                                - proxy_switch
+                                - cookie_reset
+                                - variable_set: 
+                                    field: rep
+                                    value: "yes"
+                                - counter_get: pool1
+                                - if:
+                                    gt: 5
+                                    type: int
+                                    do:
+                                    - counter_reset: pool1
+                                    - variable_clear: rep
+                                    - error: Cannot fetch product data after 5 retries, probably layout has been changed
+                                    else:
+                                    - error: Cannot fetch product data, retrying
+    - find: 
+        path: body 
+        do: 
+        - variable_get: plistok
+        - if:
+            match: \d
+            else:
+            - proxy_switch
+            - cookie_reset
+            - variable_set: 
+                field: repc
+                value: "yes"
+            - counter_get: pool2
+            - if:
+                gt: 5
+                type: int
+                do:
+                - find: 
+                    path: html
+                    in: doc
+                    do: 
+                    - parse:
+                        format: html
+                    - info: 'HTML: <%register%>'
+                - error: Products not found after 5 retries, probably layout changed
+                - exit

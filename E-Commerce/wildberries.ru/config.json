@@ -25,7 +25,7 @@
                     "presets": [],
                     "pool": {
                         "title": "Please add at least one URL to the category of the web-store",
-                        "example": "https://www.lamoda.ru/c/7288/beauty_accs-women-bathandshower/"
+                        "example": "https://www.wildberries.ru/catalog/zdorove/tovary-posle-mastektomii"
                     }
                 }
             },
@@ -37,7 +37,7 @@
                     "presets": [],
                     "pool": {
                         "title": "Please add at least one URL to the product page at the online store",
-                        "example": "https://www.lamoda.ru/p/lo027lwgtfa2/beauty_accs-loccitane-maslo-dlya-dusha/"
+                        "example": "https://www.wildberries.ru/catalog/48960577/detail.aspx?targetUrl=BP"
                     }
                 }
             }
@@ -64,8 +64,8 @@
                     "variables": [],
                     "presets": [],
                     "pool": {
-                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию в магазине",
-                        "example": "https://www.lamoda.ru/c/7288/beauty_accs-women-bathandshower/"
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию доски объявлений",
+                        "example": "https://www.wildberries.ru/catalog/zdorove/tovary-posle-mastektomii"
                     }
                 }
             },
@@ -77,7 +77,7 @@
                     "presets": [],
                     "pool": {
                         "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
-                        "example": "https://www.lamoda.ru/p/lo027lwgtfa2/beauty_accs-loccitane-maslo-dlya-dusha/"
+                        "example": "https://www.wildberries.ru/catalog/48960577/detail.aspx?targetUrl=BP"
                     }
                 }
             }
