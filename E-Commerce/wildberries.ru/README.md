@@ -1,5 +1,5 @@
-# Lamoda.ru scraper
-Digger condigurations for lamoda.ru.
+# Wildberries.ru scraper
+Digger condigurations for wildberries.ru.
 
 config_by_category.yml - configuration file for scraping whole categories of the online store
 config_by_product.yml - configuration file for scraping specific products

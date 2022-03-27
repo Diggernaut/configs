@@ -1,17 +1,17 @@
 {
     "digger": {
-        "updated": "2022-03-18",
+        "updated": "2022-03-28",
         "compile": true
     },
     "english": {
         "meta": {
-            "title": "Lamoda.ru scraper",
-            "title_short": "Lamoda.ru scraper",
-            "description_short": "The Lamoda web scraper will help you collect publicly available information about products sold in the Lamoda.ru online store. The web scraper collects detailed information about the product: product name, description, link to the image, price, variations and their availability, rating and much more.",
-            "description_long": "Lamoda is one of the largest online retailers in the Russian market. This online store sells clothes, shoes, accessories, goods for the home, as well as for beauty and health. Using this web scraper you will be able to extract information about the products presented in a given category or by passing links to specific products.",
-            "keywords": "ecommerce scraper, lamoda scraper, data extraction, web scraping",
-            "domain": "lamoda.ru",
-            "article": "lamodaru",
+            "title": "Wildberries.ru web scraper",
+            "title_short": "Wildberries.ru scraper",
+            "description_short": "The Wildberries.ru web scraper will help you collect publicly available information about products sold in the Wildberries marketplace. The web scraper collects detailed information about the product and seller: product name, description, link to the image, price, variations and their availability, rating and much more.",
+            "description_long": "Wildberries is one of the largest online international marketplace. Sellers sells electronics, clothes, shoes, accessories, goods for the home, as well as for beauty and health. Using this web scraper you will be able to extract information about the products and sellers presented in a given category or by passing links to specific products.",
+            "keywords": "marketplace scraper, wildberries scraper, data extraction, web scraping",
+            "domain": "wildberries.ru",
+            "article": "wildberriesru",
             "category": "E-Commerce",
             "price": 0.00,
             "currency": "USD"
@@ -45,13 +45,13 @@
     },
     "russian": {
         "meta": {
-            "title": "Парсер для интернет-магазина Lamoda.ru",
-            "title_short": "Интернет-магазин Lamoda",
-            "description_short": "Парсер Lamoda поможет вам собрать публично доступную информацию o товарах, продаваемых в интернет-магазине Lamoda.ru. Парсер собирает подробную информацию об товаре: название товара, описание, ссылку на изображение, цену, вариации и их наличие, рейтинг и многое другое",
-            "description_long": "Ламода / Lamoda - один из крупнейших интернет-ретейлеров на российском рынке. На этой площадке представлена одежда, обувь, аксессуары, товары для дома, а также для красоты и здоровья. С помощью этого парсера вы сможете забрать информацию о товарах, представленных в заданной категории или передав ссылки на специфические товары.",
-            "keywords": "парсер интернет-магазина, парсер ламода, сбор данных, мониторинг цен",
-            "domain": "lamoda.ru",
-            "article": "lamodaru",
+            "title": "Парсер для маркетплейса Wildberries.ru",
+            "title_short": "Маркетплейс Wildberries",
+            "description_short": "Парсер Wildberries поможет вам собрать данные o товарах, продаваемых на площадке маркетплейса Wildberries.ru. Парсер собирает подробную информацию об товаре и продавце: название товара, описание, ссылку на изображение, цену, вариации и их наличие, рейтинг и многое другое",
+            "description_long": "Wildberries - один из крупнейших российских (и даже международных) маркетплейсов. На этой площадке представлена электроника, одежда, обувь, аксессуары, товары для дома, а также для красоты и здоровья. С помощью этого парсера вы сможете забрать информацию о товарах и продавцах, представленных в заданной категории или передав ссылки на специфические товары.",
+            "keywords": "парсер маркетплейса, парсер wildberries, сбор данных, мониторинг цен",
+            "domain": "wildberries.ru",
+            "article": "wildberriesru",
             "category": "Магазины",
             "price": 0.00,
             "currency": "USD"
