@@ -1,0 +1,86 @@
+{
+    "digger": {
+        "updated": "2022-04-02",
+        "compile": true
+    },
+    "english": {
+        "meta": {
+            "title": "Sbermegamarket.ru web scraper",
+            "title_short": "Sbermegamarket.ru scraper",
+            "description_short": "The Sbermegamarket web scraper is designed to collect information about sellers and their products from the Sbermegamarket.ru marketplace. The web scraper will help you collect data about the product and the seller: the name and description of the product, a link to the image, its price, product variations and their availability, as well as rating",
+            "description_long": "The marketplace was founded by M-Video in 2016 and used the domain name goods.ru. In 2021, the website was renamed to sbermegamarket.ru. Products from different categories are presented on the marketplace by various sellers. This web scraper will help you collect information about the price and availability of various products on a daily basis.",
+            "keywords": "marketplace scraper, sbermegamarket scraper, data extraction, web scraping",
+            "domain": "sbermegamarket.ru",
+            "article": "sbermegamarketru",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the web-store",
+                        "example": "https://sbermegamarket.ru/catalog/dzhoggery-zhenskie/"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the online store",
+                        "example": "https://sbermegamarket.ru/catalog/details/komplekt-zhenskiy-mama-pizhama-sleep-siniy-48-50-600004814751/"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для маркетплейса Sbermegamarket.ru",
+            "title_short": "Маркетплейс Sbermegamarket",
+            "description_short": "Парсер Sbermegamarket предназначен для сбора информации о продавцах и их товарах на маркетплейсе Sbermegamarket.ru. Парсер поможет вам собрать данные о товаре и продавце: название и описание товара, ссылку на изображение, его цену, вариации товара и их наличие, а также рейтинг",
+            "description_long": "Маркетплейс был основан компанией М-Видео в 2016 году и использовал доменное имя goods.ru. В 2021 году площадка была переименована в sbermegamarket.ru. Ассортимент площадки представлен разными категориями. Этот парсер поможем вам ежедневно собирать информацию о цене и наличии различных товаров.",
+            "keywords": "парсер маркетплейса, парсер sbermegamarket, сбор данных, мониторинг цен",
+            "domain": "sbermegamarket.ru",
+            "article": "sbermegamarketru",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию интернет магазина",
+                        "example": "https://sbermegamarket.ru/catalog/dzhoggery-zhenskie/"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
+                        "example": "https://sbermegamarket.ru/catalog/details/komplekt-zhenskiy-mama-pizhama-sleep-siniy-48-50-600004814751/"
+                    }
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,316 @@
+#sbermegamarketru digger
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- variable_set:
+    field: rep
+    value: "yes"
+- counter_reset: catalogRetries 
+- walk:
+    to: links
+    repeat_in_pool: <%rep%>
+    do:
+    - variable_clear: query
+    - variable_clear: rep
+    - counter_increment:
+        name: catalogRetries
+    - find: 
+        path: body 
+        do: 
+        - static_get: responseCode
+        - if:
+            match: 503|423|404
+            do:
+            - counter_get: catalogRetries
+            - if:
+                gt: 10
+                type: int
+                do:
+                - error: cannot retrieve a page after 10 retries, skipping
+                - proxy_switch
+                - cookie_reset
+                - counter_reset: catalogRetries
+                else:
+                - proxy_switch
+                - cookie_reset
+                - variable_set: 
+                    field: rep
+                    value: "yes"
+    - find: 
+        path: .next > a 
+        do: 
+        - parse:
+            attr: href
+        - if:
+            match: \S
+            do:
+            - normalize:
+                routine: url
+            - link_add
+                
+    - find: 
+        path: '.catalog-listing__items > a[data-list-id="main"],.catalog-listing__items [itemprop="name"] a.ddl_product_link' 
+        do: 
+        - variable_clear: pLink
+        - parse:
+            attr: href
+        - if:
+            match: \S
+            do:
+            - normalize:
+                routine: url
+            - variable_set: pLink
+            - variable_set: 
+                field: pRep
+                value: "yes"
+            - counter_reset: productReties
+            - walk:
+                to: <%pLink%>
+                repeat: <%pRep%>
+                do:
+                - variable_clear: pRep
+                - counter_increment:
+                    name: productReties
+                - find: 
+                    path: body 
+                    do: 
+                    - static_get: responseCode
+                    - if:
+                        match: 503|423|404
+                        do:
+                        - counter_get: productReties
+                        - if:
+                            gt: 10
+                            type: int
+                            do:
+                            - error: cannot retrieve a page after 10 retries, skipping
+                            - proxy_switch
+                            - cookie_reset
+                            else:
+                            - proxy_switch
+                            - cookie_reset
+                            - variable_set: 
+                                field: rep
+                                value: "yes"
+                        else:
+                        - find: 
+                            path: html
+                            in: doc
+                            do: 
+                            - find: 
+                                path: body 
+                                do: 
+                                - object_new: item
+                                - static_get: url
+                                - object_field_set:
+                                    object: item
+                                    field: url
+                                - register_set: 0
+                                - object_field_set:
+                                    object: item
+                                    field: total_reviews
+                                - object_field_set:
+                                    object: item
+                                    field: rating
+                                - register_set: "yes"
+                                - object_field_set:
+                                    object: item
+                                    field: instock
+                                - find: 
+                                    path: .pdp-header__title 
+                                    do: 
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - object_field_set:
+                                        object: item
+                                        field: name
+                                    
+                                - find: 
+                                    path: 'div[itemprop="description"]' 
+                                    do: 
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - if:
+                                        match: \S
+                                        do:
+                                        - object_field_set:
+                                            object: item
+                                            field: description
+                                - find: 
+                                    path: .breadcrumb-item
+                                    slice: 0:-2
+                                    do: 
+                                    - find: 
+                                        path: a
+                                        slice: 0
+                                        do: 
+                                        - parse
+                                        - space_dedupe
+                                        - trim
+                                        - if:
+                                            match: \S
+                                            do:
+                                            - object_field_set:
+                                                object: item
+                                                field: categories
+                                                joinby: ","
+                                - find: 
+                                    path: script:matches(window\.__APP__) 
+                                    do: 
+                                    - parse:
+                                        filter:
+                                            - window\.__APP__\s*\=\s*(.+)\;?
+                                    - if:
+                                        match: \S
+                                        do:
+                                        - eval:
+                                            routine: js
+                                            body: (function () {var e = <%register%>; return JSON.stringify(e);})();
+                                        
+                                        - normalize:
+                                            routine: json2xml
+                                        - to_block
+                                        - find: 
+                                            path: body_safe 
+                                            do: 
+                                            - find: 
+                                                path: product > details > attributes:hasChild(name:matches(^[Пп]ол)) > value
+                                                do: 
+                                                - parse
+                                                - space_dedupe
+                                                - trim
+                                                - if:
+                                                    match: \S
+                                                    do:
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: gender
+                                            - find: 
+                                                path: product > details > attributes:hasChild(name:matches(^[Бб]ренд)) > value
+                                                do: 
+                                                - parse
+                                                - space_dedupe
+                                                - trim
+                                                - if:
+                                                    match: \S
+                                                    do:
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: brand
+                                            - find: 
+                                                path: product > reviewsrating 
+                                                do: 
+                                                - parse
+                                                - space_dedupe
+                                                - trim
+                                                - if:
+                                                    match: \S
+                                                    do:
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: rating
+                                            - find: 
+                                                path: product > reviewscount 
+                                                do: 
+                                                - parse
+                                                - space_dedupe
+                                                - trim
+                                                - if:
+                                                    match: \S
+                                                    do:
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: total_reviews
+                                            - find: 
+                                                path: product > id 
+                                                do: 
+                                                - parse
+                                                - space_dedupe
+                                                - trim
+                                                - if:
+                                                    match: \S
+                                                    do:
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: sku
+                                            - find: 
+                                                path: product > details > attributes:hasChild(name:matches(^[Ц]вет)) > value
+                                                do: 
+                                                - parse
+                                                - space_dedupe
+                                                - trim
+                                                - if:
+                                                    match: \S
+                                                    do:
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: color
+                                - find: 
+                                    path: .pdp-main-attrs .pdp-attrs-block li:hasChild(.text-grey:matches(^[Цц]вет)) 
+                                    do: 
+                                    - node_remove: span
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - if:
+                                        match: \S
+                                        do:
+                                        - object_field_set:
+                                            object: item
+                                            field: color
+                                - find: 
+                                    path: .pdp-sales-block__merchant a 
+                                    do: 
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - if:
+                                        match: \S
+                                        do:
+                                        - object_field_set:
+                                            object: item
+                                            field: seller
+                                - find: 
+                                    path: .out-of-stock 
+                                    do: 
+                                    - register_set: "no"
+                                    - object_field_set:
+                                        object: item
+                                        field: instock
+                                - find: 
+                                    path: .pdp-sales-block__price-final 
+                                    do: 
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - normalize:
+                                        routine: replace_substring
+                                        args:
+                                            - ₽: ''
+                                            - \s+: ''
+                                    - if:
+                                        match: \d
+                                        do:
+                                        - object_field_set:
+                                            object: item
+                                            field: price
+                                         
+                                - find: 
+                                    path: .slide__image-wrapper > img 
+                                    do: 
+                                    - parse:
+                                        attr: src
+                                    - if:
+                                        match: \S
+                                        do:
+                                        - normalize:
+                                            routine: url
+                                        - object_field_set:
+                                            object: item
+                                            field: image
+                                - object_save: 
+                                    name: item

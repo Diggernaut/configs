@@ -261,7 +261,15 @@ do:
                                 object: item
                                 field: categories
                                 joinby: ","
-                            
+                        - find: 
+                            path: imt_name
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: item
+                                field: title
                 - find: 
                     path: .dtList-comments-count,.product-card__count
                     do: 
@@ -328,4 +336,3 @@ do:
                                 field: price
                 - object_save:
                     name: item
-    

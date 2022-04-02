@@ -208,6 +208,19 @@ do:
                     object: item
                     field: instock
                 - find: 
+                    path: meta[itemprop="name"] 
+                    do: 
+                    - parse:
+                        attr: content
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \d
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: title
+                - find: 
                     path: meta[itemprop="price"]
                     do: 
                     - parse:
