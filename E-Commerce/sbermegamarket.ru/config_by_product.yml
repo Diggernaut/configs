@@ -34,7 +34,7 @@ do:
                 - proxy_switch
                 - cookie_reset
                 - variable_set: 
-                    field: rep
+                    field: pRep
                     value: "yes"
             else:
             - find: 
