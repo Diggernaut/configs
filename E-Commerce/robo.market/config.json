@@ -1,0 +1,86 @@
+{
+    "digger": {
+        "updated": "2022-04-03",
+        "compile": true
+    },
+    "english": {
+        "meta": {
+            "title": "Robo.market web scraper",
+            "title_short": "Robo.market scraper",
+            "description_short": "The web scraper for the CDEK.market marketplace is designed to collect data about sellers and products sold by them in the online store. The web scraper collects product variations with prices, availability and various characteristics.",
+            "description_long": "Marketplace was introduced by the payment gateway RoboKassa. The online store presents more than 700,000 products in various categories: from food to electronics. The web scraper is designed to collect data about products and sellers from this website.",
+            "keywords": "marketplace scraper, robomarket scraper, data extraction, web scraping",
+            "domain": "robo.market",
+            "article": "robomarket",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the web-store",
+                        "example": "https://robo.market/catalog?category=5fc56ecc8daf587fe091157b"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the online store",
+                        "example": "https://robo.market/product/868184"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для маркетплейса robo.market",
+            "title_short": "Маркетплейс RoboMarket",
+            "description_short": "Парсер маркетплейса CDEK.market предназначен для сбора данных о товарах и продавцах, представленных на торговой площадке. Парсер собирает вариации товаров с ценами, наличием и характеристиками.",
+            "description_long": "Маркетплейс от платежной системы RoboKassa. На площадке представлены более 700 000 товаров в различных категориях: от еды до электроники. Парсер предназначен для сбора данных о товарах и продавцах на этой площадке.",
+            "keywords": "парсер маркетплейса, парсер robomarket, сбор данных, мониторинг цен",
+            "domain": "robo.market",
+            "article": "robomarket",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию интернет магазина",
+                        "example": "https://robo.market/catalog?category=5fc56ecc8daf587fe091157b"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
+                        "example": "https://robo.market/product/868184"
+                    }
+                }
+            }
+        ]
+    }
+}

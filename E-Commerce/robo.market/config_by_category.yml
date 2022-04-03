@@ -1,0 +1,230 @@
+#robomarket digger
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- walk:
+    to: links
+    do:
+    - find: 
+        path: body 
+        do: 
+        - pool_clear: catalog
+        - variable_clear: cathash
+        - static_get: url
+        - filter:
+            args:
+                - category\=([^\&]+)
+        - variable_set: cathash
+        - register_set: https://robo.market/api/v1/product/category?items_per_page=60&page_number=1&show_restricted=true&category=<%cathash%>
+        - link_add:
+            pool: catalog
+        - variable_set: 
+            field: rep
+            value: "yes"
+        - counter_reset: catalogRetries
+        - walk:
+            to: links
+            pool: catalog
+            repeat_in_pool: <%cRep%>
+            do:
+            - variable_clear: crep
+            - counter_increment:
+                name: catalogRetries
+            - find: 
+                path: body 
+                do: 
+                - static_get: responseCode
+                - if:
+                    match: 503|423|404
+                    do:
+                    - counter_get: catalogRetries
+                    - if:
+                        gt: 10
+                        type: int
+                        do:
+                        - error: cannot retrieve a page after 10 retries, skipping
+                        - proxy_switch
+                        - cookie_reset
+                        - counter_reset: catalogRetries
+                        else:
+                        - proxy_switch
+                        - cookie_reset
+                        - variable_set: 
+                            field: crep
+                            value: "yes"
+                    else:
+                    - find: 
+                        path: items 
+                        do: 
+                        - find: 
+                            path: number 
+                            do: 
+                            - variable_clear: pLink
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \S
+                                do:
+                                - register_set: https://robo.market/api/v1/product/<%register%>
+                                - variable_set: pLink
+                                - variable_set: 
+                                    field: pRep
+                                    value: "yes"
+                                - counter_reset: productReties
+                                - walk:
+                                    to: <%pLink%>
+                                    repeat: <%pRep%>
+                                    do:
+                                    - variable_clear: pRep
+                                    - counter_increment:
+                                        name: productReties
+                                    - find: 
+                                        path: body 
+                                        do: 
+                                        - static_get: responseCode
+                                        - if:
+                                            match: 503|423|404
+                                            do:
+                                            - counter_get: productReties
+                                            - if:
+                                                gt: 10
+                                                type: int
+                                                do:
+                                                - error: cannot retrieve a page after 10 retries, skipping
+                                                - proxy_switch
+                                                - cookie_reset
+                                                else:
+                                                - proxy_switch
+                                                - cookie_reset
+                                                - variable_set: 
+                                                    field: pRep
+                                                    value: "yes"
+                                            else:
+                                            - find: 
+                                                path: html
+                                                in: doc
+                                                do: 
+                                                - find: 
+                                                    path: body
+                                                    do: 
+                                                    - object_new: item
+                                                    - register_set: "yes"
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: instock
+                                                    - static_get: url
+                                                    - object_field_set:
+                                                        object: item
+                                                        field: url
+                                                    - find: 
+                                                        path: description 
+                                                        do: 
+                                                        - parse
+                                                        - space_dedupe
+                                                        - trim
+                                                        - if:
+                                                            match: \S
+                                                            do:
+                                                            - object_field_set:
+                                                                object: item
+                                                                field: description
+                                                            
+                                                    - find: 
+                                                        path: title 
+                                                        do:
+                                                        - parse
+                                                        - space_dedupe
+                                                        - trim
+                                                        - if:
+                                                            match: \S
+                                                            do:
+                                                            - object_field_set:
+                                                                object: item
+                                                                field: title
+                                                    - find: 
+                                                        path: category_id 
+                                                        slice: 0
+                                                        do: 
+                                                        - parse
+                                                        - space_dedupe
+                                                        - trim
+                                                        - if:
+                                                            match: \S
+                                                            do:
+                                                            - walk:
+                                                                to: https://robo.market/api/v1/category/branch?category_id=<%register%>
+                                                                do:
+                                                                - find: 
+                                                                    path: body
+                                                                    do: 
+                                                                    - find: 
+                                                                        path: categories 
+                                                                        slice: 0 
+                                                                        do: 
+                                                                        - find: 
+                                                                            path:  children > name
+                                                                            do: 
+                                                                            - parse
+                                                                            - space_dedupe
+                                                                            - trim
+                                                                            - if:
+                                                                                match: \S
+                                                                                do:
+                                                                                - object_field_set:
+                                                                                    object: item
+                                                                                    field: categories
+                                                                                    joinby: ","
+                                                    - find: 
+                                                        path: store 
+                                                        do: 
+                                                        - parse
+                                                        - space_dedupe
+                                                        - trim
+                                                        - if:
+                                                            match: \S
+                                                            do:
+                                                            - object_field_set:
+                                                                object: item
+                                                                field: seller
+                                                    - find: 
+                                                        path: price 
+                                                        do: 
+                                                        - parse
+                                                        - space_dedupe        
+                                                        - trim
+                                                        - if:
+                                                            match: \d
+                                                            do:
+                                                            - object_field_set:
+                                                                object: item
+                                                                field: price
+                                                    - find: 
+                                                        path: images
+                                                        slice: 0
+                                                        do: 
+                                                        - find: 
+                                                            path: url 
+                                                            do: 
+                                                            - parse
+                                                            - space_dedupe
+                                                            - trim
+                                                            - object_field_set:
+                                                                object: item
+                                                                field: image
+                                                    - find: 
+                                                        path: number 
+                                                        do: 
+                                                        - parse
+                                                        - space_dedupe
+                                                        - trim
+                                                        - if:
+                                                            match: \S
+                                                            do:
+                                                            - object_field_set:
+                                                                object: item
+                                                                field: sku
+                                                    - object_save:
+                                                        name: item

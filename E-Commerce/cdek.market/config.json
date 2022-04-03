@@ -1,0 +1,86 @@
+{
+    "digger": {
+        "updated": "2022-04-03",
+        "compile": true
+    },
+    "english": {
+        "meta": {
+            "title": "Cdek.market web scraper",
+            "title_short": "Cdek.market scraper",
+            "description_short": "The CDEK.market marketplace web scraper will help you collect data about products and sellers. The web scraper collects the name and description of the product, a link to the product and its image, product variations, their availability and price. An example of a dataset can be seen in the table below.",
+            "description_long": "The logistics company CDEK launched the marketplace in 2019. The website offers goods from such categories as electronics and household appliances, clothing and footwear, home and repair, beauty and health, auto products and much more. At the time of writing this article, the marketplace was selling about 300,000 product items from 3,000 sellers. The web scraper is designed to collect data about products and sellers on this website.",
+            "keywords": "marketplace scraper, cdekmarket scraper, data extraction, web scraping",
+            "domain": "cdek.market",
+            "article": "cdekmarket",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the web-store",
+                        "example": "https://cdek.market/c/1401/bluzy-i-rubashki-zhenskie/"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the online store",
+                        "example": "https://cdek.market/p/6748078/napolnyy-kuler-dlya-vody-lc-ael-820-black/"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для маркетплейса cdek.market",
+            "title_short": "Маркетплейс CDEK",
+            "description_short": "Парсер маркетплейса CDEK.market поможет вам в сборе данные о товарах и продавцах. Парсер собирает название и описание товара, ссылку на товар и его изображение, вариации товара, их наличие и цену. Пример датасета можно увидеть ниже в таблице.",
+            "description_long": "Логистическая компания CDEK в 2019 году запустила свой маркетплейс. На площадке представлены такие категории товаров как электроника и бытовая техника, одежда и обувь, дом и ремонт, красота и здоровье, автотовары и многое другое. На момент написания этой статьи, товарный ассортимент маркетплейса насчитывает около 300 000 товарных позиций от 3000 продавцов. Парсер предназначен для сбора данных о товарах и продавцах на этой площадке.",
+            "keywords": "парсер маркетплейса, парсер cdekmarket, сбор данных, мониторинг цен",
+            "domain": "cdek.market",
+            "article": "cdekmarket",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию интернет магазина",
+                        "example": "https://cdek.market/c/1401/bluzy-i-rubashki-zhenskie/"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
+                        "example": "https://cdek.market/p/6748078/napolnyy-kuler-dlya-vody-lc-ael-820-black/"
+                    }
+                }
+            }
+        ]
+    }
+}
