@@ -1,6 +1,6 @@
 {
     "digger": {
-        "updated": "2022-04-02",
+        "updated": "2022-04-24",
         "compile": true
     },
     "english": {
@@ -64,7 +64,7 @@
                     "variables": [],
                     "presets": [],
                     "pool": {
-                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию доски объявлений",
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию интернет-магазина",
                         "example": "https://www.wildberries.ru/catalog/zdorove/tovary-posle-mastektomii"
                     }
                 }

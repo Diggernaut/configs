@@ -1,0 +1,88 @@
+{
+    "digger": {
+        "updated": "2022-04-24",
+        "compile": false
+    },
+    "english": {
+        "meta": {
+            "title": "Ozon.ru web scraper",
+            "title_short": "Ozon.ru scraper",
+            "description_short": "The web scraper is designed to collect data about products sold at the Ozon marketplace (Ozon.ru). The fields collecttion contains: price and product name, color, size, availability, brand, seller name, image URL, categories, etc.",
+            "description_long": "The Ozon has been established in 1997 and at the beginning of it was an online book and video store. The company successfully grow and in 2019 became a marketplace where other sellers can sell their goods. At the moment, more than 80 million products are presented on the web site. This scraper will help you to collect the data about these products.",
+            "keywords": "marketplace scraper, ozon scraper, data extraction, web scraping",
+            "warning": "<span class=\"text-danger\">WARNING!</span><br/>Requires a paid subscription to run. The prices are available <a href=\"https://www.diggernaut.com/pricing/\">here</a>.",
+            "domain": "ozon.ru",
+            "article": "ozonru",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the web-store",
+                        "example": "https://www.ozon.ru/category/bluzy-i-rubashki-zhenskie-7511/zolla-87236100/"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the online store",
+                        "example": "https://www.ozon.ru/product/bluzka-zolla-416371081"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для маркетплейса Ozon.ru",
+            "title_short": "Маркетплейс Ozon",
+            "description_short": "Данный парсер предназначен для сбора данных о товарах, продающихся на маркетплейсе Озон (Ozon.ru). В число собираемых полей входят: цена и наименование товара, цвет, размер, наличие, бренд, наименование продавца, ссылка на изображение, категории и др.",
+            "description_long": "Озон был создан в 1997 году и вначале своей истории был интернет-магазином для продажи книг и VHS видеокассет с фильмами. Компания успешно развивалась и в 2019 году стала маркетплейсом, на котором другие продавцы могут реализовывать свои товары. В данный момент на площадке представлены более 80 миллионов товаров. Этот парсер поможет вам в автоматизированном сборе данных об этих товарах. В таблице ниже приведен пример собираемых данных.",
+            "keywords": "парсер маркетплейса, парсер ozon, сбор данных, мониторинг цен",
+            "warning": "<span class=\"text-danger\">ВНИМАНИЕ!</span><br/>Для запуска требуется платная подписка. С планами подписки можно ознакомиться <a href=\"https://www.diggernaut.com/pricing/\">здесь</a>.",
+            "domain": "ozon.ru",
+            "article": "ozonru",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию интернет-магазина",
+                        "example": "https://www.ozon.ru/category/bluzy-i-rubashki-zhenskie-7511/zolla-87236100/"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
+                        "example": "https://www.ozon.ru/product/bluzka-zolla-416371081"
+                    }
+                }
+            }
+        ]
+    }
+}

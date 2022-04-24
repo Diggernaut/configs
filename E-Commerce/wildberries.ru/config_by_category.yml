@@ -57,6 +57,7 @@ do:
     - find: 
         path: a.pagination-next,.catalog-pagination__next, a.pagination__next
         do: 
+        - variable_clear: suburl
         - variable_set: 
             field: pagination
             value: 1
@@ -76,10 +77,21 @@ do:
             - if:
                 match: page=
                 do:
-                - normalize:
-                    routine: url
-                - register_set: <%register%>&xsubject=<%subject%>
-                - link_add
+                - variable_set: suburl
+                - register_set: ''
+                - variable_get: subject
+                - if:
+                    match: \S
+                    do:
+                    - normalize:
+                        routine: url
+                    - register_set: <%suburl%>&xsubject=<%subject%>
+                    - link_add
+                    else:
+                    - normalize:
+                        routine: url
+                    - variable_get: suburl
+                    - link_add
     - find: 
         path: .j-card-item
         do: 
@@ -270,6 +282,7 @@ do:
                             - object_field_set:
                                 object: item
                                 field: title
+                            
                 - find: 
                     path: .dtList-comments-count,.product-card__count
                     do: 
@@ -282,6 +295,7 @@ do:
                         - object_field_set:
                             object: item
                             field: total_reviews
+
                 - find: 
                     path: .product-card__rating
                     do: 
@@ -336,3 +350,4 @@ do:
                                 field: price
                 - object_save:
                     name: item
+    

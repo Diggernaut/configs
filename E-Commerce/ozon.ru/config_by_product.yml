@@ -1,0 +1,330 @@
+#ozonru digger
+---
+config:
+    debug: 2
+    agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36
+    js_enabled: "yes"
+    headless: "yes"
+do:
+- counter_set:
+    name: tries
+    value: 1
+- variable_set:
+    field: rip
+    value: "yes"
+- walk:
+    to: links
+    repeat_in_pool: <%rip%>
+    do:
+    - sleep: 5:10
+    - variable_clear: ppageok
+    - find: 
+        path: html 
+        do: 
+        - object_new: product
+        - static_get: url
+        - filter:
+            args:
+                - ^([^\?]+)
+        - object_field_set:
+            object: product
+            field: url
+        - register_set: "yes"
+        - object_field_set:
+            object: product
+            field: instock
+        - find: 
+            path: div[data-widget="webOutOfStock"] 
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \S
+                do:
+                - register_set: "no"
+                - object_field_set:
+                    object: product
+                    field: instock
+        - find:
+            path: span[data-widget="webDetailSKU"]
+            do:
+            - parse:
+                filter: (\d+)
+            - if:
+                match: \d+
+                do:
+                - object_field_set:
+                    object: product
+                    field: sku
+        - find: 
+            path: div[data-widget="webCurrentSeller"] a[title] 
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \S
+                do:
+                - object_field_set:
+                    object: product
+                    field: seller
+                
+        - find: 
+            path: div > h1 
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \S
+                do:
+                - object_field_set:
+                    object: product
+                    field: title
+        - find: 
+            path: div[data-widget="webAspects"]
+            do:
+            - parse:
+                format: html
+            - create_block:
+                do:
+                - find:
+                    path: span:hasChild(span:matches(^Цвет\:\s*$)) > span:matches(^Цвет\:\s*$)+span
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: product
+                            field: color
+        - find: 
+            path: script[type="application/ld+json"] 
+            do: 
+            - variable_set:
+                field: ppageok
+                value: 1
+            - parse:
+                format: html
+            - normalize:
+                routine: json2xml
+            - create_block:
+                do:
+                - find: 
+                    path: ratingValue 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \d
+                        do:
+                        - object_field_set:
+                            object: product
+                            field: rating
+                        
+                - find: 
+                    path: reviewCount 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \d
+                        do:
+                        - object_field_set:
+                            object: product
+                            field: total_reviews
+                - find: 
+                    path: brand 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: product
+                            field: brand
+                - find: 
+                    path: price 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \d+
+                        do:
+                        - object_field_set:
+                            object: product
+                            field: price
+                - find: 
+                    path: description 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: product
+                            field: description
+                - find: 
+                    path: safe_image 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \w
+                        do:
+                        - object_field_set:
+                            object: product
+                            field: image
+        - find: 
+            path:  div[data-widget="breadCrumbsPdp"] > ol > li > span
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \S+
+                do:
+                - object_field_set:
+                    object: product
+                    field: categories
+                    joinby: ", "
+                - if:
+                    match: Женщинам|Девочкам
+                    do:
+                    - register_set: Женский
+                    - object_field_set:
+                        object: product
+                        field: gender
+                - if:
+                    match: Мужчинам|Мальчикам 
+                    do:
+                    - register_set: Мужской
+                    - object_field_set:
+                        object: product
+                        field: gender
+        - find: 
+            path: '[data-widget="blockVertical"] > [data-widget="paginator"]'
+            do: 
+            - scrollto
+            - sleep: 2:4
+        - find: 
+            path: html
+            in: doc
+            do: 
+            - parse:
+                format: html
+            - create_block:
+                do:
+                - find: 
+                    path: dt:hasChild(span:matches(^[Пп]ол\s*$))+dd 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: product
+                            field: gender
+                - find: 
+                    path: dt:hasChild(span:matches([Цц]вет))+dd 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: product
+                            field: color
+        - variable_get: ppageok
+        - if:
+            match: 1
+            do:
+            - object_save:
+                name: product
+    - find:
+        path: html
+        do:
+        # consistency checks
+        - variable_get: ppageok
+        - if:
+            match: 1
+            do:
+            - variable_set:
+                field: rip
+                value: "no"
+            - counter_set:
+                name: tries
+                value: 1
+            else:
+            - parse
+            - if:
+                match:  Incapsula incident
+                do:
+                - info: Proxy is banned, switching
+                - proxy_switch
+                - variable_set:
+                    field: rip
+                    value: "yes"
+                else:
+                - variable_clear: notexist
+                - find:
+                    path: div[data-widget="error"] > h2
+                    do:
+                    - parse
+                    - if:
+                        match: Такой страницы не существует
+                        do:
+                        - variable_set:
+                            field: notexist
+                            value: 1
+    
+                - variable_get: notexist
+                - if:
+                    match: 1
+                    do:
+                    - info: Product is not exist anymore, skipping
+                    - variable_set:
+                        field: rip
+                        value: "no"
+                    - counter_set:
+                        name: tries
+                        value: 1
+                    else:
+                    - counter_get: tries
+                    - if:
+                        lt: 10
+                        type: int
+                        do:
+                        - info: Product page layout seems not ok
+                        - counter_increment:
+                            name: tries
+                            by: 1
+                        - variable_set:
+                            field: rip
+                            value: "yes"
+                        else:
+                        - info: Product page layout is not ok after 5 tries, skipping
+                        - parse:
+                            format: html
+                        - info: <%register%>
+                        - counter_set:
+                            name: tries
+                            value: 1
+                        - variable_set:
+                            field: rip
+                            value: "no"
