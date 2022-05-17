@@ -12,6 +12,13 @@ do:
 - walk:
     to: links
     repeat_in_pool: <%repc%>
+    headers:
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
+        Accept-Language: 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+        Cache-Control: 'no-cache'
+        Connection: 'keep-alive'
+        Pragma: 'no-cache'
+        Upgrade-Insecure-Requests: 1
     do:
     - variable_clear: repc
     - counter_increment:
@@ -38,105 +45,222 @@ do:
             - info: Server return 503 error code, retrying
             else:
             - counter_reset: pool
-    - variable_clear: sku
+    - variable_clear: query
+    - variable_clear: shard
+    - variable_clear: cat_name
+    - variable_clear: pcat_name
+    - variable_clear: filters
+    - variable_clear: cats
+    - variable_clear: destination
+    - counter_reset: loc
+    - variable_set: 
+        field: reploc
+        value: "yes"
+    - walk:
+        repeat: <%reploc%>
+        to:
+            post: https://www.wildberries.ru/geo/getuserlocationinfo
+            headers:
+                x-requested-with: XMLHttpRequest
+        do:
+        - variable_clear: reploc
+        - counter_increment:
+            name: loc
+        - find: 
+            path: body 
+            do: 
+            - static_get: responseCode
+            - if:
+                match: 503|423|404
+                do:
+                - proxy_switch
+                - cookie_reset
+                - variable_set: 
+                    field: reploc
+                    value: "yes"
+                - counter_get: loc
+                - if:
+                    gt: 5
+                    type: int
+                    do:
+                    - error: Server return 503 error code after 5 retries, exiting
+                    - exit
+                - info: Server return 503 error code, retrying
+                else:
+                - counter_reset: loc
     - find: 
-        path: '#productNmId'
-        slice: 0
+        path: body 
         do: 
-        - parse
-        - if:
-            match: \S
+        - static_get: url
+        - filter:
+            args:
+                - catalog\/(\d+)\/detail
+        - variable_set: sku
+        - register_set: ''
+        - cookie_get: __dst
+        - variable_set: dst_cookie
+        - eval:
+            routine: js
+            body: '(function () {return "<%dst_cookie%>".split("_").join(",");})();'
+        - variable_set: destination
+        - register_set: ''
+        - cookie_get: __region
+        - variable_set: region_cookie
+        - eval:
+            routine: js
+            body: '(function () {return "<%region_cookie%>".split("_").join(",");})();'
+        - variable_set: region
+        - register_set: ''
+        - cookie_get: __store
+        - variable_set: store_cookie
+        - eval:
+            routine: js
+            body: '(function () {return "<%store_cookie%>".split("_").join(",");})();'
+        - variable_set: store
+        - register_set: 'https://wbxcatalog-ru.wildberries.ru/nm-2-card/catalog?appType=1&locale=ru&lang=ru&curr=rub&dest=<%destination%>&reg=0&emp=0&regions=<%region%>&stores=<%store%>&nm=<%sku%>' 
+        - counter_reset: item
+        - variable_set: 
+            field: repi
+            value: "yes"
+        - set_converter:
+            converter: json
+            content_type: text/plain
+        - walk:
+            to: <%register%>
+            repeat: <%repi%>
             do:
-            - variable_set: sku
-            - object_new: item
-            - static_get: url
-            - object_field_set:
-                object: item
-                field: url
+            - variable_clear: repi
+            - counter_increment:
+                name: item
             - find: 
-                path: body
-                in: doc
+                path: body 
                 do: 
-                - find: 
-                    path: meta[itemprop="brand"] 
-                    do: 
-                    - parse:
-                        attr: content
+                - static_get: responseCode
+                - if:
+                    match: 503|423|404
+                    do:
+                    - proxy_switch
+                    - cookie_reset
+                    - variable_set: 
+                        field: repi
+                        value: "yes"
+                    - counter_get: item
                     - if:
-                        match: \S
+                        gt: 5
+                        type: int
                         do:
-                        - object_field_set:
-                            object: item
-                            field: brand
+                        - error: Server return 503 error code after 5 retries, exiting
+                        - exit
+                    - info: Server return 503 error code, retrying
+                    else:
+                    - counter_reset: item
+            - find: 
+                path: products 
+                do: 
+                - object_new: item
                 - find: 
-                    path: .product-params__cell:has(span:matches(Пол)) > td 
-                    do: 
-                    - parse
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \S
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: gender
-                        
-                - find: 
-                    path: .j-description 
-                    do: 
-                    - parse
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \S
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: description
-                - find: 
-                    path: .same-part-kt__color > span 
-                    do: 
-                    - parse
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \S
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: color
-                - find: 
-                    path: .breadcrumbs__item
-                    slice: 1:-2
+                    path: id 
                     do: 
                     - parse
                     - space_dedupe
                     - trim
                     - object_field_set:
                         object: item
-                        field: categories
-                        joinby: ","
+                        field: sku
+                    - register_set: https://www.wildberries.ru/catalog/<%sku%>/detail.aspx
+                    - object_field_set:
+                        object: item
+                        field: url
+                    - register_set: "yes"
+                    - object_field_set:
+                        object: item
+                        field: instock
                 - find: 
-                    path: '#imageContainer .j-zoom-photo'
+                    path: pics 
                     do: 
-                    - parse:
-                        attr: src
+                    - parse
                     - if:
-                        match: \S
+                        gt: 0 
+                        type: int
                         do:
-                        - normalize:
-                            routine: url
+                        - variable_get: sku
+                        - filter:
+                            args:
+                                - ^(\d{4})
+                        - if:
+                            match: \d
+                            do:
+                            - register_set: https://images.wbstatic.net/big/new/<%register%>0000/<%sku%>-1.jpg
+                            - object_field_set:
+                                object: item
+                                field: image
+                - find: 
+                    path: feedbacks
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \d
+                        do:
                         - object_field_set:
                             object: item
-                            field: image
-                - variable_get: sku
-                - object_field_set:
-                    object: item
-                    field: sku
+                            field: total_reviews
+                - find: 
+                    path: rating
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \d
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: rating
+                - variable_clear: price
+                - find: 
+                    path: salePriceU 
+                    do: 
+                    - parse
+                    - if:
+                        match: \d
+                        do:
+                        - eval:
+                            routine: js
+                            body: (function () {return <%register%>/100;})();
+                        - if:
+                            match: \d
+                            do:
+                            - object_field_set:
+                                object: item
+                                field: price
+                            - variable_set: price
+                - find: 
+                    path: priceU 
+                    do: 
+                    - variable_get: price
+                    - if:
+                        match: \d
+                        else:
+                        - parse
+                        - if:
+                            match: \d
+                            do:
+                            - eval:
+                                routine: js
+                                body: (function () {return <%register%>/100;})();
+                            - if:
+                                match: \d
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: price
+                                - variable_set: price
                 - variable_set: 
                     field: rep
                     value: "yes"
-                - counter_reset: sellerReq
+                - counter_reset: sellerReq 
                 - walk:
                     to: https://wbx-content-v2.wbstatic.net/sellers/<%sku%>.json
                     repeat: <%rep%>
@@ -154,7 +278,7 @@ do:
                             - proxy_switch
                             - cookie_reset
                             - variable_set: 
-                                field: rep
+                                field: repc
                                 value: "yes"
                             - counter_get: sellerReq
                             - if:
@@ -177,62 +301,106 @@ do:
                             - object_field_set:
                                 object: item
                                 field: seller
-                - find: 
-                    path: meta[itemprop="ratingValue"]
-                    do: 
-                    - parse:
-                        attr: content
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \d
-                        do:
+                - variable_set: 
+                    field: rep
+                    value: "yes"
+                - counter_reset: infoReq 
+                - walk:
+                    to: https://wbx-content-v2.wbstatic.net/ru/<%sku%>.json
+                    repeat: <%rep%>
+                    do:
+                    - variable_clear: rep
+                    - counter_increment:
+                        name: infoReq
+                    - find: 
+                        path: body 
+                        do: 
+                        - static_get: responseCode
+                        - if:
+                            match: 503|423|404
+                            do:
+                            - proxy_switch
+                            - cookie_reset
+                            - variable_set: 
+                                field: repc
+                                value: "yes"
+                            - counter_get: infoReq
+                            - if:
+                                gt: 5
+                                type: int
+                                do:
+                                - error: Server return 503 error code after 5 retries, skipping
+                            - info: Server return 503 error code, retrying
+                            else:
+                            - counter_reset: infoReq
+                    - find: 
+                        path: selling > brand_name 
+                        do: 
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \S
+                            do:
+                            - object_field_set:
+                                object: item
+                                field: brand
+                    - find: 
+                        path: kinds 
+                        do: 
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \S
+                            do:
+                            - object_field_set:
+                                object: item
+                                field: gender
+                    - find: 
+                        path: nm_colors_names 
+                        do: 
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \S
+                            do:
+                            - object_field_set:
+                                object: item
+                                field: color
+                    - find: 
+                        path: description 
+                        do: 
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \S
+                            do:
+                            - object_field_set:
+                                object: item
+                                field: description
+                    - find: 
+                        path: subj_name, subj_root_name 
+                        do: 
+                        - parse
+                        - space_dedupe
+                        - trim
                         - object_field_set:
                             object: item
-                            field: rating        
-                - find: 
-                    path: meta[itemprop="reviewCount"]
-                    do: 
-                    - parse:
-                        attr: content
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \d
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: total_reviews
-                - register_set: "yes"
-                - object_field_set:
-                    object: item
-                    field: instock
-                - find: 
-                    path: meta[itemprop="name"] 
-                    do: 
-                    - parse:
-                        attr: content
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \d
-                        do:
+                            field: categories
+                            joinby: ","
+                    - find: 
+                        path: imt_name
+                        do: 
+                        - parse
+                        - space_dedupe
+                        - trim
                         - object_field_set:
                             object: item
                             field: title
-                - find: 
-                    path: meta[itemprop="price"]
-                    do: 
-                    - parse:
-                        attr: content
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \d
-                        do:
-                        - object_field_set:
-                            object: item
-                            field: price
                 - object_save:
                     name: item
-    
+        - clear_converter:
+            content_type: text/plain

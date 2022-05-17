@@ -12,6 +12,13 @@ do:
 - walk:
     to: links
     repeat_in_pool: <%repc%>
+    headers:
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
+        Accept-Language: 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+        Cache-Control: 'no-cache'
+        Connection: 'keep-alive'
+        Pragma: 'no-cache'
+        Upgrade-Insecure-Requests: 1
     do:
     - variable_clear: repc
     - counter_increment:
@@ -38,11 +45,51 @@ do:
             - info: Server return 503 error code, retrying
             else:
             - counter_reset: pool
-    - proxy_switch
-    - cookie_reset
-    - variable_clear: pagination
-    - counter_reset: products 
-    - variable_clear: subject
+    - variable_clear: query
+    - variable_clear: shard
+    - variable_clear: cat_name
+    - variable_clear: pcat_name
+    - variable_clear: filters
+    - variable_clear: cats
+    - variable_clear: destination
+    - variable_clear: xsubject
+    
+    - counter_reset: loc
+    - variable_set: 
+        field: reploc
+        value: "yes"
+    - walk:
+        repeat: <%reploc%>
+        to:
+            post: https://www.wildberries.ru/geo/getuserlocationinfo
+            headers:
+                x-requested-with: XMLHttpRequest
+        do:
+        - variable_clear: reploc
+        - counter_increment:
+            name: loc
+        - find: 
+            path: body 
+            do: 
+            - static_get: responseCode
+            - if:
+                match: 503|423|404
+                do:
+                - proxy_switch
+                - cookie_reset
+                - variable_set: 
+                    field: reploc
+                    value: "yes"
+                - counter_get: loc
+                - if:
+                    gt: 5
+                    type: int
+                    do:
+                    - error: Server return 503 error code after 5 retries, exiting
+                    - exit
+                - info: Server return 503 error code, retrying
+                else:
+                - counter_reset: loc
     - find: 
         path: body 
         do: 
@@ -53,301 +100,480 @@ do:
         - if:
             match: \d
             do:
-            - variable_set: subject
+            - register_set: '&xsubject=<%register%>'
+            - variable_set: xsubject
+            else:
+            - info: xsubject not provided, or url redirects to homepage
+        - register_set: ''
+        - cookie_get: __dst
+        - variable_set: dst_cookie
+        - eval:
+            routine: js
+            body: '(function () {return "<%dst_cookie%>".split("_").join(",");})();'
+        - variable_set: destination
+        - register_set: ''
+        - cookie_get: __region
+        - variable_set: region_cookie
+        - eval:
+            routine: js
+            body: '(function () {return "<%region_cookie%>".split("_").join(",");})();'
+        - variable_set: region
+        - register_set: ''
+        - cookie_get: __store
+        - variable_set: store_cookie
+        - eval:
+            routine: js
+            body: '(function () {return "<%store_cookie%>".split("_").join(",");})();'
+        - variable_set: store
     - find: 
-        path: a.pagination-next,.catalog-pagination__next, a.pagination__next
+        path: body
+        in: doc
         do: 
-        - variable_clear: suburl
-        - variable_set: 
-            field: pagination
-            value: 1
-        - parse:
-            attr: href
-            filter: 
-                - (^.+)?xsubject=\d+(.+)
-                - (^.+)xsubject
-                - (^.+)
-        - normalize:
-            routine: replace_substring
+        - static_get: url
+        - filter:
             args:
-                - \?\?: '?'
+                - https\:\/\/www\.wildberries\.ru(.+)\/?\?
+                - https\:\/\/www\.wildberries\.ru(.+)\/?$
+                - https\:\/\/www\.wildberries\.ru(.+)
+        - variable_set: uripart
+        - register_set: ''
+        - variable_get: shard
+        - if:
+            match: \S
+            else:
+            - counter_reset: menu
+            - variable_set: 
+                field: repmenu
+                value: "yes"
+            - walk:
+                repeat: <%repmenu%>
+                to: https://static.wbstatic.net/data/main-menu-ru-ru.json
+                do:
+                - variable_clear: repmenu
+                - counter_increment:
+                    name: menu
+                - find: 
+                    path: body 
+                    do: 
+                    - static_get: responseCode
+                    - if:
+                        match: 503|423|404
+                        do:
+                        - proxy_switch
+                        - cookie_reset
+                        - variable_set: 
+                            field: repmenu
+                            value: "yes"
+                        - counter_get: menu
+                        - if:
+                            gt: 5
+                            type: int
+                            do:
+                            - error: Server return 503 error code after 5 retries, exiting
+                            - exit
+                        - info: Server return 503 error code, retrying
+                        else:
+                        - counter_reset: menu
+                - find: 
+                    path: body_safe 
+                    do: 
+                    - find: 
+                        path: childs:hasChild(url:matches(^<%uripart%>$)) 
+                        do:
+                        - find: 
+                            path: query
+                            in: current
+                            do: 
+                            - parse
+                            - variable_set: query
+                        - find: 
+                            path: shard
+                            in: current
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \S
+                                do:
+                                - variable_set: shard
+    - find: 
+        path: 'body' 
+        do: 
+        - variable_get: shard
         - if:
             match: \S
             do:
-            - if:
-                match: page=
+            - counter_reset: fil
+            - variable_set: 
+                field: repfilter
+                value: "yes"
+            - register_set: 'https://wbxcatalog-ru.wildberries.ru/<%shard%>/v4/filters?appType=1&<%query%><%xsubject%>&locale=ru&lang=ru&curr=rub&dest=<%destination%>&reg=0&emp=0&regions=<%region%>&stores=<%store%>' 
+            - walk:
+                repeat: <%repfilter%>
+                to: value
                 do:
-                - variable_set: suburl
-                - register_set: ''
-                - variable_get: subject
-                - if:
-                    match: \S
-                    do:
-                    - normalize:
-                        routine: url
-                    - register_set: <%suburl%>&xsubject=<%subject%>
-                    - link_add
-                    else:
-                    - normalize:
-                        routine: url
-                    - variable_get: suburl
-                    - link_add
-    - find: 
-        path: .j-card-item
-        do: 
-        - variable_clear: sku
-        
-        - counter_increment:
-            name: items
-        - find: 
-            path: .j-open-full-product-card
-            slice: 0
-            do: 
-            - parse:
-                attr: href
-                filter:
-                    - (^[^\?]+)
-            - if:
-                match: \S
-                do:
-                - normalize:
-                    routine: url
-                - object_new: item
+                - variable_clear: repfilter
+                - counter_increment:
+                    name: fil
                 - find: 
-                    path: .product-card__img-wrap > img 
+                    path: body 
                     do: 
-                    - parse:
-                        attr: src
+                    - static_get: responseCode
                     - if:
-                        match: \S
+                        match: 503|423|404
                         do:
-                        - normalize:
-                            routine: url
-                        - object_field_set:
-                            object: item
-                            field: image
-                - object_field_set:
-                    object: item
-                    field: url 
+                        - proxy_switch
+                        - cookie_reset
+                        - variable_set: 
+                            field: repfilter
+                            value: "yes"
+                        - counter_get: fil
+                        - if:
+                            gt: 5
+                            type: int
+                            do:
+                            - error: Server return 503 error code after 5 retries, exiting
+                            - exit
+                        - info: Server return 503 error code, retrying
+                        else:
+                        - counter_reset: fil
+                - find: 
+                    path: body 
+                    do: 
+                    - parse
+                    - normalize:
+                        routine: json2xml
+                    - to_block
+                    - find: 
+                        path: total 
+                        do: 
+                        - parse
+                        - variable_set: total
+                    - find: 
+                        path: items:hasChild(id:matches(^<%xsubject%>$)) > name 
+                        do: 
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \S
+                            do:
+                            - variable_set: filters
+            else:
+            - error: layout changed, cannot find shard on page
+
+    - find: 
+        path: body 
+        do: 
+        - variable_get: total
+        - eval:
+            routine: js
+            body: '(function () {
+                        var basestr = "https://wbxcatalog-ru.wildberries.ru/<%shard%>/catalog?<%query%>&locale=ru<%xsubject%>&dest=<%destination%>&reg=0&emp=0&regions=<%region%>&stores=<%store%>&page=";
+                        var t = <%total%>;
+                        var links = [];
+                        for(var i = 1; (i-1)*100 < t; i++){
+                            links.push(basestr+i);
+                        };
+                        return JSON.stringify(links);
+                    })();'
+        - normalize:
+            routine: json2xml
+        - to_block
+        - find: 
+            path: body_safe 
+            do:
+            - find: 
+                path: element 
+                do: 
+                - parse
+                - link_add:
+                    pool: catalog
+- counter_reset: products 
+- set_converter:
+    converter: json
+    content_type: text/plain
+- variable_set: 
+    field: catrep
+    value: "yes"
+- counter_reset: catc
+- walk:
+    to: links
+    repeat_in_pool: <%catrep%>
+    pool: catalog
+    do:
+    - variable_clear: catrep
+    - counter_increment:
+        name: catc
+    - find: 
+        path: body 
+        do: 
+        - static_get: responseCode
+        - if:
+            match: 503|423|404
+            do:
+            - proxy_switch
+            - cookie_reset
+            - variable_set: 
+                field: catrep
+                value: "yes"
+            - counter_get: catc
+            - if:
+                gt: 5
+                type: int
+                do:
+                - error: Server return 503 error code after 5 retries, skipping
+            - info: Server return 503 error code, retrying
+            else:
+            - counter_reset: catc
+    - find: 
+        path: products 
+        do:
+        - object_new: item
+        - find: 
+            path: id 
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - variable_set: sku
+            - object_field_set:
+                object: item
+                field: sku
+            - register_set: https://www.wildberries.ru/catalog/<%sku%>/detail.aspx
+            - object_field_set:
+                object: item
+                field: url
+            - register_set: "yes"
+            - object_field_set:
+                object: item
+                field: instock
+        - find: 
+            path: pics 
+            do: 
+            - parse
+            - if:
+                gt: 0 
+                type: int
+                do:
+                - variable_get: sku
                 - filter:
                     args:
-                        - catalog\/(\d+)\/
+                        - ^(\d{4})
                 - if:
                     match: \d
                     do:
-                    - variable_set: sku
+                    - register_set: https://images.wbstatic.net/big/new/<%register%>0000/<%sku%>-1.jpg
                     - object_field_set:
                         object: item
-                        field: sku
-                    - variable_set: 
-                        field: rep
-                        value: "yes"
-                    - counter_reset: sellerReq 
-                    - walk:
-                        to: https://wbx-content-v2.wbstatic.net/sellers/<%sku%>.json
-                        repeat: <%rep%>
-                        do:
-                        - variable_clear: rep
-                        - counter_increment:
-                            name: sellerReq
-                        - find: 
-                            path: body 
-                            do: 
-                            - static_get: responseCode
-                            - if:
-                                match: 503|423|404
-                                do:
-                                - proxy_switch
-                                - cookie_reset
-                                - variable_set: 
-                                    field: repc
-                                    value: "yes"
-                                - counter_get: sellerReq
-                                - if:
-                                    gt: 5
-                                    type: int
-                                    do:
-                                    - error: Server return 503 error code after 5 retries, skipping
-                                - info: Server return 503 error code, retrying
-                                else:
-                                - counter_reset: sellerReq
-                        - find: 
-                            path: supplierName 
-                            do: 
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - if:
-                                match: \S
-                                do:
-                                - object_field_set:
-                                    object: item
-                                    field: seller
-                    - variable_set: 
-                        field: rep
-                        value: "yes"
-                    - counter_reset: infoReq 
-                    - walk:
-                        to: https://wbx-content-v2.wbstatic.net/ru/<%sku%>.json
-                        repeat: <%rep%>
-                        do:
-                        - variable_clear: rep
-                        - counter_increment:
-                            name: infoReq
-                        - find: 
-                            path: body 
-                            do: 
-                            - static_get: responseCode
-                            - if:
-                                match: 503|423|404
-                                do:
-                                - proxy_switch
-                                - cookie_reset
-                                - variable_set: 
-                                    field: repc
-                                    value: "yes"
-                                - counter_get: infoReq
-                                - if:
-                                    gt: 5
-                                    type: int
-                                    do:
-                                    - error: Server return 503 error code after 5 retries, skipping
-                                - info: Server return 503 error code, retrying
-                                else:
-                                - counter_reset: infoReq
-                        - find: 
-                            path: selling > brand_name 
-                            do: 
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - if:
-                                match: \S
-                                do:
-                                - object_field_set:
-                                    object: item
-                                    field: brand
-                        - find: 
-                            path: kinds 
-                            do: 
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - if:
-                                match: \S
-                                do:
-                                - object_field_set:
-                                    object: item
-                                    field: gender
-                        - find: 
-                            path: nm_colors_names 
-                            do: 
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - if:
-                                match: \S
-                                do:
-                                - object_field_set:
-                                    object: item
-                                    field: color
-                        - find: 
-                            path: description 
-                            do: 
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - if:
-                                match: \S
-                                do:
-                                - object_field_set:
-                                    object: item
-                                    field: description
-                        - find: 
-                            path: subj_name, subj_root_name 
-                            do: 
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - object_field_set:
-                                object: item
-                                field: categories
-                                joinby: ","
-                        - find: 
-                            path: imt_name
-                            do: 
-                            - parse
-                            - space_dedupe
-                            - trim
-                            - object_field_set:
-                                object: item
-                                field: title
-                            
-                - find: 
-                    path: .dtList-comments-count,.product-card__count
-                    do: 
-                    - parse
-                    - space_dedupe
-                    - trim
+                        field: image
+        - find: 
+            path: feedbacks
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \d
+                do:
+                - object_field_set:
+                    object: item
+                    field: total_reviews
+        - find: 
+            path: rating
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \d
+                do:
+                - object_field_set:
+                    object: item
+                    field: rating
+        - variable_clear: price
+        - find: 
+            path: salePriceU 
+            do: 
+            - parse
+            - if:
+                match: \d
+                do:
+                - eval:
+                    routine: js
+                    body: (function () {return <%register%>/100;})();
+                - if:
+                    match: \d
+                    do:
+                    - object_field_set:
+                        object: item
+                        field: price
+                    - variable_set: price
+        - find: 
+            path: priceU 
+            do: 
+            - variable_get: price
+            - if:
+                match: \d
+                else:
+                - parse
+                - if:
+                    match: \d
+                    do:
+                    - eval:
+                        routine: js
+                        body: (function () {return <%register%>/100;})();
                     - if:
                         match: \d
                         do:
                         - object_field_set:
                             object: item
-                            field: total_reviews
-
-                - find: 
-                    path: .product-card__rating
-                    do: 
-                    - parse:
-                        attr: class
-                    - register_set: <p><%register%></p>
-                    - to_block
-                    - find: 
-                        path: p 
-                        do: 
-                        - split:
-                            context: text
-                            delimiter: " "
-                        - find: 
-                            path: .splitted 
-                            do: 
-                            - parse
-                            - if:
-                                match: ^star
-                                do:
-                                - filter:
-                                    args:
-                                        - star(\d+)
-                                - if:
-                                    match: \d
-                                    do:
-                                    - object_field_set:
-                                        object: item
-                                        field: rating
-                - register_set: "yes"
+                            field: price
+                        - variable_set: price
+        - variable_set: 
+            field: rep
+            value: "yes"
+        - counter_reset: sellerReq 
+        - walk:
+            to: https://wbx-content-v2.wbstatic.net/sellers/<%sku%>.json
+            repeat: <%rep%>
+            do:
+            - variable_clear: rep
+            - counter_increment:
+                name: sellerReq
+            - find: 
+                path: body 
+                do: 
+                - static_get: responseCode
+                - if:
+                    match: 503|423|404
+                    do:
+                    - proxy_switch
+                    - cookie_reset
+                    - variable_set: 
+                        field: repc
+                        value: "yes"
+                    - counter_get: sellerReq
+                    - if:
+                        gt: 5
+                        type: int
+                        do:
+                        - error: Server return 503 error code after 5 retries, skipping
+                    - info: Server return 503 error code, retrying
+                    else:
+                    - counter_reset: sellerReq
+            - find: 
+                path: supplierName 
+                do: 
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \S
+                    do:
+                    - object_field_set:
+                        object: item
+                        field: seller
+        - variable_set: 
+            field: rep
+            value: "yes"
+        - counter_reset: infoReq 
+        - walk:
+            to: https://wbx-content-v2.wbstatic.net/ru/<%sku%>.json
+            repeat: <%rep%>
+            do:
+            - variable_clear: rep
+            - counter_increment:
+                name: infoReq
+            - find: 
+                path: body 
+                do: 
+                - static_get: responseCode
+                - if:
+                    match: 503|423|404
+                    do:
+                    - proxy_switch
+                    - cookie_reset
+                    - variable_set: 
+                        field: repc
+                        value: "yes"
+                    - counter_get: infoReq
+                    - if:
+                        gt: 5
+                        type: int
+                        do:
+                        - error: Server return 503 error code after 5 retries, skipping
+                    - info: Server return 503 error code, retrying
+                    else:
+                    - counter_reset: infoReq
+            - find: 
+                path: selling > brand_name 
+                do: 
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \S
+                    do:
+                    - object_field_set:
+                        object: item
+                        field: brand
+            - find: 
+                path: kinds 
+                do: 
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \S
+                    do:
+                    - object_field_set:
+                        object: item
+                        field: gender
+            - find: 
+                path: nm_colors_names 
+                do: 
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \S
+                    do:
+                    - object_field_set:
+                        object: item
+                        field: color
+            - find: 
+                path: description 
+                do: 
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \S
+                    do:
+                    - object_field_set:
+                        object: item
+                        field: description
+            - find: 
+                path: subj_name, subj_root_name 
+                do: 
+                - parse
+                - space_dedupe
+                - trim
                 - object_field_set:
                     object: item
-                    field: instock
-                - find: 
-                    path: .price > .lower-price 
-                    do: 
-                    - parse
-                    - space_dedupe
-                    - trim
-                    - if:
-                        match: \S
-                        do:
-                        - normalize:
-                            routine: replace_substring
-                            args:
-                                - \s*₽: ''
-                        - if:
-                            match: \d
-                            do:
-                            - object_field_set:
-                                object: item
-                                field: price
-                - object_save:
-                    name: item
+                    field: categories
+                    joinby: ","
+            - find: 
+                path: imt_name
+                do: 
+                - parse
+                - space_dedupe
+                - trim
+                - object_field_set:
+                    object: item
+                    field: title
+        - object_save:
+            name: item
     
