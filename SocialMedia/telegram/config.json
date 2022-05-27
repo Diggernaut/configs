@@ -1,0 +1,62 @@
+{
+    "digger": {
+        "updated": "2022-05-28",
+        "compile": false
+    },
+    "english": {
+        "meta": {
+            "title": "Telegram scraper",
+            "title_short": "Telegram messenger scraper",
+            "description_short": "This web scraper will help you automate the collection of messages from public channels of the Telegram social media platform. The scraper can be useful for aggregating news and notes from various resources that do not have an RSS feed.",
+            "description_long": "Recently, Telegram has become insanely popular among bloggers, especially due to the recent events around Instagram and YouTube. Businesses also very often resort to Telegram and start their own channel there. Telegram has become a great alternative to RSS channels as a service to deliver news to subscribers. Our web scraper collects the last 20 messages from any public Telegram channel.",
+            "keywords": "telegram scraper, data extraction, web scraping, news aggregation",
+            "domain": "t.me",
+            "article": "tme",
+            "category": "Social Media",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of channel URLs",
+                "filename": "config_by_channel.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the public Telegram channel",
+                        "example": "https://t.me/s/vertdider"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для Telegram",
+            "title_short": "Социальная медиа-платформа для обмена сообщениями Telegram",
+            "description_short": "Этот парсер поможет вам автоматизировать сбор сообщений из публичных каналов социальной медиа-платформы Telegram. Парсер может быть полезен для аггрегации новостей и заметок из разных ресурсов, не имеющих RSS ленты.",
+            "description_long": "В последнее время Telegram стал безумно популярен среди блоггеров, особенно в связи с последними событиями вокруг Инстаграмма и Ютьюба. Также бизнес очень часто прибегает к помощи Telegram и заводит там свой канал. Telegram стал отличной альтернативой RSS каналам как сервис для доставки новостей подписчикам. Наш парсер собирает 20 последних сообщений с любого публичного Telegram канала.",
+            "keywords": "парсер telegram, сбор данных, аггрегатор новостей",
+            "domain": "t.me",
+            "article": "tme",
+            "category": "Социальные сети",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на каналы",
+                "filename": "config_by_channel.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на публичный канал",
+                        "example": "https://t.me/s/vertdider"
+                    }
+                }
+            }
+       ]
+    }
+}

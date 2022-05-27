@@ -1,0 +1,149 @@
+# tme digger
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- walk:
+    to: links
+    do:
+    - find:
+        path: body
+        do:
+        - static_get: url
+        - if:
+            match: \/\/t\.me\/s\/
+            else:
+            - info: URI has missing /s/ in the path, fixing URL and adding to the pool for retry
+            - normalize:
+                routine: replace_substring
+                args:
+                - \//t\.me\/: '//t.me/s/'
+            - link_add
+            do:
+            - find:
+                path: div.tgme_channel_info_header_username > a
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - variable_set: author
+            - find: 
+                path: div.tgme_widget_message
+                do: 
+                - variable_clear: id
+                - object_new: item
+                - parse:
+                    attr: data-post
+                    filter: (\d+)
+                - variable_set: id
+                - find:
+                    path: a.tgme_widget_message_owner_name
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: author
+                    - parse:
+                        attr: href
+                    - space_dedupe
+                    - trim
+                    - normalize:
+                        routine: replace_substring
+                        args:
+                        - \//t\.me\/: '//t.me/s/'
+                    - register_set: <%register%>/<%id%>
+                    - if:
+                        match: http
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: url
+                - find:
+                    path: div.tgme_widget_message_text
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: summary
+                - find:
+                    path: a.tgme_widget_message_photo_wrap
+                    do:
+                    - parse:
+                        attr: style
+                        filter: background\-image\:url\(\'([^\']+)\'\)
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: image
+                - find:
+                    path: a.tgme_widget_message_link_preview
+                    do:
+                    - parse:
+                        attr: href
+                    - if:
+                        match: http
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: url
+                    - find:
+                        path: div.link_preview_title
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - object_field_set:
+                            object: item
+                            field: title
+                    - find:
+                        path: div.link_preview_description
+                        do:
+                        - node_replace:
+                            path: br
+                            with: <span> </span>
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - object_field_set:
+                            object: item
+                            field: summary
+                    - find:
+                        path: i.link_preview_right_image
+                        do:
+                        - parse:
+                            attr: style
+                            filter: background\-image\:url\(\'([^\']+)\'\)
+                        - space_dedupe
+                        - trim
+                        - object_field_set:
+                            object: item
+                            field: image
+                - find:
+                    path: time.time
+                    do:
+                    - parse:
+                        attr: datetime
+                    - space_dedupe
+                    - trim
+                    - normalize:
+                        routine: replace_substring
+                        args:
+                        - \:00$: '00'
+                        - \:30$: '30'
+                    - normalize:
+                        routine: date_format
+                        args:
+                            format_in: '%Y-%m-%dT%T%z'
+                            format_out: '%Y-%m-%d %T'
+                            timezone: UTC
+                    - object_field_set:
+                        object: item
+                        field: date
+                - object_save:
+                    name: item
