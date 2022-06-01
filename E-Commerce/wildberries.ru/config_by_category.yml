@@ -19,6 +19,7 @@ do:
         Connection: 'keep-alive'
         Pragma: 'no-cache'
         Upgrade-Insecure-Requests: 1
+        x-requested-with: ''
     do:
     - variable_clear: repc
     - counter_increment:
