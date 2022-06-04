@@ -208,35 +208,56 @@ do:
                     - info: Skipping phone extraction
                     else:
                     - set_engine: selenium
+                    - variable_set:
+                        field: rp
+                        value: "yes"
                     - walk:
                         to: <%url%>
+                        repeat: <%rp%>
                         do:
                         - find:
                             path: body
                             do:
-                            - sleep: 5:10
-                            - find:
-                                path: 'button#onetrust-accept-btn-handler'
+                            - parse
+                            - if:
+                                match: 403 ERROR
                                 do:
-                                - click
-                            - find:
-                                path: div[data-cy="ad-footer-bar-section"]
-                                do:
-                                - scrollto
-                            - find:
-                                path: button[data-testid="show-phone"]
-                                do:
-                                - click
-                            - sleep: 5:10
-                            - find:
-                                path: a[data-testid="contact-phone"]
-                                do:
-                                - parse
-                                - space_dedupe
-                                - trim
-                                - object_field_set:
-                                    object: item
-                                    field: phone
+                                - info: Access denied, retrying
+                                - proxy_switch
+                                else:
+                                - variable_set:
+                                    field: rp
+                                    value: "no"
+                                - find:
+                                    path: div.js-gtm-survey-close
+                                    do:
+                                    - click
+                                - find:
+                                    path: 'button[data-cy="dismiss-cookies-overlay"]'
+                                    do:
+                                    - click
+                                - find:
+                                    path: 'button#onetrust-accept-btn-handler'
+                                    do:
+                                    - click
+                                - find:
+                                    path: div[data-cy="ad-footer-bar-section"]
+                                    do:
+                                    - scrollto
+                                - find:
+                                    path: button[data-testid="show-phone"]
+                                    do:
+                                    - click
+                                - sleep: 5:10
+                                - find:
+                                    path: a[data-testid="contact-phone"]
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - object_field_set:
+                                        object: item
+                                        field: phone
                     - set_engine: surf
                 - object_save:
                     name: item

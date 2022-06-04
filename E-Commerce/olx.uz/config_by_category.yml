@@ -5,7 +5,6 @@ config:
     debug: 2
     js_enabled: "yes"
 do:
-- variable_clear: token
 - set_engine: surf
 - variable_set:
     field: rip
@@ -16,19 +15,19 @@ do:
     do:
     - variable_clear: okp
     - find:
-        path: 'section#body-container'
+        path: div.listing-grid-container
         do:
         - variable_set:
             field: okp
             value: 1
     - find:
-        path: a[data-cy="page-link-next"]
+        path: a[data-cy="pagination-forward"]
         do:
         - parse:
             attr: href
         - link_add
     - find:
-        path: a.link.detailsLink
+        path: div[data-cy="l-card"] > a
         do:
         - parse:
             attr: href
@@ -227,132 +226,61 @@ do:
                                 object: item
                                 field: image
                         - register_set: ''
-                        - variable_get: token
-                        - if:
-                            match: \w+
-                            else:
-                            - set_engine: selenium
-                            - static_get: url
-                            - walk:
-                                to: value
-                                do:
-                                - find:
-                                    path: body
-                                    do:
-                                    - sleep: 5:10
-                                    - cookie_get: a_access_token
-                                    - variable_set: token
-                            - set_engine: surf
                         - variable_get: skipphone
                         - if:
                             match: 1
                             do:
                             - info: Skipping phone extraction
                             else:
-                            - sleep: 5:10
+                            - set_engine: selenium
                             - variable_set:
-                                field: pr
+                                field: rp
                                 value: "yes"
-                            - counter_set:
-                                name: ptries
-                                value: 0
                             - walk:
-                                to: https://www.olx.uz/api/v1/offers/<%id%>/phones/
-                                repeat: <%pr%>
-                                headers:
-                                    authorization: Bearer <%token%>
-                                    cache-control: 'no-cache'
-                                    pragma: 'no-cache'
-                                    sec-ch-ua: '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"'
-                                    sec-ch-ua-mobile: '?0'
-                                    sec-fetch-dest: empty
-                                    sec-fetch-mode: cors
-                                    sec-fetch-site: same-origin
-                                    version: 'v1.19'
-                                    x-client: DESKTOP
-                                    x-platform-type: mobile-html5
+                                to: <%url%>
+                                repeat: <%rp%>
                                 do:
-                                - variable_clear: pr
-                                - variable_clear: pf
                                 - find:
-                                    path: data > phones
+                                    path: body
                                     do:
+                                    - sleep: 5:10
                                     - parse
-                                    - space_dedupe
-                                    - trim
                                     - if:
-                                        match: \d+
+                                        match: 403 ERROR
                                         do:
-                                        - object_field_set:
-                                            object: item
-                                            field: phone
-                                            joinby: ","
+                                        - info: Access denied, retrying
+                                        - proxy_switch
+                                        else:
                                         - variable_set:
-                                            field: pf
-                                            value: 1
-                                - find:
-                                    path: error > detail
-                                    do:
-                                    - parse
-                                    - variable_set: err
-                                    - info: <%err%>
-                                    - variable_set:
-                                        field: pf
-                                        value: 1
-                                - find:
-                                    path: data > phones
-                                    do:
-                                    - variable_get: pf
-                                    - if:
-                                        match: 1
-                                        else:
-                                        - info: empty phone
-                                        - counter_get: ptries
-                                        - if:
-                                            gt: 5
-                                            type: int
+                                            field: rp
+                                            value: "no"
+                                        - find:
+                                            path: div.js-gtm-survey-close
                                             do:
-                                            - error: cannot get phone number after 5 tries, aborting
-                                            - variable_set:
-                                                field: pf
-                                                value: 1
-                                            else:                                        
-                                            - counter_increment:
-                                                name: ptries
-                                                by: 1
-                                            - info: switching proxy and retrying
-                                            - info: current token <%token%>
-                                            - set_engine: selenium
-                                            - proxy_switch
-                                            - variable_get: url
-                                            - walk:
-                                                to: value
-                                                do:
-                                                - find:
-                                                    path: body
-                                                    do:
-                                                    - sleep: 5:10
-                                                    - cookie_get: a_access_token
-                                                    - variable_set: token
-                                            - info: new token <%token%>
-                                            - variable_set:
-                                                field: pr
-                                                value: "yes"
-                                            - set_engine: surf
-                                            - variable_set:
-                                                field: pf
-                                                value: 1
-                                - find:
-                                    path: html
-                                    do:
-                                    - variable_get: pf
-                                    - if:
-                                        match: 1
-                                        else:
-                                        - parse:
-                                            format: html
-                                        - variable_set: ht
-                                        - info: <%ht%>
+                                            - click
+                                        - find:
+                                            path: 'button[data-cy="dismiss-cookies-overlay"]'
+                                            do:
+                                            - click
+                                        - find:
+                                            path: div[data-cy="ad-footer-bar-section"]
+                                            do:
+                                            - scrollto
+                                        - find:
+                                            path: button[data-testid="show-phone"]
+                                            do:
+                                            - click
+                                        - sleep: 5:10
+                                        - find:
+                                            path: a[data-testid="contact-phone"]
+                                            do:
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - object_field_set:
+                                                object: item
+                                                field: phone
+                            - set_engine: surf
                         - object_save:
                             name: item
                         - cookie_reset
@@ -372,19 +300,9 @@ do:
                         - info: item is not exist anymore, skipping
                         - variable_clear: repeat
                         else:
-                        - static_get: url
-                        - if:
-                            match: '#from404'
-                            do:
-                            - info: item is not exist anymore, skipping
-                            - variable_clear: repeat
-                            else:
-                            - error: Proxy is banned or page layout has been changed
-                            - cookie_reset
-                            - proxy_switch
-                            - variable_set:
-                                field: repeat
-                                value: "yes"
+                        - error: Proxy is banned or page layout has been changed
+                        - cookie_reset
+                        - proxy_switch
     - find:
         path: html
         do:
@@ -396,7 +314,6 @@ do:
             - variable_set:
                 field: rip
                 value: "no"
-            - sleep: 3
             else:
             - error: Proxy is banned or page layout has been changed
             - cookie_reset
