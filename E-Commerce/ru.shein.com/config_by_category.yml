@@ -1,0 +1,287 @@
+#shein digger
+---
+config:
+    debug: 2
+    agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.62 Safari/537.36
+    geo:
+        country: RU
+do:
+- variable_set: 
+    field: init
+    value: 1
+- walk:
+    to: links
+    do:
+    - variable_clear: curl
+    - variable_clear: count
+    - find: 
+        path: body 
+        do: 
+        - variable_get: init
+        - if:
+            match: \S
+            do:
+            - variable_clear: init
+            - static_get: url
+            - if:
+                match: \&page|\?page
+                do:
+                - normalize:
+                    routine: replace_substring
+                    args:
+                        - \&page=\d+: ''
+                        - \?page=\d+&?: '?'
+            - if:
+                match: \?
+                do:
+                - register_set: <%register%>&
+                - variable_set: curl
+                else: 
+                - register_set: <%register%>?
+                - variable_set: curl
+
+    
+    - find: 
+        path: script:matches(gbProductListSsrData) 
+        do: 
+        - parse:
+            filter:
+                - var\s*gbProductListSsrData\s*=\s*(.+);
+                - var\s*gbProductListSsrData\s*=\s*(.+)
+        - if:
+            match: \S
+            do:
+            - normalize:
+                routine: json2xml
+            - to_block
+            - find: 
+                path: body_safe 
+                do: 
+                - find: 
+                    path: sum 
+                    do: 
+                    - variable_get: curl
+                    - if:
+                        match: \S
+                        do:
+                        - parse
+                        - variable_set: count
+                        - eval:
+                            routine: js
+                            body: '(function () { 
+                                      var count = <%count%>;
+                                      var url = "<%curl%>"; 
+                                      var ret = []; 
+                                      for(var i = 2; (i<=(Math.ceil(count/120)) && i<=40); i++) {
+                                        ret.push("<p>"+url+"page="+i+"</p>"); 
+                                      }
+                                      return "<div>"+ret.join("")+"</div>";
+                                  })();'
+                        - to_block
+                        - find: 
+                            path: p 
+                            do: 
+                            - parse
+                            - link_add
+                - find: 
+                    path: goods 
+                    do: 
+                    - find: 
+                        path: pretreatinfo > goodsdetailurl 
+                        do: 
+                        - parse
+                        - normalize:
+                            routine: url
+                        - link_add:
+                            pool: catalog
+- walk:
+    to: links
+    pool: catalog
+    do:
+    - proxy_switch
+    - cookie_reset
+    - find: 
+        path: script:matches(productIntroData) 
+        do: 
+        - parse:
+            filter:
+                - productIntroData\:(.+)\,
+        - if:
+            match: \S
+            do:
+            - normalize:
+                routine: json2xml
+            - to_block
+            - find: 
+                path: body_safe 
+                do: 
+                - object_new: item
+                - register_set: SHEIN
+                - object_field_set:
+                    object: item
+                    field: seller
+                - static_get: url
+                - object_field_set:
+                    object: item
+                    field: url
+                - register_set: "yes"
+                - object_field_set:
+                    object: item
+                    field: instock
+                
+                - find: 
+                    path: detail > brand 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: brand
+                - find: 
+                    path: commentinfo > comment_rank_average 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \d
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: rating
+                - find: 
+                    path: commentinfo > comment_num 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \d
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: total_reviews 
+                - find: 
+                    path: detail > goods_name 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: title
+                - find: 
+                    path: detail > productdetails:hasChild(attr_name_en:matches([Cc]olor)) > attr_value 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: color
+                - variable_clear: cats
+                - find: 
+                    path: parentcats multi > cat_name
+                    do: 
+                    - variable_get: cats
+                    - if:
+                        match: \S
+                        else:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \S
+                            do:
+                            - variable_set: cats
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \S
+                            do:
+                            - register_set: <%cats%>, <%register%>
+                            - variable_set: cats
+                                
+                - eval:
+                    routine: js
+                    body: (function () {
+                            return "<%cats%>".split(",").reverse().join(",");
+                        })();
+                - object_field_set:
+                    object: item
+                    field: categories
+                - find: 
+                    path: detail > productdetails
+                    do: 
+                    - variable_clear: attr
+                    - find: 
+                        path: attr_name 
+                        do: 
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \S
+                            do:
+                            - variable_set: attr
+                    - find: 
+                        path: attr_value 
+                        do: 
+                        - variable_get: attr
+                        - if:
+                            match: \S
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \S
+                                do:
+                                - register_set: '<%attr%>: <%register%>'
+                                - object_field_set:
+                                    object: item
+                                    field: description
+                                    joinby: "\n"
+                - find: 
+                    path: detail > goods_id 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: sku
+                - find: 
+                    path: detail > goods_img 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - normalize:
+                            routine: url
+                        - object_field_set:
+                            object: item
+                            field: image
+                - find: 
+                    path: detail > saleprice > amount
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \d
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: price   
+                - object_save:
+                    name: item

@@ -1,0 +1,88 @@
+{
+    "digger": {
+        "updated": "2022-06-08",
+        "compile": false
+    },
+    "english": {
+        "meta": {
+            "title": "Ru.shein.com web scraper",
+            "title_short": "Ru.shein.com scraper",
+            "description_short": "The web-scraper allows you to collect information about the range of products in the store. The scraper collects information about variations, price, availability of products.",
+            "description_long": "This online store came to us from China and is owned by the Hong Kong company ZOETOP Limited. The brand was founded in 2008 and currently exists in more than 200 countries. The company focuses mainly on women's clothing, but the range also includes men's and children's clothing, as well as shoes and accessories. This web-scraper is intended for the Russian region.",
+            "keywords": "e-commerce scraper, shein scraper, data extraction, web scraping",
+            "warning": "<span class=\"text-danger\">WARNING!</span><br/>Requires a paid subscription to run. The prices are available <a href=\"https://www.diggernaut.com/pricing/\">here</a>.",
+            "domain": "ru.shein.com",
+            "article": "rusheincom",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the web-store",
+                        "example": "https://ru.shein.com/Women-T-Shirts-c-1738.html?attr_values=Cotton&attr_ids=160_212&exc_attr_id=160"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the online store",
+                        "example": "https://ru.shein.com/ROMWE-X-Aak-Figure-Letter-Graphic-Tee-p-9780012-cat-1738.html"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для магазина ru.shein.com",
+            "title_short": "Магазин Shein",
+            "description_short": "Парсер товаров онлайн-магазина Shein позволит вам собрать информацию об ассортименте товаров магазина. Парсер собирает информацио о вариациях, цене, наличию товаров.",
+            "description_long": "Этот онлайн-магазин пришел к нам из Китая и принадлежит гонконгской компании ZOETOP Limited. Бренд был основан в 2008 году и в настоящий момент существует в более чем 200 странах. Компания фокусируется в основном на женской одежде, но в ассортименте также представлены мужская и детская одежда, а также обувь и аксессуары. Данный парсер предназначен для Российского сегмента.",
+            "keywords": "парсер магазина, парсер shein, сбор данных, мониторинг цен",
+            "warning": "<span class=\"text-danger\">ВНИМАНИЕ!</span><br/>Для запуска требуется платная подписка. С планами подписки можно ознакомиться <a href=\"https://www.diggernaut.ru/pricing/\">здесь</a>.",
+            "domain": "ru.shein.com",
+            "article": "rusheincom",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию интернет магазина",
+                        "example": "https://ru.shein.com/Women-T-Shirts-c-1738.html?attr_values=Cotton&attr_ids=160_212&exc_attr_id=160"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
+                        "example": "https://ru.shein.com/ROMWE-X-Aak-Figure-Letter-Graphic-Tee-p-9780012-cat-1738.html"
+                    }
+                }
+            }
+        ]
+    }
+}
