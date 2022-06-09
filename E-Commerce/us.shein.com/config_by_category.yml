@@ -7,11 +7,22 @@ config:
         country: US
 do:
 - variable_set: 
+    field: crep
+    value: "yes"
+- counter_set: 
+    name: catc
+    value: 0
+- variable_set: 
     field: init
     value: 1
 - walk:
     to: links
+    repeat_in_pool: <%crep%>
     do:
+    - variable_clear: pageOk
+    - variable_clear: crep
+    - counter_increment:
+        name: catc
     - variable_clear: curl
     - variable_clear: count
     - find: 
@@ -39,8 +50,6 @@ do:
                 else: 
                 - register_set: <%register%>?
                 - variable_set: curl
-
-    
     - find: 
         path: script:matches(gbProductListSsrData) 
         do: 
@@ -60,6 +69,9 @@ do:
                 - find: 
                     path: sum 
                     do: 
+                    - variable_set: 
+                        field: pageOk
+                        value: 1
                     - variable_get: curl
                     - if:
                         match: \S
@@ -94,10 +106,45 @@ do:
                             routine: url
                         - link_add:
                             pool: catalog
+    - find: 
+        path: body 
+        do: 
+        - variable_get: pageOk
+        - if:
+            match: \S
+            do:
+            - variable_clear: crep
+            - counter_reset: catc
+            else:
+            - variable_set: 
+                field: crep
+                value: "yes"
+            - counter_get: catc
+            - if:
+                gt: 5
+                type: int
+                do:
+                - variable_clear: crep
+                - counter_reset: catc
+                - info: cannot fetch url after 5 retries, skipping
+                
+            
+            
+- variable_set: 
+    field: crep
+    value: "yes"
+- counter_set: 
+    name: catc
+    value: 0            
+        
 - walk:
     to: links
     pool: catalog
+    repeat_in_pool: <%crep%>
     do:
+    - variable_clear: pageOk
+    - counter_increment:
+        name: catc
     - proxy_switch
     - cookie_reset
     - find: 
@@ -115,6 +162,9 @@ do:
             - find: 
                 path: body_safe 
                 do: 
+                - variable_set: 
+                    field: pageOk
+                    value: 1
                 - object_new: item
                 - register_set: SHEIN
                 - object_field_set:
@@ -285,3 +335,24 @@ do:
                             field: price   
                 - object_save:
                     name: item
+    - find: 
+        path: body 
+        do: 
+        - variable_get: pageOk
+        - if:
+            match: \S
+            do:
+            - variable_clear: crep
+            - counter_reset: catc
+            else:
+            - variable_set: 
+                field: crep
+                value: "yes"
+            - counter_get: catc
+            - if:
+                gt: 5
+                type: int
+                do:
+                - variable_clear: crep
+                - counter_reset: catc
+                - info: cannot fetch url after 5 retries, skipping
