@@ -1,0 +1,86 @@
+{
+    "digger": {
+        "updated": "2022-06-14",
+        "compile": true
+    },
+    "english": {
+        "meta": {
+            "title": "Zdravcity.ru scraper",
+            "title_short": "Zdravcity.ru scraper",
+            "description_short": "Use the online pharmacy webscraper for Zdravcity to collect information about medications and beauty products. The data will contain information about prices, availability, prescription, manufacturer's data, etc. An example of a collected dataset can be found in the table below.",
+            "description_long": "Zdravcity is a drug and beauty products delivery service in Moscow and the regions. The service was founded by Russia's leading pharmaceutical distributor AO Protek and currently covers more than 80 regions of Russia. There are more than 50,000 titles of medicines in the online pharmacy. The web scraper will help you to collect all necessary information about the assortment presented.",
+            "keywords": "dragstore scraper, pharmacy scraper, zdravcity scraper, data extraction, web scraping",
+            "domain": "zdravcity.ru",
+            "article": "zdravcityru",
+            "category": "Pharmacy",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the dragstore",
+                        "example": "https://zdravcity.ru/c_zharoponizhajuschie-preparaty/r_rostov/"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the dragstore",
+                        "example": "https://zdravcity.ru/p_safiston-tab-50mg-250mg-150mg-n10-0097823.html"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для онлайн аптеки Zdravcity.ru",
+            "title_short": "Аптека Здравсити",
+            "description_short": "Используйте парсер для интернет-аптеки Здравсити, чтобы собрать информацию о лекарствах и товарах для красоты. В данных будут представлена информация о ценах, наличии, рецептурности лекарства, даннные о производителе и др. С примером собираемого датасета можно ознакомиться ниже, в таблице.",
+            "description_long": "Здравсити - служба доставки лекарств и товаров для красоты в Москве и регионах. Сервис основан ведущим фармдистрибутором России АО Протек и на данный момент охватывает более 80 регионов России. В онлайн аптеке представлено более 50000 наименований лекарственных средств. Парсер поможет вам собрать всю необходимую информацию о представленном ассортименте.",
+            "keywords": "парсер аптеки, парсер здравсити, сбор данных, мониторинг цен",
+            "domain": "zdravcity.ru",
+            "article": "zdravcityru",
+            "category": "Аптеки",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию в онлайн аптеке",
+                        "example": "https://zdravcity.ru/c_zharoponizhajuschie-preparaty/r_rostov/"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на лекарство",
+                        "example": "https://zdravcity.ru/p_safiston-tab-50mg-250mg-150mg-n10-0097823.html"
+                    }
+                }
+            }
+        ]
+    }
+}
