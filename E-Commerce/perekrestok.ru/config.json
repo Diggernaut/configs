@@ -1,0 +1,86 @@
+{
+    "digger": {
+        "updated": "2022-06-14",
+        "compile": true
+    },
+    "english": {
+        "meta": {
+            "title": "Perekrestok.ru scraper",
+            "title_short": "Perekrestok.ru scraper",
+            "description_short": "The web-scraper for the Perekrestok supermarket chain is designed to collect information about products and prices from the perekrestok.ru website. The list of collectable fields and an example of the data can be seen in the table below.",
+            "description_long": "Perekrestok is a supermarket chain operated by X5 Retail Group. The chain was founded in 1994 and currently has more than 800 supermarkets in Moscow and the regions. Perekrestok's product and price scraper will allow you to collect information about the products represented in the specified categories.",
+            "keywords": "ecommerce scraper, perekrestor scraper, data extraction, web scraping",
+            "domain": "perekrestok.ru",
+            "article": "perekrestokru",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the web-store",
+                        "example": "https://www.perekrestok.ru/cat/c/197/pecene"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the online store",
+                        "example": "https://www.perekrestok.ru/cat/399/p/pecene-dymka-maria-zataznoe-300g-3059998"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для сети супермаркетов Perektestok.ru",
+            "title_short": "Сеть супермаркетов Перекресток",
+            "description_short": "Парсер сети супермаркетов Перекресток предназначен для сбора информации о товарах и ценах с веб-сайта perekrestok.ru. Список собираемых полей и пример данных можно увидеть в таблице, представленной ниже.",
+            "description_long": "Перекресток - сеть супермаркетов, управляемая X5 Retail Group. Сеть была основана в 1994 году и на настоящий момент насчитывает более 800 супермаркетов в Москве и регионах. Парсер товаров и цен Перекрестка позволит вам собрать информацию о товарах, представленных в заданных категориях.",
+            "keywords": "парсер супермаркета, парсер перекрестка, сбор данных, мониторинг цен",
+            "domain": "perekrestok.ru",
+            "article": "perekrestokru",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию в магазине",
+                        "example": "https://www.perekrestok.ru/cat/c/197/pecene"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
+                        "example": "https://www.perekrestok.ru/cat/399/p/pecene-dymka-maria-zataznoe-300g-3059998"
+                    }
+                }
+            }
+        ]
+    }
+}

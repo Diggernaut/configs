@@ -1,0 +1,86 @@
+{
+    "digger": {
+        "updated": "2022-06-14",
+        "compile": true
+    },
+    "english": {
+        "meta": {
+            "title": "Vprok.ru scraper",
+            "title_short": "Vprok.ru scraper",
+            "description_short": "Use this web-scraper to collect data about probucts available at Vprok delivery service. The list of fields to be collected: product name, description, categories, price, brand, image, seller, number of reviews, rating, sku. Example data can be seen in the table below.",
+            "description_long": "Vprok is a food delivery service from the Perekrestok supermarket. The service works in Moscow and the region. The web-scraper will help in the tracking of delivered products.",
+            "keywords": "delivery service scraper, vprok scraper, data extraction, web scraping",
+            "domain": "vprok.ru",
+            "article": "vprokru",
+            "category": "Delivery",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the delivery service",
+                        "example": "https://www.vprok.ru/catalog/1668/zamorojennye-yagody"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the delivery service",
+                        "example": "https://www.vprok.ru/product/i-zimoy-i-letom-i-zim-i-let-cher-smor-sm-300g--360320"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для службы доставки Vprok.ru",
+            "title_short": "Служба доставки Впрок",
+            "description_short": "Собирайте данные о товарах, доступных в службе доставки Впрок, ценах, наличии с помощью данного парсера. Список собираемых полей: название товара, описание, категории, цена, бренд, изображение, продавец, количество отзывов, рейтинг, артикул. Пример данных можно увидеть ниже, в таблице.",
+            "description_long": "Впрок - служба доставки продуктов из супермаркета Перекресток. Сервис работает в Москве и области. Парсер поможет в отслеживании доставляемых продуктов.",
+            "keywords": "парсер супермаркета, парсер перекрестка, сбор данных, мониторинг цен",
+            "domain": "perekrestok.ru",
+            "article": "perekrestokru",
+            "category": "Службы доставки",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию в службе доставки",
+                        "example": "https://www.vprok.ru/catalog/1668/zamorojennye-yagody"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
+                        "example": "https://www.vprok.ru/product/i-zimoy-i-letom-i-zim-i-let-cher-smor-sm-300g--360320"
+                    }
+                }
+            }
+        ]
+    }
+}

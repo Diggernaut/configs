@@ -1,0 +1,197 @@
+#vprokru digger
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- variable_set: 
+    field: crep
+    value: "yes"
+- counter_set: 
+    name: catc
+    value: 0
+- walk:
+    to: links
+    repeat_in_pool: <%crep%>
+    do:
+    - proxy_switch
+    - cookie_reset
+    - variable_clear: pageOk
+    - variable_clear: crep
+    - counter_increment:
+        name: catc
+    - find: 
+        path: body 
+        do: 
+        - find: 
+            path: .js-product-new-title 
+            do: 
+            - variable_set: 
+                field: pageOk
+                value: 1
+            - find: 
+                path: body
+                in: doc
+                do: 
+                - object_new: item
+                - static_get: url
+                - object_field_set:
+                    object: item
+                    field: url
+                - register_set: "Перекрёсток"
+                - object_field_set:
+                    object: item
+                    field: seller
+                - register_set: "yes"
+                - object_field_set:
+                    object: item
+                    field: instock
+                - find: 
+                    path: .xf-product-new-view__image 
+                    do: 
+                    - parse:
+                        attr: src
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: image
+                - find: 
+                    path: 'link[itemprop="availability"]' 
+                    do: 
+                    - parse:
+                        attr: href
+                    - if:
+                        match: InStock
+                        else:
+                        - register_set: "no"
+                        - object_field_set:
+                            object: item
+                            field: instock
+                - find: 
+                    path: .js-product-new-title  
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: title
+                - find: 
+                    path: .xf-product-new__brand > meta 
+                    do: 
+                    - parse:
+                        attr: content
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: brand
+                - find: 
+                    path: .xf-product-new-breadcrumbs > .xf-product-new-breadcrumbs__item:not(._last)
+                    slice: 2:-1
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: categories
+                            joinby: ","
+                - find: 
+                    path: .xf-product-new-about-section__description 
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: description
+                - find: 
+                    path:  head > script:matches(^\s*dataLayer)
+                    in: doc
+                    do: 
+                    - parse:
+                        filter:
+                            - dataLayer\s*=\s*(.+)
+                    - if:
+                        match: \S
+                        do:
+                        - normalize:
+                            routine: json2xml
+                        - to_block
+                        - find: 
+                            path: body_safe 
+                            do: 
+                            - find: 
+                                path: reviewscount 
+                                do: 
+                                - parse
+                                - if:
+                                    match: \d
+                                    do:
+                                    - object_field_set:
+                                        object: item
+                                        field: total_reviews
+                            - find: 
+                                path: reviewsrating 
+                                do: 
+                                - parse
+                                - if:
+                                    match: \d
+                                    do:
+                                    - object_field_set:
+                                        object: item
+                                        field: rating
+                            - find: 
+                                path: productid 
+                                do: 
+                                - parse
+                                - if:
+                                    match: \d
+                                    do:
+                                    - object_field_set:
+                                        object: item
+                                        field: sku  
+                            - find: 
+                                path: price 
+                                do: 
+                                - parse
+                                - if:
+                                    match: \d
+                                    do:
+                                    - object_field_set:
+                                        object: item
+                                        field: price
+                - object_save: 
+                    name: item
+    - find: 
+        path: body 
+        do: 
+        - variable_get: pageOk
+        - if:
+            match: \S
+            else:
+            - counter_get: catc
+            - if:
+                gt: 4
+                type: int
+                do:
+                - variable_clear: crep
+                - counter_reset: catc
+                - info: cannot fetch url after 5 retries, skipping
+                else:
+                - variable_set: 
+                    field: crep
+                    value: "yes"

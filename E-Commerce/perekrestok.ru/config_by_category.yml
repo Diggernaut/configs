@@ -1,0 +1,254 @@
+#perekrestokru digger
+---
+config:
+    debug: 2
+    agent: Firefox
+    geo:
+        country: RU
+do:
+- variable_set: 
+    field: crep
+    value: "yes"
+- counter_set:
+    name: catc
+    value: 0
+- walk:
+    to: links
+    repeat_in_pool: <%crep%>
+    do:
+    - variable_clear: crep
+    - counter_increment:
+        name: catc
+    - find: 
+        path: title 
+        do: 
+        - if:
+            match: Request Rejected
+            do:
+            - variable_set: 
+                field: crep
+                value: "yes"
+            - counter_get: catc
+            - if:
+                gt: 4
+                type: int
+                do:
+                - info: cannot open url after 5 retries, skipping 
+                - variable_clear: crep
+                - counter_reset: catc
+            else: 
+            - counter_reset: catc
+            - find: 
+                path: .catalog-content-group__list a.product-card__link 
+                in: doc
+                do: 
+                - parse:
+                    attr: href
+                - if:
+                    match: \S
+                    do:
+                    - normalize:
+                        routine: url
+                    - link_add:
+                        pool: catalog
+- variable_set:
+    field: prep
+    value: "yes"
+- counter_set: 
+    name: catp
+    value: 0
+- walk:
+    to: links
+    repeat_in_pool: <%prep%>
+    pool: catalog
+    do:
+    - variable_clear: prep
+    - counter_increment:
+        name: catp
+    - find: 
+        path: title 
+        do: 
+        - if:
+            match: Request Rejected
+            do:
+            - variable_set: 
+                field: prep
+                value: "yes"
+            - counter_get: catp
+            - if:
+                gt: 4
+                type: int
+                do:
+                - info: cannot open url after 5 retries, skipping 
+                - variable_clear: prep
+                - counter_reset: catp
+            else:
+            - counter_reset: catp
+            - find: 
+                path: script:matches(__INITIAL_STATE__)
+                in: doc
+                do: 
+                - parse:
+                    filter:
+                        - __INITIAL_STATE__\s*=\s*(.+)
+                - normalize:
+                    routine: json2xml
+                - to_block
+                - find: 
+                    path: body_safe 
+                    do: 
+                    - find: 
+                        path: productdata > *
+                        slice: 0
+                        do: 
+                        - object_new: item
+                        - register_set: "yes"
+                        - object_field_set:
+                            object: item
+                            field: instock
+                        - register_set: "Перекрёсток"
+                        - object_field_set:
+                            object: item
+                            field: seller
+                        - static_get: url
+                        - object_field_set:
+                            object: item
+                            field: url
+                        - find: 
+                            path: balancestate 
+                            do: 
+                            - parse
+                            - if:
+                                match: no-stock
+                                do:
+                                - register_set: "no"
+                                - object_field_set:
+                                    object: item
+                                    field: instock
+                        - find: 
+                            path: title
+                            in: current
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \S
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: title
+                        - find: 
+                            path: id
+                            in: current
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \S
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: sku
+                        - find: 
+                            path: reviewcount 
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \S
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: total_reviews
+                        - find: 
+                            path: rating 
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \d
+                                do:
+                                - eval:
+                                    routine: js
+                                    body: (function () {return <%register%>/100;})();
+                                - object_field_set:
+                                    object: item
+                                    field: rating
+                        - find: 
+                            path: primaryimage > cropurltemplate
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \S
+                                do:
+                                - normalize:
+                                    routine: replace_substring
+                                    args:
+                                        - '%s': 400x400-fit
+                                - object_field_set:
+                                    object: item
+                                    field: image
+                        - find: 
+                            path: productcategories:hasChild(isprimary:matches(true))
+                            in: current
+                            do: 
+                            - find: 
+                                path: title 
+                                do: 
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - if:
+                                    match: \S
+                                    do:
+                                    - object_field_set:
+                                        object: item
+                                        field: categories
+                                        joinby: ","
+                        - find: 
+                            path: features > items:hasChild(title:matches(Торговая марка)) > displayvalues
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \S
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: brand
+                        - find: 
+                            path: description 
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \S
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: description
+                        - find: 
+                            path: pricetag > price
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \d
+                                do:
+                                - eval:
+                                    routine: js
+                                    body: (function () {return <%register%>/100;})();
+                                - object_field_set:
+                                    object: item
+                                    field: price
+                        - object_save:
+                            name: item
