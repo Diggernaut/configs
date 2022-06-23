@@ -1,0 +1,86 @@
+{
+    "digger": {
+        "updated": "2022-06-23",
+        "compile": true
+    },
+    "english": {
+        "meta": {
+            "title": "Vkusvill.ru scraper",
+            "title_short": "Vkusvill.ru scraper",
+            "description_short": "If you need to keep track of prices and availability on the VkusVill online store site, this web-scraper will help you. In addition to prices and availability, the scraper collects detailed information about the product, images, categories, rating information and much more. You can see an example of the collected dataset below.",
+            "description_long": "VkusVill, a Russian supermarket retail chain, was founded in 2019. The company also has its own brand of products positioned as healthy. Web-scraper will help you gather data on the range of products sold at this chain.",
+            "keywords": "ecommerce scraper, lamoda scraper, data extraction, web scraping",
+            "domain": "vkusvill.ru",
+            "article": "vkusvillru",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the web-store",
+                        "example": "https://vkusvill.ru/goods/molochnye-produkty-yaytso/"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the online store",
+                        "example": "https://vkusvill.ru/goods/yogurt-malina-zemlyanika-2-5-24466.html"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для интернет-магазина Vkusvill.ru",
+            "title_short": "Парсер ВкусВилл",
+            "description_short": "Если вам надо отслеживать цены и наличие товаров на сайте интернет-магазина ВкусВилл - данный парсер поможет вам. Кроме цен и наличия, парсер собирает подробную информацию о товаре, изображения, категории, информацию о рейтинге и многое другое. Вы можете ознакомиться с примером собираемого датасета ниже.",
+            "description_long": "Российская розничная сеть супермаркетов ВкусВилл была основана в 2019 году. Компания имеет также собственная торговая марка продуктов, позиционируемых как «продукты для здорового питания». Парсер поможем вам собрать данные об ассортименте товаров, продаваемых в этой сети.",
+            "keywords": "парсер интернет-магазина, парсер леруа мерлен, сбор данных, мониторинг цен",
+            "domain": "vkusvill.ru",
+            "article": "vkusvillru",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию в магазине",
+                        "example": "https://vkusvill.ru/goods/molochnye-produkty-yaytso/"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
+                        "example": "https://vkusvill.ru/goods/yogurt-malina-zemlyanika-2-5-24466.html"
+                    }
+                }
+            }
+        ]
+    }
+}
