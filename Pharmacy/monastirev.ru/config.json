@@ -1,0 +1,86 @@
+{
+    "digger": {
+        "updated": "2022-06-24",
+        "compile": true
+    },
+    "english": {
+        "meta": {
+            "title": "Monastirev.ru scraper",
+            "title_short": "Monastirev.ru scraper",
+            "description_short": "Collect data on drugs sold at Monastyrev Pharmacy Chain. The dataset, gathered by the web scraper, provides information on availability, price, manufacturer, number of reviews, etc. An example of a dataset can be seen below.",
+            "description_long": "Monastyrev - a service for searching and ordering medications. The pharmacy chain also offers beauty and health products, medical equipment and much more. The assortment of the online pharmacy includes more than 50000 product items, information about which you can easily get using this web scraper.",
+            "keywords": "dragstore scraper, pharmacy scraper, zdravcity scraper, data extraction, web scraping",
+            "domain": "monastirev.ru",
+            "article": "monastirevru",
+            "category": "Pharmacy",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the dragstore",
+                        "example": "https://monastirev.ru/kosmetika-335g/shampuni-911g/"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the dragstore",
+                        "example": "https://monastirev.ru/offer/vladivostok/1110154140/shampun-bio-natura-siberika-natura-siberica-doktor-taiga-vosstanovlenie"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для онлайн аптеки Monastirev.ru",
+            "title_short": "Парсер аптеки Монастырев",
+            "description_short": "Соберите данные о лекарствах, продаваемых в аптечной сети Монастырев. В датасете, собранном парсером, предcтавлена информация о наличии, цене, производителе, количестве отзывов и пр. Пример датасета можно увидеть ниже.",
+            "description_long": "Монастырёв – сервис поиска и заказа лекарственных препаратов. Также в аптечной сети представлены товары для красоты и здоровья, медицинское оборудование и многое другое. В ассортименте онлайн аптеки более 50000 товарных позиций, информацию о которых вы легко получите, используя данный парсер.",
+            "keywords": "парсер аптеки, парсер монастырев, сбор данных, мониторинг цен",
+            "domain": "monastirev.ru",
+            "article": "monastirevru",
+            "category": "Аптеки",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию в онлайн аптеке",
+                        "example": "https://monastirev.ru/kosmetika-335g/shampuni-911g/"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на лекарство",
+                        "example": "https://monastirev.ru/offer/vladivostok/1110154140/shampun-bio-natura-siberika-natura-siberica-doktor-taiga-vosstanovlenie"
+                    }
+                }
+            }
+        ]
+    }
+}
