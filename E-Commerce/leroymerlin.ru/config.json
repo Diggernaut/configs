@@ -1,0 +1,88 @@
+{
+    "digger": {
+        "updated": "2022-06-23",
+        "compile": true
+    },
+    "english": {
+        "meta": {
+            "title": "Leroymerlin.ru scraper",
+            "title_short": "Leroymerlin.ru scraper",
+            "description_short": "Upload the web-scraper to your Diggernaut account and collect information about the products presented in the Leroy Merlin online store. You can set one or more links to product categories, or one or more links to the products themselves. You can see an example of a collected dataset below.",
+            "description_long": "Leroy Merlin is a French company, one of Europe's leading DIY retailers. The company entered the Russian market in 2004. By 2006 the company became the first among DIY assortment retail chains. Leroy Merlin's web-scraper will help you keep track of prices for goods, their availability, and also collect information that you may need for machine learning.",
+            "keywords": "ecommerce scraper, lamoda scraper, data extraction, web scraping",
+            "warning": "<span class=\"text-danger\">WARNING!</span><br/>Requires a paid subscription or PAYG plan to run. One page request costs 10 credits. The prices are available <a href=\"https://www.diggernaut.com/pricing/\">here</a>.",
+            "domain": "leroymerlin.ru",
+            "article": "leroymerlinru",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the web-store",
+                        "example": "https://leroymerlin.ru/catalogue/radiatory-bimetallicheskie/"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the online store",
+                        "example": "https://leroymerlin.ru/product/radiator-rifar-monolit-500-8-sekciy-bokovoe-podklyuchenie-bimetall-12876448/"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для интернет-магазина Leroymerlin.ru",
+            "title_short": "Парсер Леруа Мерлен",
+            "description_short": "Загрузите парсер в свой аккаунт Diggernaut и собирайте информацию о товарах, представленных в интернет-магазине Леруа Мерлен. Вы можете задали один или несколько ссылок на категории товаров, либо одну или несколько ссылок на сами товары. Пример собираемого датасета можно посмотреть ниже.",
+            "description_long": "Леруа Мерлен - французская компания, является одной из ведущих в Европе в сегменте DIY магазинов. На российский рынок компания вышла в 2004 году. К 2006 компания стала первой среди торговых сетей с DIY ассортиментом. Парсер Леруа Мерлен поможет вам отслеживать цены на товары, их наличие, а также собирать информацию, которая может понадобиться для машинного обучения",
+            "keywords": "парсер интернет-магазина, парсер леруа мерлен, сбор данных, мониторинг цен",
+            "warning": "<span class=\"text-danger\">ВНИМАНИЕ!</span><br/>Для запуска требуется платная подписка, либо план PAYG. Стоимость запроса одной страницы сайта - 10 кредитов. С планами подписки можно ознакомиться <a href=\"https://www.diggernaut.com/pricing/\">здесь</a>.",
+            "domain": "leroymerlin.ru",
+            "article": "leroymerlinru",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию в магазине",
+                        "example": "https://leroymerlin.ru/catalogue/radiatory-bimetallicheskie/"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
+                        "example": "https://leroymerlin.ru/product/radiator-rifar-monolit-500-8-sekciy-bokovoe-podklyuchenie-bimetall-12876448/"
+                    }
+                }
+            }
+        ]
+    }
+}

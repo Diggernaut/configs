@@ -1,0 +1,210 @@
+#leroymerlinru digger
+---
+config:
+    debug: 2
+    agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36
+    geo:
+        country: RU
+do:
+- set_engine: playwright
+- variable_set: 
+    field: rep
+    value: "yes"
+- counter_set: 
+    name: page_retry
+    value: 0
+- walk:
+    to: links
+    wait_for: h1[itemprop="name"]
+    timeout: 60000
+    repeat_in_pool: <%rep%>
+    do:
+    - variable_clear: found
+    - find:
+        path: div[itemtype="https://schema.org/Product"]
+        do:
+        - object_new: item
+        - static_get: url
+        - object_field_set:
+            object: item
+            field: url
+        - find: 
+            path: h1[itemprop="name"]
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: title
+            - variable_set:
+                field: found
+                value: 1
+        - find: 
+            path: div[itemtype="http://schema.org/BreadcrumbList"] a span[itemprop="name"]
+            slice: 2:-1
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \S
+                do:
+                - object_field_set:
+                    object: item
+                    field: categories
+                    joinby: ","
+        - find: 
+            path: 'section#description section-content-vlimited'
+            do: 
+            - node_remove: h3:contains("СКАЧАТЬ ИНСТРУКЦИЮ"),strong:contains("СКАЧАТЬ ИНСТРУКЦИЮ")
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \S
+                do:
+                - object_field_set:
+                    object: item
+                    field: description
+        - find: 
+            path: meta[itemprop="sku"] 
+            do: 
+            - parse:
+                attr: content
+            - if:
+                match: \S
+                do:
+                - object_field_set:
+                    object: item
+                    field: sku
+        - find: 
+            path: '.primary-price > meta[itemprop="price"], showcase-price-view+div > [itemprop="price"]'
+            do: 
+            - parse:
+                attr: content
+            - if:
+                match: \d
+                do:
+                - object_field_set:
+                    object: item
+                    field: price
+        - find: 
+            path: button[data-qa-header-regions-button]
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \S
+                do:
+                - object_field_set:
+                    object: item
+                    field: seller
+        - find: 
+            path: div[data-qa="is-available-for-order"]
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \S
+                do:
+                - object_field_set:
+                    object: item
+                    field: instock
+        - find: 
+            path: '#nav-characteristics .def-list__group:hasChild(dt:matches(Марка)) dd, #characteristics div:hasChild(dt:matches(Марка)) > dd' 
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \S
+                do:
+                - object_field_set:
+                    object: item
+                    field: brand
+        - find: 
+            path: 'section#characteristics dl > div' 
+            do: 
+            - variable_clear: field
+            - find: 
+                path: dt
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \S
+                    do:
+                    - variable_set: field
+            - variable_get: field
+            - if:
+                match: \S
+                do:
+                - find:
+                    path: dd
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: <%field%>
+        - find: 
+            path: picture > source
+            slice: 0
+            do:
+            - parse:
+                attr: srcset
+            - if:
+                match: \S
+                do:
+                - normalize:
+                    routine: url
+                - object_field_set:
+                    object: item
+                    field: image
+    - find: 
+        path: body
+        do: 
+        - variable_get: found
+        - if:
+            match: 1
+            do:
+            - counter_set: 
+                name: page_retry
+                value: 0
+            - variable_clear: rep
+            - object_save:
+                name: item
+            else:
+            - counter_increment:
+                name: page_retry
+            - counter_get: page_retry
+            - if:
+                gt: 5
+                type: int
+                do:
+                - find: 
+                    path: html 
+                    in: doc
+                    do: 
+                    - parse:
+                        format: html
+                    - info: 'wrong page format, please check HTML:<%register%>'
+                    - variable_clear: rep
+                    - counter_set: 
+                        name: page_retry
+                        value: 0
+                else:
+                - variable_set: 
+                    field: rep
+                    value: "yes"
+    - cookie_reset
+    - proxy_switch
+                    
