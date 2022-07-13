@@ -4,8 +4,12 @@ config:
     agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36
     debug: 2
 do:
+- variable_set:
+    field: rep
+    value: "yes"
 - walk:
     to: links
+    repeat_in_pool: <%rep%>
     headers:
         accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
         accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
@@ -16,36 +20,55 @@ do:
         upgrade-insecure-requests: 1
     do:
     - find:
-        path: a.gl-product-card__details-link
+        path: body
         do:
-        - parse:
-            attr: href
-        - trim
+        - static_get: responseCode
         - if:
-            match: \w+
+            match: 403
             do:
-            - normalize:
-                routine: url
-            - link_add:
-                pool: pages
-    - find:
-        path: a.active:contains('Next')
-        slice: 0
-        do:
-        - parse:
-            attr: href
-        - trim
-        - if:
-            match: \w+
-            do:
-            - normalize:
-                routine: url
-            - link_add
-    - cookie_reset
-    - sleep: 3
+            - info: Proxy is banned, retrying
+            - proxy_switch
+            - cookie_reset
+            - variable_set:
+                field: rep
+                value: "yes"
+            else:
+            - variable_clear: rep
+            - find:
+                path: a.glass-product-card__assets-link
+                do:
+                - parse:
+                    attr: href
+                - trim
+                - if:
+                    match: \w+
+                    do:
+                    - normalize:
+                        routine: url
+                    - link_add:
+                        pool: pages
+            - find:
+                path: a.active:contains('Next')
+                slice: 0
+                do:
+                - parse:
+                    attr: href
+                - trim
+                - if:
+                    match: \w+
+                    do:
+                    - normalize:
+                        routine: url
+                    - link_add
+            - cookie_reset
+            - sleep: 3
+- variable_set:
+    field: rep
+    value: "yes"
 - walk:
     to: links
     pool: pages
+    repeat_in_pool: <%rep%>
     headers:
         accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
         accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
@@ -56,236 +79,251 @@ do:
         upgrade-insecure-requests: 1
     do:
     - find:
-        path: div[data-auto-id="pdp"]
+        path: body
         do:
-        - variable_clear: price_list
-        - variable_clear: price_offer
-        - variable_clear: currency
-        - variable_clear: title
-        - variable_clear: color
-        - variable_clear: sku
-        - variable_clear: brand
-        - variable_clear: categories
-        - variable_clear: images
-        - static_get: url
-        - variable_set: pageurl
-        - find:
-            path: div[itemprop="offers"] > meta[itemprop="priceCurrency"]
+        - static_get: responseCode
+        - if:
+            match: 403
             do:
-            - parse:
-                attr: content
-            - space_dedupe
-            - trim
-            - variable_set: currency
-        - find:
-            path: div[itemprop="offers"] > meta[itemprop="price"]
-            do:
-            - parse:
-                attr: content
-            - space_dedupe
-            - trim
-            - variable_set: price_list
-            - variable_set: price_offer
-        - find:
-            path: gl-price__value--crossed
-            slice: 0
-            do:
-            - parse:
-                filter: ([0-9\.]+)
-            - variable_set: price_list
-        - find:
-            path: div[itemtype="http://schema.org/Product"] > meta[itemprop="name"]
-            do:
-            - parse:
-                attr: content
-            - space_dedupe
-            - trim
-            - variable_set: title
-        - find:
-            path: div[data-auto-id="color-chooser"]>div.gl-label
-            do:
-            - parse
-            - space_dedupe
-            - trim
-            - normalize:
-                routine: replace_substring
-                args:
-                - ^Color\:: ''
-            - trim
-            - variable_set: color
-        - find:
-            path: meta[itemProp="sku"]
-            do:
-            - parse:
-                attr: content
-            - space_dedupe
-            - trim
-            - variable_set: sku
-        - find:
-            path: div[itemprop="brand"] > meta[itemprop="name"]
-            do:
-            - parse:
-                attr: content
-            - space_dedupe
-            - trim
-            - variable_set: brand
-        - find:
-            path: ol[typeof="BreadcrumbList"] > li > a
-            slice: 1:-1
-            do:
-            - parse
-            - space_dedupe
-            - trim
-            - if:
-                match: \w+
-                do:
-                - variable_prepend:
-                    field: categories
-                    joinby: "|"
-                - variable_set: categories
-        - find:
-            path: div[data-auto-id="product-category"]
-            do:
-            - parse
-            - space_dedupe
-            - trim
-            - if:
-                match: \w+
-                do:
-                - variable_prepend:
-                    field: categories
-                    joinby: "|"
-                - variable_set: categories
-        - find:
-            path: div[style="transform:translate(0, 0px)"]:not(.thumbnail-video) > img
-            do:
-            - parse:
-                attr: src
-            - normalize:
-                routine: replace_substring
-                args:
-                - \/images\/[^\/]+\/: '/images/'
-            - if:
-                match: \w+
-                do:
-                - variable_prepend:
-                    field: images
-                    joinby: "|"
-                - variable_set: images
-        - walk:
-            to: https://www.adidas.com/api/products/<%sku%>/availability?sitePath=us
-            do:
+            - info: Proxy is banned, retrying
+            - proxy_switch
+            - cookie_reset
+            - variable_set:
+                field: rep
+                value: "yes"
+            else:
+            - variable_clear: rep
             - find:
-                path: variation_list
+                path: div[data-auto-id="pdp"]
                 do:
-                - object_new: item
+                - variable_clear: price_list
+                - variable_clear: price_offer
+                - variable_clear: currency
+                - variable_clear: title
+                - variable_clear: color
+                - variable_clear: sku
+                - variable_clear: brand
+                - variable_clear: categories
+                - variable_clear: images
+                - static_get: url
+                - variable_set: pageurl
                 - find:
-                    path: sku
+                    path: script[type="application/ld+json"]
+                    in: doc
                     do:
                     - parse
-                    - space_dedupe
-                    - trim
-                    - object_field_set:
-                        object: item
-                        field: 01 Product ID
-                - variable_get: sku
-                - object_field_set:
-                    object: item
-                    field: 02 SKU
-                - variable_get: title
-                - object_field_set:
-                    object: item
-                    field: 03 Title
-                - variable_get: brand
-                - object_field_set:
-                    object: item
-                    field: 04 Brand
-                - variable_get: color
-                - object_field_set:
-                    object: item
-                    field: 05 Color
-                - find:
-                    path: size
-                    do:
-                    - parse
-                    - space_dedupe
-                    - trim
-                    - object_field_set:
-                        object: item
-                        field: 06 Size
-                - find:
-                    path: availability_status
-                    do:
-                    - parse
-                    - space_dedupe
-                    - trim
                     - normalize:
-                        routine: replace_matched
-                        args:
-                        - NOT_AVAILABLE: "No"
-                        - IN_STOCK: "Yes"
-                    - object_field_set:
-                        object: item
-                        field: 07 In Stock
+                        routine: json2xml
+                    - to_block
+                    - find:
+                        path: body_safe > offers > pricecurrency
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: currency
+                    - find:
+                        path: body_safe > offers > price
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: price_list
+                        - variable_set: price_offer
+                    - find:
+                        path: body_safe > name
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: title
+                    - find:
+                        path: body_safe > color
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: color
+                    - find:
+                        path: body_safe > sku
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: sku
+                    - find:
+                        path: body_safe > brand > name
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: brand
+                    - find:
+                        path: body_safe > safe_image
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - normalize:
+                            routine: replace_substring
+                            args:
+                            - \/images\/[^\/]+\/: '/images/'
+                        - if:
+                            match: \w+
+                            do:
+                            - variable_prepend:
+                                field: images
+                                joinby: "|"
+                            - variable_set: images
+
                 - find:
-                    path: availability
+                    path: div.gl-price-item--crossed
+                    slice: 0
+                    do:
+                    - parse:
+                        filter: ([0-9\.]+)
+                    - variable_set: price_list
+                - find:
+                    path: ol[data-auto-id="breadcrumbs-desktop"] > li > a
+                    slice: 2:-1
                     do:
                     - parse
                     - space_dedupe
                     - trim
                     - if:
-                        match: \d+
+                        match: \w+
                         do:
+                        - variable_prepend:
+                            field: categories
+                            joinby: "|"
+                        - variable_set: categories
+                - find:
+                    path: div[data-auto-id="product-category"]
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \w+
+                        do:
+                        - variable_prepend:
+                            field: categories
+                            joinby: "|"
+                        - variable_set: categories
+                - walk:
+                    to: https://www.adidas.com/api/products/<%sku%>/availability?sitePath=us
+                    do:
+                    - find:
+                        path: variation_list
+                        do:
+                        - object_new: item
+                        - find:
+                            path: sku
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: item
+                                field: 01 Product ID
+                        - variable_get: sku
                         - object_field_set:
                             object: item
-                            field: 08 Quantity
-                            type: int
-                - variable_get: price_list
-                - if:
-                    match: \d+
-                    do:
-                    - object_field_set:
-                        object: item
-                        field: 09 List Price
-                        type: float
-                - variable_get: price_offer
-                - if:
-                    match: \d+
-                    do:
-                    - object_field_set:
-                        object: item
-                        field: 10 Sale Price
-                        type: float
-                - variable_get: currency
-                - object_field_set:
-                    object: item
-                    field: 11 Currency
-                - variable_get: categories
-                - normalize:
-                    routine: replace_substring
-                    args:
-                    - ^\|: ''
-                - object_field_set:
-                    object: item
-                    field: 12 Categories
-                - variable_get: pageurl
-                - object_field_set:
-                    object: item
-                    field: 13 URL
-                - eval:
-                    routine: js
-                    body: '(function (){var d = new Date(); return d.toISOString()})();'
-                - object_field_set:
-                    object: item
-                    field: 14 Extract Date
-                - variable_get: images
-                - normalize:
-                    routine: replace_substring
-                    args:
-                    - ^\|: ''
-                - object_field_set:
-                    object: item
-                    field: 15 Images
-                - object_save:
-                    name: item
+                            field: 02 SKU
+                        - variable_get: title
+                        - object_field_set:
+                            object: item
+                            field: 03 Title
+                        - variable_get: brand
+                        - object_field_set:
+                            object: item
+                            field: 04 Brand
+                        - variable_get: color
+                        - object_field_set:
+                            object: item
+                            field: 05 Color
+                        - find:
+                            path: size
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: item
+                                field: 06 Size
+                        - find:
+                            path: availability_status
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - normalize:
+                                routine: replace_matched
+                                args:
+                                - NOT_AVAILABLE: "No"
+                                - IN_STOCK: "Yes"
+                            - object_field_set:
+                                object: item
+                                field: 07 In Stock
+                        - find:
+                            path: availability
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \d+
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: 08 Quantity
+                                    type: int
+                        - variable_get: price_list
+                        - if:
+                            match: \d+
+                            do:
+                            - object_field_set:
+                                object: item
+                                field: 09 List Price
+                                type: float
+                        - variable_get: price_offer
+                        - if:
+                            match: \d+
+                            do:
+                            - object_field_set:
+                                object: item
+                                field: 10 Sale Price
+                                type: float
+                        - variable_get: currency
+                        - object_field_set:
+                            object: item
+                            field: 11 Currency
+                        - variable_get: categories
+                        - normalize:
+                            routine: replace_substring
+                            args:
+                            - ^\|: ''
+                        - object_field_set:
+                            object: item
+                            field: 12 Categories
+                        - variable_get: pageurl
+                        - object_field_set:
+                            object: item
+                            field: 13 URL
+                        - eval:
+                            routine: js
+                            body: '(function (){var d = new Date(); return d.toISOString()})();'
+                        - object_field_set:
+                            object: item
+                            field: 14 Extract Date
+                        - variable_get: images
+                        - normalize:
+                            routine: replace_substring
+                            args:
+                            - ^\|: ''
+                        - object_field_set:
+                            object: item
+                            field: 15 Images
+                        - object_save:
+                            name: item
     - sleep: 3
