@@ -1,4 +1,5 @@
 # olxuz digger
+# olxpl digger
 ---
 config:
     agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36
@@ -275,6 +276,16 @@ do:
                 - info: item is not exist anymore, skipping
                 - variable_clear: repeat
                 else:
-                - error: Proxy is banned or page layout has been changed
-                - cookie_reset
-                - proxy_switch
+                - static_get: url
+                - if:
+                    match: '#from404'
+                    do:
+                    - info: item is not exist anymore, skipping
+                    - variable_clear: repeat
+                    else:
+                    - error: Proxy is banned or page layout has been changed
+                    - cookie_reset
+                    - proxy_switch
+                    - variable_set:
+                        field: repeat
+                        value: "yes"

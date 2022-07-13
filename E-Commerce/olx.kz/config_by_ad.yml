@@ -151,8 +151,8 @@ do:
                     - normalize:
                         routine: replace_matched
                         args:
-                        - 'true': Company
-                        - 'false': Private person
+                        - 'true': Компания
+                        - 'false': Частное лицо
                     - object_field_set:
                         object: item
                         field: seller_type
@@ -208,12 +208,17 @@ do:
                     - info: Skipping phone extraction
                     else:
                     - set_engine: selenium
+                    - variable_set:
+                        field: rp
+                        value: "yes"
                     - walk:
                         to: <%url%>
+                        repeat: <%rp%>
                         do:
                         - find:
                             path: body
                             do:
+                            - sleep: 5:10
                             - parse
                             - if:
                                 match: 403 ERROR
@@ -230,10 +235,6 @@ do:
                                     - click
                                 - find:
                                     path: 'button[data-cy="dismiss-cookies-overlay"]'
-                                    do:
-                                    - click
-                                - find:
-                                    path: 'button#onetrust-accept-btn-handler'
                                     do:
                                     - click
                                 - find:
