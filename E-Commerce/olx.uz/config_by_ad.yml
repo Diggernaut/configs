@@ -209,6 +209,7 @@ do:
                     - info: Skipping phone extraction
                     else:
                     - set_engine: selenium
+                    - restart_selenium
                     - variable_set:
                         field: rp
                         value: "yes"

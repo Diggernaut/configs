@@ -29,10 +29,11 @@ do:
             field: okp
             value: 1
         - find:
-            path: a.detailsLink:nth-of-type(1),div[data-cy="l-card"] > a
+            path: a.detailsLink[data-cy="listing-ad-title"],div[data-cy="l-card"] > a
             do:
             - parse:
                 attr: href
+                filter: ^([^\#]+)
             - variable_set:
                 field: repeat
                 value: "yes"
@@ -235,6 +236,7 @@ do:
                                 - info: Skipping phone extraction
                                 else:
                                 - set_engine: selenium
+                                - restart_selenium
                                 - variable_set:
                                     field: rp
                                     value: "yes"
