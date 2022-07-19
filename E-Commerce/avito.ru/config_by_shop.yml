@@ -27,7 +27,7 @@ do:
         do:
         - static_get: url
         - filter:
-            args: avito\.ru\/([^\/]+)
+            args: avito\.ru\/user\/([^\/]+)
         - variable_set: shopid
         - static_get: url
         - filter:
@@ -95,7 +95,7 @@ do:
                 field: offset
                 value: 0
             - walk:
-                to: https://m.avito.ru/api/4/shops/<%shopid%>/items?key=<%key%>&query=<%query%>&display=list&limit=20&offset=<%offset%>
+                to: https://m.avito.ru/api/1/user/profile/items?key=<%key%>&query=<%query%>&display=list&limit=20&sellerId=<%shopid%>
                 repeat: <%repeat%>
                 do:
                 - sleep: 3
@@ -122,7 +122,7 @@ do:
                     - parse
                     - variable_set: laststamp
                 - find:
-                    path: result > list > value > uri_mweb
+                    path: result > items > value > uri_mweb
                     do:
                     - variable_set:
                         field: repeat
@@ -154,6 +154,9 @@ do:
                                     - exit
                                     do:
                                     - variable_set: pid
+                                    - parse:
+                                        attr: href
+                                        filter: (\d+)\?
                                     - variable_set:
                                         field: repeat2
                                         value: "no"
@@ -163,7 +166,7 @@ do:
                                         object: item
                                         field: url
                                     - walk:
-                                        to: https://m.avito.ru/api/17/items/<%pid%>?key=<%key%>&action=view
+                                        to: https://m.avito.ru/api/18/items/<%pid%>?key=<%key%>&action=view
                                         do:
                                         - find: 
                                             path: 'images > safe_640x480'
@@ -240,15 +243,15 @@ do:
                                                             - normalize:
                                                                 routine: json2xml
                                                             - to_block
-                                                            - variable_clear: code
+                                                            - variable_clear: status
                                                             - find:
-                                                                path: code
+                                                                path: status
                                                                 do:
                                                                 - parse
-                                                                - variable_set: code
-                                                            - variable_get: code
+                                                                - variable_set: status
+                                                            - variable_get: status
                                                             - if:
-                                                                match: 403
+                                                                match: forbidden
                                                                 do:
                                                                 - info: Proxy is banned, switching
                                                                 - proxy_switch
@@ -289,15 +292,15 @@ do:
                                                                             do:
                                                                             - info: You need to login to see this phone number
                                                             else:
-                                                            - variable_clear: code
+                                                            - variable_clear: status
                                                             - find:
-                                                                path: code
+                                                                path: status
                                                                 do:
                                                                 - parse
-                                                                - variable_set: code
-                                                            - variable_get: code
+                                                                - variable_set: status
+                                                            - variable_get: status
                                                             - if:
-                                                                match: 403
+                                                                match: forbidden
                                                                 do:
                                                                 - info: Proxy is banned, switching
                                                                 - proxy_switch
