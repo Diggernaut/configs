@@ -1,13 +1,13 @@
 #avitoru digger
 ---
 config:
+    proxy:
+        type: residential
     debug: 2
     agent: "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Mobile Safari/537.36"
     ssl:
         version: TLSv1.2
         cipher: ECDHE ECDSA AES 256 GCM SHA384
-    proxy:
-        type: residential
 do:
 - variable_set:
     field: collectPhone
@@ -92,10 +92,10 @@ do:
                 field: repeat
                 value: "yes"
             - variable_set:
-                field: offset
-                value: 0
+                field: page
+                value: 1
             - walk:
-                to: https://m.avito.ru/api/1/user/profile/items?key=<%key%>&query=<%query%>&display=list&limit=20&sellerId=<%shopid%>
+                to: https://m.avito.ru/api/1/user/profile/items?key=<%key%>&query=<%query%>&display=list&page=<%page%>&limit=20&sellerId=<%shopid%>
                 repeat: <%repeat%>
                 do:
                 - sleep: 3
@@ -114,8 +114,8 @@ do:
                         value: 1
                     - eval:
                         routine: js
-                        body: (function () {var offset = <%offset%>; return offset + 20;})();
-                    - variable_set: offset
+                        body: (function () {var page = <%page%>; return page + 1;})();
+                    - variable_set: page
                 - find:
                     path: result > laststamp
                     do:
