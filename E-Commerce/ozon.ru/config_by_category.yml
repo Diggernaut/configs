@@ -2,9 +2,10 @@
 ---
 config:
     debug: 2
-    agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.98 Safari/537.36
     js_enabled: "yes"
-    headless: "yes"
+    headless: "no"
+    proxy:
+        type: residential
 do:
 - variable_set:
     field: rep
@@ -25,121 +26,138 @@ do:
     - find:
         path: html
         do:
-        - find: 
-            path: body 
-            do: 
-            - static_get: url
-            - filter:
-                args:
-                    - \?page=(\d+)
-            - if:
-                match: \d
-                do:
-                - eval:
-                    routine: js
-                    body: (function () { return <%register%>+1;})();
-                - variable_set: nextppage
-                else:
-                - variable_set: 
-                    field: nextppage
-                    value: 2
-        # check for paginator on the page, should be always on
-        - find: 
-            path: 'div[data-widget="megaPaginator"]'
-            do: 
-            - variable_set:
-                field: pageok
-                value: 1
-        # getting next page after active page link because Дальше button is not always exists on last few pages
-        - find: 
-            path: 'div[data-widget="megaPaginator"] a[href*="?page=<%nextppage%>"]'
-            do: 
-            - parse:
-                attr: href
-            - if:
-                match: \S
-                do:
-                - normalize:
-                    routine: url
-                - link_add
-                - variable_set:
-                    field: nextpage
-                    value: 1
-                else:
-                - info: Link to next page in the paginator is empty
-        # getting product links
-        - find: 
-            path: .widget-search-result-container > div > div > a[href*="/product"]
-            do:
-            - scrollto
-            - parse:
-                attr: href
-                filter: ^([^\?]+)
-            - if:
-                match: \S
-                do:
-                - normalize:
-                    routine: url
-                - link_add:
-                    pool: pages
-                - counter_increment:
-                    name: products
-                    by: 1
-        # consistency checks
-        - variable_get: pageok
+        - parse
         - if:
-            match: 1
+            match: Простите, по вашему запросу товаров сейчас нет
             do:
-            - variable_set:
-                field: rep
-                value: "no"
-            - counter_set:
-                name: tries
-                value: 1
-            - info: fetched <%products%> product links
-            - counter_get: products
-            - if:
-                lt: 36
-                type: int
-                do:
-                - variable_get: nextpage
-                - if:
-                    match: 1
-                    else:
-                    - info: number is less than expected
+            - info: No results found, skipping
+            - variable_clear: rep
             else:
-            - parse
-            - if:
-                match: illegal page
+            - sleep: 10
+            - find: 
+                path: body 
+                do: 
+                - static_get: url
+                - filter:
+                    args:
+                        - \?page=(\d+)
+                - if:
+                    match: \d
+                    do:
+                    - eval:
+                        routine: js
+                        body: (function () { return <%register%>+1;})();
+                    - variable_set: nextppage
+                    else:
+                    - variable_set: 
+                        field: nextppage
+                        value: 2
+            # check for paginator on the page, should be always on
+            - find: 
+                path: 'div[data-widget="megaPaginator"]'
+                do: 
+                - variable_set:
+                    field: pageok
+                    value: 1
+            # getting next page after active page link because Дальше button is not always exists on last few pages
+            - find: 
+                path: 'div[data-widget="megaPaginator"] a[href*="?page=<%nextppage%>"]'
+                do: 
+                - parse:
+                    attr: href
+                - if:
+                    match: \S
+                    do:
+                    - normalize:
+                        routine: url
+                    - link_add
+                    - variable_set:
+                        field: nextpage
+                        value: 1
+                    else:
+                    - info: Link to next page in the paginator is empty
+            # getting product links
+            - find: 
+                path: .widget-search-result-container > div > div > a[href*="/product"], .widget-search-result-container > div > div > div > a[href*="/product"]
                 do:
-                - info: This page is not exist anymore, skipping
+                - scrollto
+                - parse:
+                    attr: href
+                    filter: ^([^\?]+)
+                - if:
+                    match: \S
+                    do:
+                    - normalize:
+                        routine: url
+                    - link_add:
+                        pool: pages
+                    - counter_increment:
+                        name: products
+                        by: 1
+            # consistency checks
+            - variable_get: pageok
+            - if:
+                match: 1
+                do:
                 - variable_set:
                     field: rep
                     value: "no"
                 - counter_set:
                     name: tries
                     value: 1
-                else:
-                - counter_get: tries
+                - info: fetched <%products%> product links
+                - counter_get: products
                 - if:
-                    lt: 6
+                    lt: 36
                     type: int
                     do:
-                    - info: No paginator on the page, retrying
-                    - counter_increment:
-                        name: tries
-                        by: 1
+                    - variable_get: nextpage
+                    - if:
+                        match: 1
+                        else:
+                        - info: number is less than expected
+                else:
+                - parse
+                - if:
+                    match: (Пожалуйста, отключите VPN и попробуйте снова\.)|(Cloudflare)
+                    do:
+                    - info: Proxy is banned, switching
+                    - proxy_switch
                     - variable_set:
                         field: rep
                         value: "yes"
                     else:
-                    - error: No paginator on the page after 5 tries, exiting
-                    - parse:
-                        format: html
-                    - info: <%register%>
-                    - exit
+                    - if:
+                        match: illegal page
+                        do:
+                        - info: This page is not exist anymore, skipping
+                        - variable_set:
+                            field: rep
+                            value: "no"
+                        - counter_set:
+                            name: tries
+                            value: 1
+                        else:
+                        - counter_get: tries
+                        - if:
+                            lt: 6
+                            type: int
+                            do:
+                            - info: No paginator on the page, retrying
+                            - counter_increment:
+                                name: tries
+                                by: 1
+                            - variable_set:
+                                field: rep
+                                value: "yes"
+                            else:
+                            - error: No paginator on the page after 5 tries, exiting
+                            - parse:
+                                format: html
+                            - info: <%register%>
+                            - exit
     - sleep: 5:10
-
+    - proxy_switch
 - counter_set:
     name: tries
     value: 1
@@ -155,7 +173,7 @@ do:
     - variable_clear: ppageok
     - find: 
         path: html 
-        do: 
+        do:
         - object_new: product
         - static_get: url
         - filter:
@@ -322,7 +340,7 @@ do:
                             object: product
                             field: image
         - find: 
-            path:  div[data-widget="breadCrumbsPdp"] > ol > li > span
+            path:  div[data-widget="breadCrumbs"] > ol > li > span
             do: 
             - parse
             - space_dedupe
@@ -352,7 +370,7 @@ do:
             path: '[data-widget="blockVertical"] > [data-widget="paginator"]'
             do: 
             - scrollto
-            - sleep: 2:4
+            - sleep: 10
         - find: 
             path: html
             in: doc
@@ -408,7 +426,7 @@ do:
             else:
             - parse
             - if:
-                match:  Incapsula incident
+                match: (Пожалуйста, отключите VPN и попробуйте снова\.)|(Cloudflare)
                 do:
                 - info: Proxy is banned, switching
                 - proxy_switch
@@ -446,6 +464,9 @@ do:
                         type: int
                         do:
                         - info: Product page layout seems not ok
+                        - parse:
+                            format: html
+                        - info: <%register%>
                         - counter_increment:
                             name: tries
                             by: 1
@@ -463,3 +484,4 @@ do:
                         - variable_set:
                             field: rip
                             value: "no"
+    - proxy_switch
