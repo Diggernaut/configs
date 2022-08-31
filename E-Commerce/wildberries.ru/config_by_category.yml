@@ -209,7 +209,7 @@ do:
             - variable_set: 
                 field: repfilter
                 value: "yes"
-            - register_set: 'https://wbxcatalog-ru.wildberries.ru/<%shard%>/v4/filters?appType=1&<%query%><%xsubject%>&locale=ru&lang=ru&curr=rub&dest=<%destination%>&reg=0&emp=0&regions=<%region%>&stores=<%store%>' 
+            - register_set: 'https://catalog.wb.ru/catalog/<%shard%>/v4/filters?appType=1&<%query%><%xsubject%>&locale=ru&lang=ru&curr=rub&dest=<%destination%>&reg=0&emp=0&regions=<%region%>&stores=<%store%>' 
             - walk:
                 repeat: <%repfilter%>
                 to: value
@@ -271,7 +271,7 @@ do:
         - eval:
             routine: js
             body: '(function () {
-                        var basestr = "https://wbxcatalog-ru.wildberries.ru/<%shard%>/catalog?<%query%>&locale=ru<%xsubject%>&dest=<%destination%>&reg=0&emp=0&regions=<%region%>&stores=<%store%>&page=";
+                        var basestr = "https://catalog.wb.ru/catalog/<%shard%>/catalog?<%query%>&locale=ru<%xsubject%>&dest=<%destination%>&reg=0&emp=0&regions=<%region%>&stores=<%store%>&page=";
                         var t = <%total%>;
                         var links = [];
                         for(var i = 1; (i-1)*100 < t; i++){

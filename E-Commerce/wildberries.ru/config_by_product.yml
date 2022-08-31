@@ -118,7 +118,7 @@ do:
             routine: js
             body: '(function () {return "<%store_cookie%>".split("_").join(",");})();'
         - variable_set: store
-        - register_set: 'https://wbxcatalog-ru.wildberries.ru/nm-2-card/catalog?appType=1&locale=ru&lang=ru&curr=rub&dest=<%destination%>&reg=0&emp=0&regions=<%region%>&stores=<%store%>&nm=<%sku%>' 
+        - register_set: 'https://card.wb.ru/cards/detail?appType=1&locale=ru&lang=ru&curr=rub&dest=<%destination%>&reg=0&emp=0&regions=<%region%>&stores=<%store%>&nm=<%sku%>' 
         - counter_reset: item
         - variable_set: 
             field: repi
