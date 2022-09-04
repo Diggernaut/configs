@@ -1,0 +1,462 @@
+# asoscom digger
+---
+config:
+    debug: 2
+    agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.62 Safari/537.36
+do:
+- variable_set: 
+    field: rep
+    value: "yes"
+- walk:
+    to: links
+    repeat_in_pool: <%rep%>
+    do:
+    - variable_clear: rep
+    - counter_increment:
+        name: pool0
+    - find: 
+        path: html
+        do: 
+        - static_get: responseCode
+        - if:
+            match: 503|403
+            do:
+            - proxy_switch
+            - cookie_reset
+            - variable_set: 
+                field: rep
+                value: "yes"
+            - counter_get: pool0
+            - if:
+                gt: 5
+                type: int
+                do:
+                - variable_clear: rep
+                - counter_reset: pool1
+                - error: server returns 403 or 503 error after 5 retries, skip URL
+            - info: server returns 403 or 503 error, retry
+            else:
+            - find:
+                path: a[data-auto-id="loadMoreProducts"]
+                do:
+                - parse:
+                    attr: href
+                - space_dedupe
+                - trim
+                - if:
+                    match: \w+
+                    do:
+                    - normalize:
+                        routine: url
+                    - link_add
+            - find: 
+                path: article[data-auto-id="productTile"] > a
+                do: 
+                - parse:
+                    attr: href
+                - space_dedupe
+                - trim
+                - if:
+                    match: \w+
+                    do:
+                    - normalize:
+                        routine: url
+                    - link_add:
+                        pool: catalog
+- variable_set: 
+    field: rep
+    value: "yes"
+- walk:
+    to: links
+    repeat_in_pool: <%rep%>
+    pool: catalog
+    do:
+    - variable_clear: rep
+    - counter_increment:
+        name: pool1
+    - find: 
+        path: html 
+        do: 
+        - static_get: responseCode
+        - if:
+            match: 503|403
+            do:
+            - proxy_switch
+            - cookie_reset
+            - variable_set: 
+                field: rep
+                value: "yes"
+            - counter_get: pool1
+            - if:
+                gt: 5
+                type: int
+                do:
+                - variable_clear: rep
+                - counter_reset: pool1
+                - error: server returns 403 or 503 error after 5 retries, skip URL
+            - info: server returns 403 or 503 error, retry
+            else:
+            - variable_clear: storecode
+            - variable_clear: currency
+            - variable_clear: keystoredataversion
+            - variable_clear: categories
+            - variable_clear: brand
+            - variable_clear: title
+            - variable_clear: description
+            - variable_clear: url
+            - variable_clear: sku
+            - variable_clear: pid
+            - variable_clear: rating
+            - variable_clear: reviews
+            - variable_clear: image
+            - variable_clear: gender
+            - variable_clear: pageok
+            - find:
+                path: nav[aria-label="breadcrumbs"] > ol > li > a
+                slice: 1:-1
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \S
+                    do:
+                    - variable_set: cat
+                    - variable_get: categories
+                    - if:
+                        match: \S+
+                        do:
+                        - register_set: <%categories%>, <%cat%>
+                        - variable_set: categories
+                        else:
+                        - register_set: <%cat%>
+                        - variable_set: categories
+            - find:
+                path: script[data-id="window.asos.siteChrome._initialStore"]
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \w+
+                    do:
+                    - normalize:
+                        routine: json2xml
+                    - to_block
+                    - find:
+                        path: regionalstore > defaultcurrency
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: currency
+                    - find:
+                        path: regionalstore > keystoredataversion
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: keystoredataversion
+                    - find:
+                        path: regionalstore > storecode
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: storecode
+            - find:
+                path: 'script#split-structured-data'
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \w+
+                    do:
+                    - normalize:
+                        routine: json2xml
+                    - to_block
+                    - find:
+                        path: safe__graph > brand > name,body_safe > brand > name
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: brand
+                    - find:
+                        path: safe__graph > name,body_safe > name
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: title
+                    - find:
+                        path: safe__graph > description,body_safe > description
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: description
+                    - find:
+                        path: safe__graph > url,body_safe > url
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: url
+                    - find:
+                        path: safe__graph > productid,body_safe > productid
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: pid
+                    - find:
+                        path: safe__graph > sku,body_safe > sku
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: sku
+            - find:
+                path: script:contains("window.asos.pdp.config.product =")
+                do:
+                - parse:
+                    filter: window\.asos\.pdp\.config\.(ratings\s+\=.+)
+                - variable_set: script
+                - eval:
+                    routine: js
+                    body: (function () {var <%script%> return JSON.stringify(ratings);})();
+                - normalize:
+                    routine: json2xml
+                - create_block:
+                    do:
+                    - find:
+                        path: averageoverallrating
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: rating
+                    - find:
+                        path: totalreviewcount
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: reviews
+                - parse:
+                    filter: window\.asos\.pdp\.config\.(product\s+\=.+)
+                - variable_set: script
+                - eval:
+                    routine: js
+                    body: (function () {var <%script%> return JSON.stringify(product);})();
+                - normalize:
+                    routine: json2xml
+                - create_block:
+                    do:
+                    - find:
+                        path: images > url
+                        slice: 0
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \w+
+                            do:
+                            - register_set: <%register%>?$n_1280w$
+                            - variable_set: image
+                    - find:
+                        path: gender
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: gender
+                    - variable_get: pid
+                    - if:
+                        match: \d+
+                        do:
+                        - variable_set:
+                            name: rep2
+                            value: "yes"
+                        - walk:
+                            to: https://www.asos.com/api/product/catalogue/v3/stockprice?productIds=<%pid%>&store=<%storecode%>&currency=<%currency%>&keyStoreDataversion=<%keystoredataversion%>
+                            repeat: <%rep2%>
+                            headers:
+                                accept: '*/*'
+                                accept-language: 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+                                asos-c-name: 'asos-web-productpage'
+                                asos-c-version: '1.0.0-bb586235fbfd-8967'
+                                cache-control: 'no-cache'
+                                pragma: 'no-cache'
+                                sec-ch-ua: '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"'
+                                sec-ch-ua-mobile: '?0'
+                                sec-ch-ua-platform: '"Windows"'
+                                sec-fetch-dest: empty
+                                sec-fetch-mode: cors
+                                sec-fetch-site: same-origin
+                            do:
+                            - counter_increment:
+                                name: pool2
+                            - variable_clear: rep2
+                            - find:
+                                path: html
+                                do:
+                                - static_get: responseCode
+                                - if:
+                                    match: 503|403
+                                    do:
+                                    - proxy_switch
+                                    - cookie_reset
+                                    - variable_set: 
+                                        field: rep2
+                                        value: "yes"
+                                    - counter_get: pool2
+                                    - if:
+                                        gt: 5
+                                        type: int
+                                        do:
+                                        - variable_clear: rep2
+                                        - counter_reset: pool2
+                                        - error: server returns 403 or 503 error after 5 retries, exiting
+                                        - exit
+                                    - info: server returns 403 or 503 error, retry
+                                    else:
+                            - find:
+                                path: variants
+                                do:
+                                - variable_clear: vid
+                                - find:
+                                    path: variantid
+                                    do:
+                                    - parse
+                                    - space_dedupe
+                                    - trim
+                                    - variable_set: vid
+                                - variable_get: vid
+                                - if:
+                                    match: \d+
+                                    do:
+                                    - find:
+                                        path: price > current > value
+                                        do:
+                                        - parse
+                                        - space_dedupe
+                                        - trim
+                                        - hashmap_set:
+                                            name: price
+                                            field: <%vid%>
+                        - find:
+                            path: variants
+                            do:
+                            - object_new: item
+                            - variable_get: categories
+                            - object_field_set:
+                                object: item
+                                field: categories
+                            - variable_get: brand
+                            - object_field_set:
+                                object: item
+                                field: brand
+                            - variable_get: title
+                            - object_field_set:
+                                object: item
+                                field: title
+                            - variable_get: description
+                            - object_field_set:
+                                object: item
+                                field: description
+                            - variable_get: url
+                            - object_field_set:
+                                object: item
+                                field: url
+                            - variable_get: rating
+                            - object_field_set:
+                                object: item
+                                field: rating
+                            - variable_get: reviews
+                            - object_field_set:
+                                object: item
+                                field: reviews
+                            - variable_get: image
+                            - object_field_set:
+                                object: item
+                                field: image
+                            - variable_get: gender
+                            - object_field_set:
+                                object: item
+                                field: gender
+                            - variable_get: currency
+                            - object_field_set:
+                                object: item
+                                field: currency
+                            - find:
+                                path: colour
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - object_field_set:
+                                    object: item
+                                    field: color
+                            - find:
+                                path: size
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - object_field_set:
+                                    object: item
+                                    field: size
+                            - find:
+                                path: seller
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - object_field_set:
+                                    object: item
+                                    field: seller
+                            - find:
+                                path: isinstock
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - normalize:
+                                    routine: replace_matched
+                                    args:
+                                    - 'true': "yes"
+                                    - .+: "no"
+                                - object_field_set:
+                                    object: item
+                                    field: instock
+                            - find:
+                                path: sku
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - object_field_set:
+                                    object: item
+                                    field: sku
+                            - find:
+                                path: variantid
+                                do:
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - if:
+                                    match: \d+
+                                    do:
+                                    - variable_set: vid
+                                    - hashmap_get:
+                                        name: price
+                                        field: <%vid%>
+                                    - object_field_set:
+                                        object: item
+                                        field: price
+                            - object_save:
+                                name: item

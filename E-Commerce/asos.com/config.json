@@ -1,0 +1,88 @@
+{
+    "digger": {
+        "updated": "2022-09-04",
+        "compile": false
+    },
+    "english": {
+        "meta": {
+            "title": "Asos.com scraper",
+            "title_short": "Asos.com scraper",
+            "description_short": "With the asos.com web store scraper you can collect information about products such as: SKU, product name, color, size, availability, price and other fields.",
+            "description_long": "Asos.com is a famous British online cosmetics and clothing store. It was founded in 2000 in London. The store sells about 1,000 different brands, including ASOS' own brands. With the help of this web scraper you can collect information about products in different categories, track price dynamics and availability of products and their variations.",
+            "warning": "<span class=\"text-danger\">WARNING!</span><br/>Requires a paid subscription or your own proxies to run. The prices are available <a href=\"https://www.diggernaut.com/pricing/\">here</a>.",
+            "keywords": "ecommerce scraper, asos scraper, data extraction, web scraping",
+            "domain": "asos.com",
+            "article": "asoscom",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the online store",
+                        "example": "https://www.asos.com/women/dresses/party-dresses/cat/?cid=11057"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product at the online store",
+                        "example": "https://www.asos.com/asyou/asyou-satin-square-neck-cami-mini-dress-with-split-front-in-black/prd/22206820?clr=black&colourWayId=60381373&cid=11057"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для магазина Asos.com",
+            "title_short": "Asos.com парсер",
+            "description_short": "С помощью парсера магазина asos.com можно собирать такую информацию о товарах как: SKU, название товара, цвет, размер, наличие, цену товара и другие поля.",
+            "description_long": "Asos.com - известный британский онлайн магазин косметики и одежды. Он был основан в 2000 году в Лондоне. В магазине продаемся около 1000 различных брендов, включая собственные бренды ASOS. С помощью данного парсера можно собирать информацию о товарах в различных категориях, отслеживать динамику цен и наличие товаров и их вариаций.",
+            "warning": "<span class=\"text-danger\">ВНИМАНИЕ!</span><br/>Для запуска требуется платная подписка или ваши собственные прокси. С планами подписки можно ознакомиться <a href=\"https://www.diggernaut.ru/pricing/\">здесь</a>.",
+            "keywords": "парсер магазина, парсер asos, сбор данных, мониторинг цен",
+            "domain": "asos.com",
+            "article": "asoscom",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку накатегорию магазина",
+                        "example": "https://www.asos.com/women/dresses/party-dresses/cat/?cid=11057"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар магазина",
+                        "example": "https://www.asos.com/asyou/asyou-satin-square-neck-cami-mini-dress-with-split-front-in-black/prd/22206820?clr=black&colourWayId=60381373&cid=11057"
+                    }
+                }
+            }
+        ]
+    }
+}
