@@ -1,0 +1,101 @@
+#rss
+---
+config:
+    debug: 2
+    agent: Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14
+do:
+- walk:
+    to: links
+    do:
+    - find:
+        path: channel > title
+        do:
+        - parse
+        - space_dedupe
+        - trim
+        - variable_set: source
+    - find:
+        path: channel > item
+        do:
+        - object_new: item
+        - variable_get: source
+        - object_field_set:
+            object: item
+            field: source
+        - find:
+            path: title
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: headline
+        - find:
+            path: safe_link
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: url
+        - find:
+            path: category
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: category
+        - find:
+            path: pubdate
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: date
+        - find:
+            path: description
+            do:
+            - parse
+            - object_field_set:
+                object: item
+                field: description
+        - find:
+            path: enclosure[type*="image"]
+            do:
+            - parse:
+                attr: url
+            - space_dedupe
+            - trim
+            - if:
+                match: \w+
+                do:
+                - normalize:
+                    routine: url
+                - object_field_set:
+                    object: item
+                    field: images
+                    joinby: ","
+        - find:
+            path: content[type*="image"]
+            do:
+            - parse:
+                attr: url
+            - space_dedupe
+            - trim
+            - if:
+                match: \w+
+                do:
+                - normalize:
+                    routine: url
+                - object_field_set:
+                    object: item
+                    field: images
+                    joinby: ","
+        - object_save:
+            name: item

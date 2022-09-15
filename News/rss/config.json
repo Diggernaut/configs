@@ -1,0 +1,62 @@
+{
+    "digger": {
+        "updated": "2022-09-15",
+        "compile": false
+    },
+    "english": {
+        "meta": {
+            "title": "RSS feed scraper",
+            "title_short": "RSS scraper",
+            "description_short": "This universal scraper will help you collect news and articles from various RSS feeds. Headlines, fragments of articles and news, links to images, publication date, category, if it is present in the feed are collected.",
+            "description_long": "RSS (Really Simple Syndication) feed is designed to integrate information (news, articles) from one Internet resource into other Internet resources. Because RSS has a strict and almost universal structure, it allows you to gather information from different sources using one universal scraper, without wasting time on developing a web scraper for each source.",
+            "keywords": "news scraper, rss feed scraper, data extraction, web scraping",
+            "domain": "rss",
+            "article": "rss",
+            "category": "News",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of RSS feeds",
+                "filename": "config.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the RSS feed",
+                        "example": "http://rss.cnn.com/rss/edition.rss"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для RSS фидов",
+            "title_short": "Парсер для RSS",
+            "description_short": "Этот универсальный парсер поможет вам собрать новости и статьи с различных RSS фидов. Собираются заголовки, фрагменты статей и новостей, ссылки на изображения, дата публикации, категория, если она присутсвует в фиде.",
+            "description_long": "RSS (Really Simple Syndication) фид предназначен для интеграции информации (новости, статьи) с одного интернет-ресурса в другие интернет ресурсы. Поскольку RSS имеет строгую и практически универсальную структуру, это дает возможность с помощью одного универсального парсера собирать информацию с различных источников, не тратя время на разработку парсера под каждый источник.",
+            "keywords": "парсер новостей, парсер статей, парсер rss фидов, сбор данных",
+            "domain": "rss",
+            "article": "rss",
+            "category": "Новости",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на RSS фиды",
+                "filename": "config.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на RSS фид",
+                        "example": "https://www.sostav.ru/rss"
+                    }
+                }
+            }
+       ]
+    }
+}
