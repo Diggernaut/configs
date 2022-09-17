@@ -2,7 +2,7 @@
 ---
 config:
     debug: 2
-    agent: "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Mobile Safari/537.36"
+    agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
     ssl:
         version: TLSv1.2
         cipher: ECDHE ECDSA AES 256 GCM SHA384
@@ -106,273 +106,316 @@ do:
                         - object_field_set:
                             object: item
                             field: url
+                        - variable_set:
+                            field: repeat3
+                            value: "yes"
                         - walk:
                             to: https://m.avito.ru/api/17/items/<%pid%>?key=<%key%>&action=view
+                            header:
+                                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
+                                accept-language: 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+                                cache-control: 'no-cache'
+                                pragma: 'no-cache'
+                                sec-fetch-dest: 'document'
+                                sec-fetch-mode: 'navigate'
+                                sec-fetch-site: 'none'
+                                sec-fetch-user: '?1'
+                                upgrade-insecure-requests: 1
+                            repeat: <%repeat3%>
                             do:
-                            - find: 
-                                path: 'images > safe_640x480'
-                                do: 
-                                - parse
+                            - find:
+                                path: html
+                                do:
+                                - static_get: responseCode
                                 - if:
-                                    match: \S
+                                    match: (403)|(429)|(503)
                                     do:
-                                    - object_field_set:
-                                        object: item
-                                        field: image
-                                        joinby: "|"
-                            - find: 
-                                path: coords 
-                                do: 
-                                - find: 
-                                    path: lat
-                                    do: 
-                                    - parse
-                                    - if:
-                                        match: \S
-                                        do:
+                                    - info: proxy is banned, switching proxy and retry
+                                    - proxy_switch
+                                    - cookie_reset
+                                    else:
+                                    - variable_clear: pdok
+                                    - find: 
+                                        path: 'images > safe_640x480'
+                                        do: 
+                                        - parse
+                                        - if:
+                                            match: \S
+                                            do:
+                                            - object_field_set:
+                                                object: item
+                                                field: image
+                                                joinby: "|"
+                                    - find: 
+                                        path: coords 
+                                        do: 
+                                        - find: 
+                                            path: lat
+                                            do: 
+                                            - parse
+                                            - if:
+                                                match: \S
+                                                do:
+                                                - object_field_set:
+                                                    object: item
+                                                    field: lat
+                                                    type: float
+                                        - find: 
+                                            path: lng 
+                                            do: 
+                                            - parse
+                                            - if:
+                                                match: \S
+                                                do:
+                                                - object_field_set:
+                                                    object: item
+                                                    field: lng
+                                                    type: float
+                                    - find: 
+                                        path: body_safe > body_safe > id
+                                        do: 
+                                        - variable_set:
+                                            field: pdok
+                                            value: 1
+                                        - parse:
+                                            filter: (\d+)
+                                        - space_dedupe
+                                        - trim
                                         - object_field_set:
                                             object: item
-                                            field: lat
-                                            type: float
-                                - find: 
-                                    path: lng 
-                                    do: 
-                                    - parse
-                                    - if:
-                                        match: \S
-                                        do:
-                                        - object_field_set:
-                                            object: item
-                                            field: lng
-                                            type: float
-                            - find: 
-                                path: body_safe > body_safe > id
-                                do: 
-                                - parse:
-                                    filter: (\d+)
-                                - space_dedupe
-                                - trim
-                                - object_field_set:
-                                    object: item
-                                    field: id
-                                - variable_set: itemid
-                                - variable_get: collectPhone
-                                - variable_set: pr
-                                - walk:
-                                    to: https://m.avito.ru/api/1/items/<%itemid%>/phone?key=<%key%>
-                                    repeat: <%pr%>
-                                    do:
+                                            field: id
+                                        - variable_set: itemid
+                                        - variable_get: collectPhone
+                                        - variable_set: pr
+                                        - walk:
+                                            to: https://m.avito.ru/api/1/items/<%itemid%>/phone?key=<%key%>
+                                            repeat: <%pr%>
+                                            do:
+                                            - find:
+                                                path: html
+                                                do:
+                                                - parse:
+                                                    format: html
+                                                - if:
+                                                    match: HTTP 502
+                                                    do:
+                                                    - info: Proxy is banned (502), switching
+                                                    - proxy_switch
+                                                    - cookie_reset
+                                                    - variable_set:
+                                                        field: pr
+                                                        value: "yes"
+                                                    else:
+                                                    - if:
+                                                        match: '\&\#34\;\:'
+                                                        do:
+                                                        - parse
+                                                        - normalize:
+                                                            routine: json2xml
+                                                        - to_block
+                                                        - variable_clear: code
+                                                        - find:
+                                                            path: code
+                                                            do:
+                                                            - parse
+                                                            - variable_set: code
+                                                        - variable_get: code
+                                                        - if:
+                                                            match: (403)|(429)|(503)
+                                                            do:
+                                                            - info: Proxy is banned, switching
+                                                            - proxy_switch
+                                                            - cookie_reset
+                                                            - variable_set:
+                                                                field: pr
+                                                                value: "yes"
+                                                            else:
+                                                            - find: 
+                                                                path: message
+                                                                do: 
+                                                                - parse
+                                                                - info: <%register%>
+                                                                - variable_set:
+                                                                    field: pr
+                                                                    value: "no"
+                                                            - find: 
+                                                                path: uri 
+                                                                do: 
+                                                                - variable_set:
+                                                                    field: pr
+                                                                    value: "no"
+                                                                - parse:
+                                                                    filter:
+                                                                        - number\=([^?]+)
+                                                                - if:
+                                                                    match: \d
+                                                                    do:
+                                                                    - normalize:
+                                                                        routine: URLDecode
+                                                                    - object_field_set:
+                                                                        object: item
+                                                                        field: phone
+                                                                    else:
+                                                                    - parse
+                                                                    - if:
+                                                                        match: authenticate
+                                                                        do:
+                                                                        - info: You need to login to see this phone number
+                                                        else:
+                                                        - variable_clear: code
+                                                        - find:
+                                                            path: code
+                                                            do:
+                                                            - parse
+                                                            - variable_set: code
+                                                        - variable_get: code
+                                                        - if:
+                                                            match: (403)|(429)|(503)
+                                                            do:
+                                                            - info: Proxy is banned, switching
+                                                            - proxy_switch
+                                                            - cookie_reset
+                                                            - variable_set:
+                                                                field: pr
+                                                                value: "yes"
+                                                            else:
+                                                            - find: 
+                                                                path: message
+                                                                do: 
+                                                                - parse
+                                                                - info: <%register%>
+                                                                - variable_set:
+                                                                    field: pr
+                                                                    value: "no"
+                                                            - find: 
+                                                                path: uri 
+                                                                do: 
+                                                                - variable_set:
+                                                                    field: pr
+                                                                    value: "no"
+                                                                - parse:
+                                                                    filter:
+                                                                        - number\=([^?]+)
+                                                                - if:
+                                                                    match: \d
+                                                                    do:
+                                                                    - normalize:
+                                                                        routine: URLDecode
+                                                                    - object_field_set:
+                                                                        object: item
+                                                                        field: phone
+                                                                    else:
+                                                                    - parse
+                                                                    - if:
+                                                                        match: authenticate
+                                                                        do:
+                                                                        - info: You need to login to see this phone number
+                                    - find: 
+                                        path: body_safe > body_safe > time
+                                        do: 
+                                        - parse:
+                                            filter: (\d+)
+                                        - if:
+                                            match: \d+
+                                            do:
+                                            - normalize:
+                                                routine: date_format
+                                                args:
+                                                    format_in: "%s"
+                                                    format_out: "%Y-%m-%d %T"
+                                            - object_field_set:
+                                                object: item
+                                                field: actualized
+                                    - find: 
+                                        path: body_safe > body_safe > stats > views > total
+                                        do: 
+                                        - parse:
+                                            filter: (\d+)
+                                        - if:
+                                            match: \d+
+                                            do:
+                                            - object_field_set:
+                                                object: item
+                                                field: views_total
+                                    - find: 
+                                        path: body_safe > body_safe > stats > views > today
+                                        do: 
+                                        - parse:
+                                            filter: (\d+)
+                                        - if:
+                                            match: \d+
+                                            do:
+                                            - object_field_set:
+                                                object: item
+                                                field: views_today
                                     - find:
-                                        path: html
+                                        path: body_safe > body_safe > description
                                         do:
+                                        - parse
+                                        - space_dedupe
+                                        - trim
+                                        - object_field_set:
+                                            object: item
+                                            field: description
+                                    - find:
+                                        path: body_safe > body_safe > title
+                                        do:
+                                        - parse
+                                        - space_dedupe
+                                        - trim
+                                        - object_field_set:
+                                            object: item
+                                            field: title
+                                    - find:
+                                        path: body_safe > body_safe > price > metric
+                                        do:
+                                        - parse
+                                        - space_dedupe
+                                        - trim
+                                        - object_field_set:
+                                            object: item
+                                            field: currency
+                                    - find:
+                                        path: body_safe > body_safe > price > value
+                                        do:
+                                        - parse
+                                        - space_dedupe
+                                        - trim
+                                        - object_field_set:
+                                            object: item
+                                            field: price
+                                    - find:
+                                        path: body_safe > body_safe > address
+                                        do:
+                                        - parse
+                                        - space_dedupe
+                                        - trim
+                                        - object_field_set:
+                                            object: item
+                                            field: address
+                                    - find:
+                                        path: body_safe > body_safe > seller > name
+                                        do:
+                                        - parse
+                                        - space_dedupe
+                                        - trim
+                                        - object_field_set:
+                                            object: item
+                                            field: seller
+                                    - variable_get: pdok
+                                    - if:
+                                        match: 1
+                                        do:
+                                        - variable_clear: repeat3
+                                        else:
+                                        - error: ad details json layout is not ok, retrying
+                                        - static_get: responseCode
+                                        - variable_set: rc
+                                        - info: RC <%rc%>
                                         - parse:
                                             format: html
-                                        - if:
-                                            match: HTTP 502
-                                            do:
-                                            - info: Proxy is banned (502), switching
-                                            - proxy_switch
-                                            - cookie_reset
-                                            - variable_set:
-                                                field: pr
-                                                value: "yes"
-                                            else:
-                                            - if:
-                                                match: '\&\#34\;\:'
-                                                do:
-                                                - parse
-                                                - normalize:
-                                                    routine: json2xml
-                                                - to_block
-                                                - variable_clear: code
-                                                - find:
-                                                    path: code
-                                                    do:
-                                                    - parse
-                                                    - variable_set: code
-                                                - variable_get: code
-                                                - if:
-                                                    match: 403
-                                                    do:
-                                                    - info: Proxy is banned, switching
-                                                    - proxy_switch
-                                                    - cookie_reset
-                                                    - variable_set:
-                                                        field: pr
-                                                        value: "yes"
-                                                    else:
-                                                    - find: 
-                                                        path: message
-                                                        do: 
-                                                        - parse
-                                                        - info: <%register%>
-                                                        - variable_set:
-                                                            field: pr
-                                                            value: "no"
-                                                    - find: 
-                                                        path: uri 
-                                                        do: 
-                                                        - variable_set:
-                                                            field: pr
-                                                            value: "no"
-                                                        - parse:
-                                                            filter:
-                                                                - number\=([^?]+)
-                                                        - if:
-                                                            match: \d
-                                                            do:
-                                                            - normalize:
-                                                                routine: URLDecode
-                                                            - object_field_set:
-                                                                object: item
-                                                                field: phone
-                                                            else:
-                                                            - parse
-                                                            - if:
-                                                                match: authenticate
-                                                                do:
-                                                                - info: You need to login to see this phone number
-                                                else:
-                                                - variable_clear: code
-                                                - find:
-                                                    path: code
-                                                    do:
-                                                    - parse
-                                                    - variable_set: code
-                                                - variable_get: code
-                                                - if:
-                                                    match: 403
-                                                    do:
-                                                    - info: Proxy is banned, switching
-                                                    - proxy_switch
-                                                    - cookie_reset
-                                                    - variable_set:
-                                                        field: pr
-                                                        value: "yes"
-                                                    else:
-                                                    - find: 
-                                                        path: message
-                                                        do: 
-                                                        - parse
-                                                        - info: <%register%>
-                                                        - variable_set:
-                                                            field: pr
-                                                            value: "no"
-                                                    - find: 
-                                                        path: uri 
-                                                        do: 
-                                                        - variable_set:
-                                                            field: pr
-                                                            value: "no"
-                                                        - parse:
-                                                            filter:
-                                                                - number\=([^?]+)
-                                                        - if:
-                                                            match: \d
-                                                            do:
-                                                            - normalize:
-                                                                routine: URLDecode
-                                                            - object_field_set:
-                                                                object: item
-                                                                field: phone
-                                                            else:
-                                                            - parse
-                                                            - if:
-                                                                match: authenticate
-                                                                do:
-                                                                - info: You need to login to see this phone number
-                            - find: 
-                                path: body_safe > body_safe > time
-                                do: 
-                                - parse:
-                                    filter: (\d+)
-                                - if:
-                                    match: \d+
-                                    do:
-                                    - normalize:
-                                        routine: date_format
-                                        args:
-                                            format_in: "%s"
-                                            format_out: "%Y-%m-%d %T"
-                                    - object_field_set:
-                                        object: item
-                                        field: actualized
-                            - find: 
-                                path: body_safe > body_safe > stats > views > total
-                                do: 
-                                - parse:
-                                    filter: (\d+)
-                                - if:
-                                    match: \d+
-                                    do:
-                                    - object_field_set:
-                                        object: item
-                                        field: views_total
-                            - find: 
-                                path: body_safe > body_safe > stats > views > today
-                                do: 
-                                - parse:
-                                    filter: (\d+)
-                                - if:
-                                    match: \d+
-                                    do:
-                                    - object_field_set:
-                                        object: item
-                                        field: views_today
-                            - find:
-                                path: body_safe > body_safe > description
-                                do:
-                                - parse
-                                - space_dedupe
-                                - trim
-                                - object_field_set:
-                                    object: item
-                                    field: description
-                            - find:
-                                path: body_safe > body_safe > title
-                                do:
-                                - parse
-                                - space_dedupe
-                                - trim
-                                - object_field_set:
-                                    object: item
-                                    field: title
-                            - find:
-                                path: body_safe > body_safe > price > metric
-                                do:
-                                - parse
-                                - space_dedupe
-                                - trim
-                                - object_field_set:
-                                    object: item
-                                    field: currency
-                            - find:
-                                path: body_safe > body_safe > price > value
-                                do:
-                                - parse
-                                - space_dedupe
-                                - trim
-                                - object_field_set:
-                                    object: item
-                                    field: price
-                            - find:
-                                path: body_safe > body_safe > address
-                                do:
-                                - parse
-                                - space_dedupe
-                                - trim
-                                - object_field_set:
-                                    object: item
-                                    field: address
-                            - find:
-                                path: body_safe > body_safe > seller > name
-                                do:
-                                - parse
-                                - space_dedupe
-                                - trim
-                                - object_field_set:
-                                    object: item
-                                    field: seller
+                                        - variable_set: html
+                                        - info: <%html%>
                         - object_save:
                             name: item
                 - find:
