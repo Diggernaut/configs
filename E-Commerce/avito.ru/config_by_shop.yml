@@ -96,6 +96,16 @@ do:
                 value: 1
             - walk:
                 to: https://m.avito.ru/api/1/user/profile/items?key=<%key%>&query=<%query%>&display=list&page=<%page%>&limit=20&sellerId=<%shopid%>
+                headers:
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'
+                    accept-language: 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+                    cache-control: 'no-cache'
+                    pragma: 'no-cache'
+                    sec-fetch-dest: 'document'
+                    sec-fetch-mode: 'navigate'
+                    sec-fetch-site: 'none'
+                    sec-fetch-user: '?1'
+                    upgrade-insecure-requests: 1
                 repeat: <%repeat%>
                 do:
                 - sleep: 3
@@ -249,7 +259,7 @@ do:
                                                             - variable_set: status
                                                         - variable_get: status
                                                         - if:
-                                                            match: forbidden
+                                                            match: too-many-requests|forbidden
                                                             do:
                                                             - info: Proxy is banned, switching
                                                             - proxy_switch
@@ -298,7 +308,7 @@ do:
                                                             - variable_set: status
                                                         - variable_get: status
                                                         - if:
-                                                            match: forbidden
+                                                            match: too-many-requests|forbidden
                                                             do:
                                                             - info: Proxy is banned, switching
                                                             - proxy_switch
@@ -394,6 +404,26 @@ do:
                                         - object_field_set:
                                             object: item
                                             field: title
+                                    - find:
+                                        path: body_safe > body_safe > parameters > flat
+                                        do:
+                                        - variable_clear: field
+                                        - find:
+                                            path: title
+                                            do:
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - variable_set: field
+                                        - find:
+                                            path: description
+                                            do:
+                                            - parse
+                                            - space_dedupe
+                                            - trim
+                                            - object_field_set:
+                                                object: item
+                                                field: <%field%>
                                     - find:
                                         path: body_safe > body_safe > price > metric
                                         do:

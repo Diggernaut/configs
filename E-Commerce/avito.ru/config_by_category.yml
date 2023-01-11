@@ -341,15 +341,15 @@ do:
                                                                                 - normalize:
                                                                                     routine: json2xml
                                                                                 - to_block
-                                                                                - variable_clear: code
+                                                                                - variable_clear: status
                                                                                 - find:
-                                                                                    path: code
+                                                                                    path: status
                                                                                     do:
                                                                                     - parse
-                                                                                    - variable_set: code
-                                                                                - variable_get: code
+                                                                                    - variable_set: status
+                                                                                - variable_get: status
                                                                                 - if:
-                                                                                    match: (403)|(429)|(503)
+                                                                                    match: too-many-requests
                                                                                     do:
                                                                                     - info: Proxy is banned, switching
                                                                                     - proxy_switch
@@ -390,15 +390,15 @@ do:
                                                                                                 do:
                                                                                                 - info: You need to login to see this phone number
                                                                                 else:
-                                                                                - variable_clear: code
+                                                                                - variable_clear: status
                                                                                 - find:
-                                                                                    path: code
+                                                                                    path: status
                                                                                     do:
                                                                                     - parse
-                                                                                    - variable_set: code
-                                                                                - variable_get: code
+                                                                                    - variable_set: status
+                                                                                - variable_get: status
                                                                                 - if:
-                                                                                    match: (403)|(429)|(503)
+                                                                                    match: too-many-requests
                                                                                     do:
                                                                                     - info: Proxy is banned, switching
                                                                                     - proxy_switch
@@ -494,6 +494,26 @@ do:
                                                                 - object_field_set:
                                                                     object: item
                                                                     field: title
+                                                            - find:
+                                                                path: body_safe > body_safe > parameters > flat
+                                                                do:
+                                                                - variable_clear: field
+                                                                - find:
+                                                                    path: title
+                                                                    do:
+                                                                    - parse
+                                                                    - space_dedupe
+                                                                    - trim
+                                                                    - variable_set: field
+                                                                - find:
+                                                                    path: description
+                                                                    do:
+                                                                    - parse
+                                                                    - space_dedupe
+                                                                    - trim
+                                                                    - object_field_set:
+                                                                        object: item
+                                                                        field: <%field%>
                                                             - find:
                                                                 path: body_safe > body_safe > price > metric
                                                                 do:
