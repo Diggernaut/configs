@@ -62,7 +62,7 @@ do:
     - walk:
         repeat: <%reploc%>
         to:
-            post: https://www.wildberries.ru/geo/getuserlocationinfo
+            post: https://www.wildberries.ru/webapi/geo/getuserlocationinfo
             headers:
                 x-requested-with: XMLHttpRequest
         do:
