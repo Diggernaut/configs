@@ -2,7 +2,7 @@
 ---
 config:
     debug: 2
-    agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36
+    agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36
     keepalive: disable
 do:
 - counter_reset: pool
@@ -184,14 +184,23 @@ do:
                         gt: 0 
                         type: int
                         do:
-                        - variable_get: sku
-                        - filter:
-                            args:
-                                - ^(\d{4})
+                        - eval:
+                            routine: js
+                            body: '(function () {
+                                 function getHost(e){
+                                     return e >= 0 && e <= 143 ? "//basket-01.wb.ru/" : e >= 144 && e <= 287 ? "//basket-02.wb.ru/" : e >= 288 && e <= 431 ? "//basket-03.wb.ru/" : e >= 432 && e <= 719 ? "//basket-04.wb.ru/" : e >= 720 && e <= 1007 ? "//basket-05.wb.ru/" : e >= 1008 && e <= 1061 ? "//basket-06.wb.ru/" : e >= 1062 && e <= 1115 ? "//basket-07.wb.ru/" : e >= 1116 && e <= 1169 ? "//basket-08.wb.ru/" : e >= 1170 && e <= 1313 ? "//basket-09.wb.ru/" : e >= 1314 && e <= 1601 ? "//basket-10.wb.ru/" : e >= 1602 && e <= 1655 ? "//basket-11.wb.ru/" : "//basket-12.wb.ru/"
+                                 }
+                                 var n = <%sku%>;
+                                 var first = ~~(n / 1e5);
+                                 var second = ~~(n / 1e3);
+                                 var host = getHost(first);
+                                 return host+"vol"+first+"/part"+second+"/"+n+"/images/big/1.jpg"
+                                })();'
                         - if:
-                            match: \d
+                            match: \S
                             do:
-                            - register_set: https://images.wbstatic.net/big/new/<%register%>0000/<%sku%>-1.jpg
+                            - normalize:
+                                routine: url
                             - object_field_set:
                                 object: item
                                 field: image
