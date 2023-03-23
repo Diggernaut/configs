@@ -37,7 +37,7 @@
                     "presets": [],
                     "pool": {
                         "title": "Please add at least one URL to the product page at the online store",
-                        "example": "https://www.wildberries.ru/catalog/48960577/detail.aspx?targetUrl=BP"
+                        "example": "https://www.wildberries.ru/catalog/87137964/detail.aspx"
                     }
                 }
             }
@@ -77,7 +77,7 @@
                     "presets": [],
                     "pool": {
                         "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
-                        "example": "https://www.wildberries.ru/catalog/48960577/detail.aspx?targetUrl=BP"
+                        "example": "https://www.wildberries.ru/catalog/87137964/detail.aspx"
                     }
                 }
             }
