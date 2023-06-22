@@ -264,7 +264,7 @@ do:
                                                             else:
                                                             - variable_clear: pdok
                                                             - find: 
-                                                                path: 'images > safe_640x480'
+                                                                path: 'images > safe_1280x960'
                                                                 do: 
                                                                 - parse
                                                                 - if:
