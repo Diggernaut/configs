@@ -1,0 +1,86 @@
+{
+    "digger": {
+        "updated": "2023-10-14",
+        "compile": false
+    },
+    "english": {
+        "meta": {
+            "title": "Test.ru scraper",
+            "title_short": "Test.ru scraper",
+            "description_short": "The Test web scraper will help you collect publicly available information about products sold in the test.ru online store. The web scraper collects detailed information about the product: product name, description, link to the image, price, variations and their availability, rating and much more.",
+            "description_long": "Test is one of the largest online retailers in the Russian market. This online store sells clothes, shoes, accessories, goods for the home, as well as for beauty and health. Using this web scraper you will be able to extract information about the products presented in a given category or by passing links to specific products.",
+            "keywords": "ecommerce scraper, test scraper, data extraction, web scraping",
+            "domain": "test.ru",
+            "article": "testru",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of category URLs",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the category of the web-store",
+                        "example": "https://www.test.ru/c/7288/beauty_accs-women-bathandshower/"
+                    }
+                }
+            },
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the online store",
+                        "example": "https://www.test.ru/p/lo027lwgtfa2/beauty_accs-loccitane-maslo-dlya-dusha/"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для интернет-магазина Test.ru",
+            "title_short": "Интернет-магазин Test",
+            "description_short": "Парсер Test поможет вам собрать публично доступную информацию o товарах, продаваемых в интернет-магазине test.ru. Парсер собирает подробную информацию об товаре: название товара, описание, ссылку на изображение, цену, вариации и их наличие, рейтинг и многое другое",
+            "description_long": "Test - один из крупнейших интернет-ретейлеров на российском рынке. На этой площадке представлена одежда, обувь, аксессуары, товары для дома, а также для красоты и здоровья. С помощью этого парсера вы сможете забрать информацию о товарах, представленных в заданной категории или передав ссылки на специфические товары.",
+            "keywords": "парсер интернет-магазина, парсер ламода, сбор данных, мониторинг цен",
+            "domain": "test.ru",
+            "article": "testru",
+            "category": "Магазины",
+            "price": 40000.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на категории",
+                "filename": "config_by_category.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на категорию в магазине",
+                        "example": "https://www.test.ru/c/7288/beauty_accs-women-bathandshower/"
+                    }
+                }
+            },
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на товар",
+                        "example": "https://www.test.ru/p/lo027lwgtfa2/beauty_accs-loccitane-maslo-dlya-dusha/"
+                    }
+                }
+            }
+        ]
+    }
+}

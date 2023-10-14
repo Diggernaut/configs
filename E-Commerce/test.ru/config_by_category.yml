@@ -1,0 +1,15 @@
+#testru digger
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- counter_reset: pool
+- variable_set:
+    field: repc
+    value: "yes"
+- walk:
+    to: links
+    repeat_in_pool: <%repc%>
+    do:
+        - exit
