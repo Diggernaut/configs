@@ -13,7 +13,7 @@
             "domain": "test.ru",
             "article": "testru",
             "category": "E-Commerce",
-            "price": 0.00,
+            "price": 1.00,
             "currency": "USD"
         },
         "options": [
