@@ -1,0 +1,64 @@
+{
+    "digger": {
+        "updated": "2024-01-31",
+        "compile": false
+    },
+    "english": {
+        "meta": {
+            "title": "Price checker scraper",
+            "title_short": "Price checker scraper",
+            "description_short": "Web scraper collects price data from hundreds of online stores and shopping sites. Simply provide a link to the desired product and you will get up-to-date information about its price.",
+            "description_long": "Universal web scraper is designed to collect prices for a given product from arbitrary marketplaces and online stores. If the scraping strategy is already defined for a product in a given store, the digger will use it to collect information. If the scraper encounters the store for the first time during information gathering, it will try to build the strategy on its own. Sometimes this process is fast and you will get the data right away, sometimes it can take several hours. So if you don't get the data right away, try running the digger again in 2-3 hours, or contact us in chat. The parser collects not only prices, but also some other information. For each store the set of collected fields may vary. If some fields are missing and you need them, please contact us in chat.",
+            "keywords": "universal ecommerce scraper, price tracking, data extraction, web scraping",
+            "warning": "<span class=\"text-danger\">WARNING!</span><br/>To run this digger you need a paid subscription, or have PAYG plan enabled.",
+            "domain": "a.a",
+            "article": "pricechecker",
+            "category": "E-Commerce",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data by the list of product URLs",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Please add at least one URL to the product page at the any online store",
+                        "example": "https://www.amazon.com/dp/B07NXDJ52C"
+                    }
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для мониторинга цен",
+            "title_short": "Парсер для мониторинга цен",
+            "description_short": "Парсер собирает данные о ценах с сотен онлайн магазинов и торговых площадок. Просто укажите ссылку на нужный товар - и вы получите актуальную информацию о его стоимости.",
+            "description_long": "Универсальный парсер предназначен для сбора цен на заданный товар с произвольных торговых площадок и онлайн магазинов. Если стратегия парсинга уже определена для товара в заданном магазине, то парсер будет использовать ее для сбора информации. Если же магазин встречается парсеру впервые во время сбора информации, то он попытается построить стратегию самостоятельно. Иногда этот процесс протекает быстро и вы сразу подучите данные, иногда может занимать несколько часов. Поэтому если вы не получили данные сразу, попробуйте запустить диггер еще раз через 2-3 часа, или свяжитесь с нами в чате. Парсер собирает не только цены, но и некоторую другую информацию. Для каждого магазина набор собираемых полей может варьироваться. Если каких-то полей вам не хватает, свяжитесь с нами в чате.",
+            "keywords": "универсальный парсер магазинов, сбор данных, мониторинг цен",
+            "warning": "<span class=\"text-danger\">ВНИМАНИЕ!</span><br/>Запуск данного диггера возможен только на платных планах или плане PAYG.",
+            "domain": "a.a",
+            "article": "pricechecker",
+            "category": "Магазины",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных по ссылкам на товары",
+                "filename": "config_by_product.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": [],
+                    "pool": {
+                        "title": "Пожалуйста добавьте как минимум одну ссылку на объявление",
+                        "example": "https://www.sportmaster.ru/product/26702550299/"
+                    }
+                }
+            }
+       ]
+    }
+}
