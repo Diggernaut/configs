@@ -1,5 +1,5 @@
 #price-checker
 ---
 config:
-    template: price-check
+    template: price-checker
 do:
