@@ -2,7 +2,7 @@
 ---
 config:
     debug: 2
-    agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36
+    agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36
     keepalive: disable
 do:
 - variable_set:
@@ -19,12 +19,20 @@ do:
         do: 
         - static_get: responseCode
         - if:
-            match: 503
+            match: 503|429
             do:
-            - proxy_switch
-            - variable_set:
-                field: "repeatoutside"
-                value: "yes"
+            - if:
+                match: 429
+                do:
+                - sleep: 2:5
+                - variable_set:
+                    field: "repeatoutside"
+                    value: "yes"
+                else:
+                - proxy_switch
+                - variable_set:
+                    field: "repeatoutside"
+                    value: "yes"
             else:
             - find:
                 path: body
@@ -83,7 +91,7 @@ do:
                     - variable_clear: categories
                     - sleep: 1
                     - find: 
-                        path: '#zg-ordered-list > .zg-item-immersion' 
+                        path: '#gridItemRoot' 
                         do: 
                         - find: 
                             path: .a-link-normal 
@@ -136,25 +144,33 @@ do:
         do: 
         - static_get: responseCode
         - if:
-            match: 503
+            match: 503|429
             do:
-            - counter_increment:
-                name: sorry
-            - counter_get: sorry
             - if:
-                lt: 100
-                type: int
+                match: 429
                 do:
-                - proxy_switch
-                - cookie_reset
-                - variable_set: 
-                    field: repeatinside
+                - sleep: 2:5
+                - variable_set:
+                    field: "repeatoutside"
                     value: "yes"
                 else:
-                - variable_set: 
-                    field: repeatinside
-                    value: "no"
-                - counter_reset: sorry
+                - counter_increment:
+                    name: sorry
+                - counter_get: sorry
+                - if:
+                    lt: 100
+                    type: int
+                    do:
+                    - proxy_switch
+                    - cookie_reset
+                    - variable_set: 
+                        field: repeatinside
+                        value: "yes"
+                    else:
+                    - variable_set: 
+                        field: repeatinside
+                        value: "no"
+                    - counter_reset: sorry
             else:
             - parse
             - if:
