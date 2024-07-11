@@ -29,7 +29,7 @@ do:
             field: okp
             value: 1
         - find:
-            path: a.detailsLink[data-cy="listing-ad-title"],div[data-cy="l-card"] > a
+            path: a.detailsLink[data-cy="listing-ad-title"],div[data-cy="l-card"] > a,div[data-cy="ad-card-title"] > a
             do:
             - parse:
                 attr: href
