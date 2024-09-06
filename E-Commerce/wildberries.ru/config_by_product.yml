@@ -5,6 +5,9 @@ config:
     agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36
     keepalive: disable
 do:
+- variable_set:
+    field: destination
+    value: -1257786 # Moscow (https://static-basket-01.wbbasket.ru/vol0/j/spa/index.min.dd902511ef166807.js)
 - counter_reset: pool
 - variable_set: 
     field: repc
@@ -52,43 +55,6 @@ do:
     - variable_clear: pcat_name
     - variable_clear: filters
     - variable_clear: cats
-    - variable_clear: destination
-    - counter_reset: loc
-    - variable_set: 
-        field: reploc
-        value: "yes"
-    - walk:
-        repeat: <%reploc%>
-        to:
-            post: https://www.wildberries.ru/webapi/geo/getuserlocationinfo
-            headers:
-                x-requested-with: XMLHttpRequest
-        do:
-        - variable_clear: reploc
-        - counter_increment:
-            name: loc
-        - find: 
-            path: body 
-            do: 
-            - static_get: responseCode
-            - if:
-                match: 503|423|404
-                do:
-                - proxy_switch
-                - cookie_reset
-                - variable_set: 
-                    field: reploc
-                    value: "yes"
-                - counter_get: loc
-                - if:
-                    gt: 5
-                    type: int
-                    do:
-                    - error: Server return 503 error code after 5 retries, exiting
-                    - exit
-                - info: Server return 503 error code, retrying
-                else:
-                - counter_reset: loc
     - find: 
         path: body 
         do: 
@@ -97,28 +63,7 @@ do:
             args:
                 - catalog\/(\d+)\/detail
         - variable_set: sku
-        - register_set: ''
-        - cookie_get: __dst
-        - variable_set: dst_cookie
-        - eval:
-            routine: js
-            body: '(function () {return "<%dst_cookie%>".split("_").join(",");})();'
-        - variable_set: destination
-        - register_set: ''
-        - cookie_get: __region
-        - variable_set: region_cookie
-        - eval:
-            routine: js
-            body: '(function () {return "<%region_cookie%>".split("_").join(",");})();'
-        - variable_set: region
-        - register_set: ''
-        - cookie_get: __store
-        - variable_set: store_cookie
-        - eval:
-            routine: js
-            body: '(function () {return "<%store_cookie%>".split("_").join(",");})();'
-        - variable_set: store
-        - register_set: 'https://card.wb.ru/cards/detail?appType=1&locale=ru&lang=ru&curr=rub&dest=<%destination%>&reg=0&emp=0&regions=<%region%>&stores=<%store%>&nm=<%sku%>' 
+        - register_set: 'https://card.wb.ru/cards/v2/detail?appType=1&curr=rub&dest=<%destination%>&spp=30&ab_testing=false&nm=<%sku%>'
         - counter_reset: item
         - variable_set: 
             field: repi
@@ -188,7 +133,7 @@ do:
                             routine: js
                             body: '(function () {
                                  function getHost(e){
-                                     return e >= 0 && e <= 143 ? "//basket-01.wb.ru/" : e >= 144 && e <= 287 ? "//basket-02.wb.ru/" : e >= 288 && e <= 431 ? "//basket-03.wb.ru/" : e >= 432 && e <= 719 ? "//basket-04.wb.ru/" : e >= 720 && e <= 1007 ? "//basket-05.wb.ru/" : e >= 1008 && e <= 1061 ? "//basket-06.wb.ru/" : e >= 1062 && e <= 1115 ? "//basket-07.wb.ru/" : e >= 1116 && e <= 1169 ? "//basket-08.wb.ru/" : e >= 1170 && e <= 1313 ? "//basket-09.wb.ru/" : e >= 1314 && e <= 1601 ? "//basket-10.wb.ru/" : e >= 1602 && e <= 1655 ? "//basket-11.wb.ru/" : "//basket-12.wb.ru/"
+                                     return e >= 0 && e <= 143 ? "//basket-01.wbbasket.ru/" : e >= 144 && e <= 287 ? "//basket-02.wbbasket.ru/" : e >= 288 && e <= 431 ? "//basket-03.wbbasket.ru/" : e >= 432 && e <= 719 ? "//basket-04.wbbasket.ru/" : e >= 720 && e <= 1007 ? "//basket-05.wbbasket.ru/" : e >= 1008 && e <= 1061 ? "//basket-06.wbbasket.ru/" : e >= 1062 && e <= 1115 ? "//basket-07.wbbasket.ru/" : e >= 1116 && e <= 1169 ? "//basket-08.wbbasket.ru/" : e >= 1170 && e <= 1313 ? "//basket-09.wbbasket.ru/" : e >= 1314 && e <= 1601 ? "//basket-10.wbbasket.ru/" : e >= 1602 && e <= 1655 ? "//basket-11.wbbasket.ru/" : e >= 1656 && e <= 1919 ? "//basket-12.wbbasket.ru/" : e >= 1920 && e <= 2045 ? "//basket-13.wbbasket.ru/" : e >= 2046 && e <= 2189 ? "//basket-14.wbbasket.ru/" : e >= 2190 && e <= 2405 ? "//basket-15.wbbasket.ru/" : e >= 2406 && e <= 2621 ? "//basket-16.wbbasket.ru/" : e >= 2622 && e <= 2837 ? "//basket-17.wbbasket.ru/" : "//basket-18.wbbasket.ru/"
                                  }
                                  var n = <%sku%>;
                                  var first = ~~(n / 1e5);
@@ -230,7 +175,7 @@ do:
                             field: rating
                 - variable_clear: price
                 - find: 
-                    path: salePriceU 
+                    path: price > product
                     do: 
                     - parse
                     - if:
@@ -247,11 +192,25 @@ do:
                                 field: price
                             - variable_set: price
                 - find: 
-                    path: priceU 
+                    path: price > basic
                     do: 
                     - variable_get: price
                     - if:
                         match: \d
+                        do:
+                        - parse
+                        - if:
+                            match: \d
+                            do:
+                            - eval:
+                                routine: js
+                                body: (function () {return <%register%>/100;})();
+                            - if:
+                                match: \d
+                                do:
+                                - object_field_set:
+                                    object: item
+                                    field: price_old
                         else:
                         - parse
                         - if:
@@ -266,57 +225,49 @@ do:
                                 - object_field_set:
                                     object: item
                                     field: price
+                                - object_field_set:
+                                    object: item
+                                    field: price_old
                                 - variable_set: price
-                - variable_set: 
-                    field: rep
-                    value: "yes"
-                - counter_reset: sellerReq 
-                - walk:
-                    to: https://wbx-content-v2.wbstatic.net/sellers/<%sku%>.json
-                    repeat: <%rep%>
-                    do:
-                    - variable_clear: rep
-                    - counter_increment:
-                        name: sellerReq
-                    - find: 
-                        path: body 
-                        do: 
-                        - static_get: responseCode
-                        - if:
-                            match: 503|423|404
-                            do:
-                            - proxy_switch
-                            - cookie_reset
-                            - variable_set: 
-                                field: repc
-                                value: "yes"
-                            - counter_get: sellerReq
-                            - if:
-                                gt: 5
-                                type: int
-                                do:
-                                - error: Server return 503 error code after 5 retries, skipping
-                            - info: Server return 503 error code, retrying
-                            else:
-                            - counter_reset: sellerReq
-                    - find: 
-                        path: supplierName 
-                        do: 
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - if:
-                            match: \S
-                            do:
-                            - object_field_set:
-                                object: item
-                                field: seller
+                - find: 
+                    path: supplier
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - object_field_set:
+                        object: item
+                        field: seller
+                - find: 
+                    path: brand
+                    do: 
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - if:
+                        match: \S
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: brand
                 - variable_set: 
                     field: rep
                     value: "yes"
                 - counter_reset: infoReq 
+                - eval:
+                    routine: js
+                    body: '(function () {
+                         function getHost(e){
+                             return e >= 0 && e <= 143 ? "//basket-01.wbbasket.ru/" : e >= 144 && e <= 287 ? "//basket-02.wbbasket.ru/" : e >= 288 && e <= 431 ? "//basket-03.wbbasket.ru/" : e >= 432 && e <= 719 ? "//basket-04.wbbasket.ru/" : e >= 720 && e <= 1007 ? "//basket-05.wbbasket.ru/" : e >= 1008 && e <= 1061 ? "//basket-06.wbbasket.ru/" : e >= 1062 && e <= 1115 ? "//basket-07.wbbasket.ru/" : e >= 1116 && e <= 1169 ? "//basket-08.wbbasket.ru/" : e >= 1170 && e <= 1313 ? "//basket-09.wbbasket.ru/" : e >= 1314 && e <= 1601 ? "//basket-10.wbbasket.ru/" : e >= 1602 && e <= 1655 ? "//basket-11.wbbasket.ru/" : e >= 1656 && e <= 1919 ? "//basket-12.wbbasket.ru/" : e >= 1920 && e <= 2045 ? "//basket-13.wbbasket.ru/" : e >= 2046 && e <= 2189 ? "//basket-14.wbbasket.ru/" : e >= 2190 && e <= 2405 ? "//basket-15.wbbasket.ru/" : e >= 2406 && e <= 2621 ? "//basket-16.wbbasket.ru/" : e >= 2622 && e <= 2837 ? "//basket-17.wbbasket.ru/" : "//basket-18.wbbasket.ru/"
+                         }
+                         var n = <%sku%>;
+                         var first = ~~(n / 1e5);
+                         var second = ~~(n / 1e3);
+                         var host = getHost(first);
+                         return host+"vol"+first+"/part"+second+"/"+n+"/info/ru/card.json"
+                        })();'
                 - walk:
-                    to: https://wbx-content-v2.wbstatic.net/ru/<%sku%>.json
+                    to: value
                     repeat: <%rep%>
                     do:
                     - variable_clear: rep
@@ -343,30 +294,6 @@ do:
                             - info: Server return 503 error code, retrying
                             else:
                             - counter_reset: infoReq
-                    - find: 
-                        path: selling > brand_name 
-                        do: 
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - if:
-                            match: \S
-                            do:
-                            - object_field_set:
-                                object: item
-                                field: brand
-                    - find: 
-                        path: kinds 
-                        do: 
-                        - parse
-                        - space_dedupe
-                        - trim
-                        - if:
-                            match: \S
-                            do:
-                            - object_field_set:
-                                object: item
-                                field: gender
                     - find: 
                         path: nm_colors_names 
                         do: 
