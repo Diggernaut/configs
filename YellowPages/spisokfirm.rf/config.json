@@ -1,0 +1,56 @@
+{
+    "digger": {
+        "updated": "2024-11-04",
+        "compile": false
+    },
+    "english": {
+        "meta": {
+            "title": "spisokfirm.rf yellow pages scraper",
+            "title_short": "spisokfirm.rf scraper",
+            "description_short": "The web scraper for the yellow pages catalog spisokfirm.rf collects contact and other information about organizations and companies",
+            "description_long": "The website spisokfirm.rf provides a list of various firms, organizations and enterprises with their contact information (addresses, telephone numbers, email addresses). Company data is divided by industry for ease of search (for example, construction, trade, services, etc.). There is also a brief description of what each company does. This web scraper collects information about all companies presented on the website spisokfirm.rf.",
+            "keywords": "yellow pages scraper, company info scraper, data extraction, web scraping",
+            "warning": "<span class=\"text-danger\">WARNING!</span><br/>Requires a paid subscription to run. The prices are available <a href=\"https://www.diggernaut.com/pricing/\">here</a>. Welcome credits will not be enough to get any data.",
+            "domain": "xn--h1aafjhelcc6a.xn--p1ai",
+            "article": "spisokfirmrf",
+            "category": "Yellow pages",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Entire website data extraction",
+                "filename": "config.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": []
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер для каталога компаний списокфирм.рф",
+            "title_short": "Парсер списокфирм.рф",
+            "description_short": "Парсер для каталога компаний списокфирм.рф собирает контактную и другую информацию об организациях и фирмах.",
+            "description_long": "На сайте списокфирм.рф представлен перечень различных фирм, организаций и предприятий с их контактными данными (адресами, телефонами, электронными почтовыми адресами). Данные компаний разделены по отраслям для удобства поиска (например, строительство, торговля, услуги и т.д.). Также имеется краткое описание того, чем занимается каждая компания. Данный парсер собирает информанию о всех компаниях, представленных на сайте списокфирм.рф.",
+            "keywords": "парсер желтых страниц, парсер справочника компаний, парсер каталога компаний, сбор данных",
+            "warning": "<span class=\"text-danger\">ВНИМАНИЕ!</span><br/>Для запуска требуется платная подписка. С планами подписки можно ознакомиться <a href=\"https://www.diggernaut.com/pricing/\">здесь</a>. Приветсвенных кредитов будет недостаточно для получения данных.",
+            "domain": "xn--h1aafjhelcc6a.xn--p1ai",
+            "article": "spisokfirmrf",
+            "category": "Справочники",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных со всего сайта",
+                "filename": "config.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": []
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,5 @@
+# spisokfirmrf digger
+---
+config:
+    template: spisokfirmrf-full
+do:
