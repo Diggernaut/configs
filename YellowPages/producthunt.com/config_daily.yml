@@ -1,0 +1,5 @@
+# producthuntcom digger
+---
+config:
+    template: producthuntcom-daily
+do:

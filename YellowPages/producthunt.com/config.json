@@ -1,0 +1,70 @@
+{
+    "digger": {
+        "updated": "2024-11-04",
+        "compile": false
+    },
+    "english": {
+        "meta": {
+            "title": "ProductHunt scraper",
+            "title_short": "ProductHunt.com scraper",
+            "description_short": "The ProductHunt scraper collects information about startups, applications, and websites published in the chart.",
+            "description_long": "Product Hunt is a platform that allows users to discover, share, and discuss new products. The service was launched in 2013 by Ryan Hoover and quickly became popular among startups, developers, designers and entrepreneurs. Product Hunt helps you find and promote new apps, websites, games, books, gadgets and other digital products. The ProductHunt scraper can collect daily and monthly charts of products and startups, including information about their rating",
+            "keywords": "producthunt scraper, company info scraper, data extraction, web scraping",
+            "domain": "producthunt.com",
+            "article": "producthuntcom",
+            "category": "Yellow pages",
+            "price": 0.00,
+            "currency": "USD"
+        },
+        "options": [
+            {
+                "name": "Extract data from current day chart",
+                "filename": "config_daily.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": []
+                }
+            },
+            {
+                "name": "Extract data from current month chart",
+                "filename": "config_monthly.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": []
+                }
+            }
+        ]
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсер ProductHunt",
+            "title_short": "Парсер ProductHunt.com",
+            "description_short": "Парсер ProductHunt собирает информацию о стартапах, приложениях, сайтах, размещенных в данном каталоге.",
+            "description_long": "Product Hunt — это платформа, которая позволяет пользователям открывать новые продукты, делиться ими и обсуждать их. Сервис был запущен в 2013 году Райаном Хувером и быстро стал популярным среди стартапов, разработчиков, дизайнеров и предпринимателей. Product Hunt помогает находить и продвигать новые приложения, веб-сайты, игры, книги, гаджеты и другие цифровые продукты. Парсер ProductHunt может собирать ежедневные и ежемесячные выборки продуктов и стартапов, включая информацию об их рейтинге",
+            "keywords": "парсер producthunt, парсер справочника стартапов, парсер каталога стартапов, сбор данных",
+            "domain": "producthunt.com",
+            "article": "producthuntcom",
+            "category": "Справочники",
+            "price": 0.00,
+            "currency": "RUB"
+        },
+        "options": [
+            {
+                "name": "Сбор данных размещенных в текущий день",
+                "filename": "config_daily.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": []
+                }
+            },
+            {
+                "name": "Сбор данных размещенных в текущий месяц",
+                "filename": "config_monthly.yml",
+                "settings": {
+                    "variables": [],
+                    "presets": []
+                }
+            }
+        ]
+    }
+}
