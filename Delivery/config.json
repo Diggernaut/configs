@@ -1,0 +1,22 @@
+{
+    "english": {
+        "meta": {
+            "title": "Delivery service scraper",
+            "title_short": "Delivery service scraper",
+            "description_short": "Free web scrapers for shipping websites. These tools help you automatically collect data about shipments, parcel tracking and order status.",
+            "description_long": "Our catalog offers a wide range of free web scrapers for shipping websites. These tools will help you automatically collect and analyze data about orders, tracking numbers, shipment statuses and other important parameters. Free scrapers are ideal for those who want to optimize their delivery monitoring and management processes, reduce time costs and increase the efficiency of their business. All the solutions presented are easy to install and use, they support work with various platforms and delivery service websites. Choose the right web scraper and start enjoying all the benefits of automated data collection today!",
+            "keywords": "delivery service web scaper, data extraction, web scraping",
+            "category": "Delivery"
+        }
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсеры служб доставки",
+            "title_short": "Парсеры служб доставки",
+            "description_short": "Бесплатные парсеры для сайтов служб доставки. Эти инструменты помогут вам автоматически собирать данные об отправлениях, отслеживании посылок и статусе заказов.",
+            "description_long": "Наш каталог предлагает широкий выбор бесплатных парсеров для сайтов служб доставки. Эти инструменты помогут вам автоматически собирать и анализировать данные о заказах, трекинговых номерах, статусах отправлений и других важных параметрах. Бесплатные парсеры идеально подойдут для тех, кто хочет оптимизировать процессы мониторинга и управления доставкой, сократить временные затраты и повысить эффективность своего бизнеса. Все представленные решения просты в установке и использовании, они поддерживают работу с различными платформами и сайтами служб доставки. Выберите подходящий парсер и начните пользоваться всеми преимуществами автоматизированного сбора данных уже сегодня!",
+            "keywords": "парсеры служб доставки, парсинг сайтов, сбор данных",
+            "category": "Службы доставки"
+        }
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "english": {
+        "meta": {
+            "title": "Online store scrapers",
+            "title_short": "Online store scrapers",
+            "description_short": "Free web scrapers for shipping websites. These tools help you automatically collect data about shipments, parcel tracking and order status.",
+            "description_long": "Our catalog offers a wide range of free web scrapers for shipping websites. These tools will help you automatically collect and analyze data about orders, tracking numbers, shipment statuses and other important parameters. Free scrapers are ideal for those who want to optimize their delivery monitoring and management processes, reduce time costs and increase the efficiency of their business. All the solutions presented are easy to install and use, they support work with various platforms and delivery service websites. Choose the right web scraper and start enjoying all the benefits of automated data collection today!",
+            "keywords": "online store web scaper, data extraction, web scraping",
+            "category": "E-Commerce"
+        }
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсеры магазинов",
+            "title_short": "Парсеры магазинов",
+            "description_short": "В нашем каталоге вы найдете бесплатные парсеры для интернет-магазинов, которые помогут вам автоматизировать сбор данных о товарах, ценах, акциях и отзывах. Эти инструменты облегчают мониторинг конкурентов, управление ассортиментом и ценообразованием. Все парсеры просты в использовании и готовы к работе сразу после скачивания. Выбирайте подходящий вариант и повышайте эффективность вашего интернет-магазина!",
+            "description_long": "Добро пожаловать в раздел нашего каталога, посвященный бесплатным парсерам для интернет-магазинов! Здесь вы найдете мощные инструменты, которые помогут вам автоматизировать процесс сбора данных о товарах, ценах, скидках, акциях и даже отзывах покупателей. Эти парсеры разработаны специально для владельцев и менеджеров онлайн-магазинов, стремящихся оптимизировать свою работу и оставаться на шаг впереди конкурентов.<br/><br/>Представленные в этом разделе парсеры отличаются высокой эффективностью и простотой использования. Вам не потребуется специальных знаний программирования, чтобы начать работу с ними. Просто выберите подходящий инструмент, скачайте его и установите. Все парсеры настроены таким образом, чтобы максимально упростить ваш рабочий процесс и сэкономить драгоценное время.<br/><br/>Используя наши бесплатные парсеры, вы сможете регулярно обновлять информацию о своем ассортименте, отслеживать изменения цен у конкурентов, мониторить отзывы и оценки товаров, а также оперативно реагировать на любые изменения на рынке. Это позволит вам принимать взвешенные решения, корректировать стратегию развития магазина и повышать уровень удовлетворенности ваших клиентов.<br/><br/>Каждый представленный в нашем каталоге парсер тщательно отобран и проверен на совместимость с популярными платформами электронной коммерции. Мы уверены, что вы найдете именно тот инструмент, который подойдет для вашей конкретной задачи и поможет вашему бизнесу расти и развиваться!<br/><br/>Начните использовать бесплатные парсеры для интернет-магазинов уже сегодня и ощутите разницу в эффективности своей работы!",
+            "keywords": "парсеры магазинов, парсинг сайтов, сбор данных",
+            "category": "Магазины"
+        }
+    }
+}
