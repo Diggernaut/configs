@@ -1,0 +1,198 @@
+---
+config:
+    debug: 2
+    agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36
+do:
+# Add starting URL to the pool of the links
+- link_add:
+    url:
+    - https://www.ebay.com/sch/Tablets-eBook-Readers/171485/i.html?_dcat=171485&_fsrp=1&_sacat=171485&rt=nc&Type=eBook%2520Reader&LH_ItemCondition=1000&LH_BIN=1&_ipg=200
+# Iterating over the pool and visit every page
+- walk:
+    to: links
+    do:
+    # Clear variables
+    - variable_clear: class
+    # Find the link to the next page
+    - find:
+        path: a.pagination__next
+        do:
+        # Parse value from the href attribute
+        - parse:
+            attr: href
+        # Do standard register value clean-up
+        - space_dedupe
+        - trim
+        # Check if value is not empty
+        - if:
+            match: \w+
+            do:
+            # Add value to the pool of the links
+            - link_add
+    # Find CSS block to extract the "SPONSORED" class
+    - find:
+        path: 'style:contains("display: inline;")'
+        do:
+        # Extract class name and save it to the variable
+        - parse:
+            filter: 'span\.([^\s\{]+)\s*\{\s*display\:\s*inline;'
+        - variable_set: class
+    # Find all blocks with listings
+    - find:
+        path: ul > li.s-item
+        do:
+        # Clear variables
+        - variable_clear: sponsored
+        # Detect SPONSORED listing
+        - find:
+            path: span[role="text"]
+            do:
+            - node_remove: span:not(.<%class%>)
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: SPONSORED
+                do:
+                - variable_set:
+                    field: sponsored
+                    value: 1
+        # Check if listing is SPONSORED
+        - variable_get: sponsored
+        - if:
+            match: 1
+            else:
+            # It's a regular listing, extract it
+            # Create an object to store the data
+            - object_new: item
+            # Extract the product name
+            - find:
+                path: h3.s-item__title
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - object_field_set:
+                    object: item
+                    field: name
+            # Extract price of the product
+            - find:
+                path: span.s-item__price
+                do:
+                # Extract only digits, also there may be 2 prices (from/to), so we have 2 regex to handle it properly
+                - parse:
+                    filter:
+                    - \$([0-9\.]+)\s+to
+                    - \$([0-9\.]+)
+                # Check if register value has digits
+                - if:
+                    match: \d+
+                    do:
+                    # Save value to the price field as float type
+                    - object_field_set:
+                        object: item
+                        field: price
+                        type: float
+            # Extract delivery cost
+            - find:
+                path: span.s-item__shipping.s-item__logisticsCost
+                do:
+                # Check if there is a free delivery
+                - parse
+                - if:
+                    match: Free
+                    do:
+                    - register_set: 0.0
+                    - object_field_set:
+                        object: item
+                        field: delivery
+                        type: float
+                    else:
+                    # Parse delivery cost
+                    - parse:
+                        filter:
+                        - \$([0-9\.]+)
+                    - if:
+                        match: \d+
+                        do:
+                        - object_field_set:
+                            object: item
+                            field: delivery
+                            type: float
+            # Extract the listing rating
+            - find:
+                path: div.b-starrating > span.clipped
+                do:
+                # Parse only digits
+                - parse:
+                    filter: ([0-9\.]+)\s+out
+                - if:
+                    match: \d+
+                    do:
+                    - object_field_set:
+                        object: item
+                        field: rating
+                        type: float
+            # Extract the number of reviews
+            - find:
+                path: div.b-starrating > span.clipped
+                do:
+                # Only digits are what we need
+                - parse:
+                    filter: (\d+)
+                - if:
+                    match: \d+
+                    do:
+                    - object_field_set:
+                        object: item
+                        field: reviews
+                        type: int
+            # Extract the number of people watching this listing
+            - find:
+                path: span.s-item__hotness:contains("Watching")
+                do:
+                # Only digits again
+                - parse:
+                    filter: (\d+)
+                - if:
+                    match: \d+
+                    do:
+                    - object_field_set:
+                        object: item
+                        field: watching
+                        type: int
+            # Extract number of sold products
+            - find:
+                path: span.s-item__hotness:contains("Sold")
+                do:
+                # Digits, digits and nothing more
+                - parse:
+                    filter: (\d+)
+                - if:
+                    match: \d+
+                    do:
+                    - object_field_set:
+                        object: item
+                        field: sold
+                        type: int
+            # Link to the listing page
+            - find:
+                path: a.s-item__link
+                do:
+                - parse:
+                    attr: href
+                - space_dedupe
+                - trim
+                - if:
+                    match: \w+
+                    do:
+                    - normalize:
+                        routine: url
+                    - object_field_set:
+                        object: item
+                        field: url
+            # Save the object with data
+            - object_save:
+                name: item
+    # Pause to not abuse the eBay
+    - sleep: 3

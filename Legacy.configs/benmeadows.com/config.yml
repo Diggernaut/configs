@@ -1,0 +1,274 @@
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- walk:
+    to: http://www.benmeadows.com
+    do:
+    - find:
+        path: 'ul#topnav>li:has(a#productCategories)>div.subMenu a'
+        do:
+        - parse:
+            attr: href
+        - space_dedupe
+        - trim
+        - if:
+            match: \w+
+            do:
+            - normalize:
+                routine: url
+            - link_add:
+                pool: catalog
+- walk:
+    to: links
+    pool: catalog
+    do:
+    - find: 
+        path: .viewPaginationNext 
+        do: 
+        - parse:
+            attr: href
+        - if:
+            match: \w+
+            do:
+            - normalize:
+                routine: url
+            - link_add:
+                pool: catalog
+            
+    - find:
+        path: 'a#hlNavigation'
+        do:
+        - parse:
+            attr: href
+        - space_dedupe
+        - trim
+        - if:
+            match: \w+
+            do:
+            - normalize:
+                routine: url
+            - link_add:
+                pool: catalog
+    - find:
+        path: 'a#hladd'
+        do:
+        - parse:
+            attr: href
+        - space_dedupe
+        - trim
+        - if:
+            match: \w+
+            do:
+            - normalize:
+                routine: url
+            - link_add:
+                pool: pages
+- walk:
+    to: links
+    pool: pages
+    do:
+    - sleep: 2
+    - find:
+        path: 'div#prodWrap'
+        do:
+        - object_new: product
+        - eval:
+            routine: js
+            body: '(function (){var d = new Date(); return d.toISOString()})();'
+        - object_field_set:
+            object: product
+            field: date
+        - static_get: url
+        - object_field_set:
+            object: product
+            field: url
+        - find:
+            path: meta[itemprop="identifier"]
+            do:
+            - parse:
+                attr: content
+            - space_dedupe
+            - trim
+            - if:
+                match: \d+
+                do:
+                - object_field_set:
+                    object: product
+                    field: sku
+        - find:
+            path: 'span#lblGroupTitle'
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: product
+                field: name
+        - find:
+            path: 'a#imgLink'
+            do:
+            - parse:
+                attr: href
+            - space_dedupe
+            - trim
+            - if:
+                match: \w+
+                do:
+                - normalize:
+                    routine: url
+                - object_field_set:
+                    object: product
+                    joinby: "|"
+                    field: images
+        - find:
+            path: script:contains('loadProductPageDropDowns')
+            do:
+            - parse:
+                filter: loadProductPageDropDowns\((.+)\)\;\$\('\#txtHeaderSearch'\)\.focus\(\)\;\}\)\;
+            - normalize:
+                routine: json2xml
+            - to_block
+            - find:
+                path: body_safe>groupname
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - object_field_set:
+                    object: product
+                    field: name
+            - find:
+                path: body_safe>groupid
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \d+
+                    do:
+                    - object_field_set:
+                        object: product
+                        field: sku
+            - find:
+                path: largeimage,secimages>large
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \w+
+                    do:
+                    - normalize:
+                        routine: url
+                    - object_field_set:
+                        object: product
+                        joinby: "|"
+                        field: images
+            - find:
+                path: properties>children
+                do:
+                - variable_clear: sort
+                - variable_clear: value
+                - find:
+                    path: sort
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - variable_set: sort
+                - find:
+                    path: value
+                    do:
+                    - parse
+                    - space_dedupe
+                    - trim
+                    - variable_set: value
+                - variable_get: sort
+                - if:
+                    match: \w+
+                    do:
+                    - variable_get: value
+                    - if:
+                        match: \w+
+                        do:
+                        - register_set: "<%sort%>: <%value%>"
+                        - object_field_set:
+                            object: product
+                            joinby: "|"
+                            field: variations
+        - register_set: Ben Meadows
+        - variable_set: brand
+        - find:
+            path: 'img[itemprop="brand"]'
+            do:
+            - parse:
+                attr; content
+            - space_dedupe
+            - trim
+            - variable_set: brand
+        - variable_get: brand
+        - object_field_set:
+            object: product
+            field: brand
+        - find:
+            path: span.currentCrumb>a
+            slice: 0:-2
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \w+
+                do:
+                - object_field_set:
+                    object: product
+                    joinby: "|"
+                    field: category
+        - find:
+            in: doc
+            path: meta[name="description"]
+            do:
+            - parse:
+                attr: content
+            - space_dedupe
+            - trim
+            - variable_set: desc
+        - find:
+            path: 'div#prodDetailedBenefit>div.proDesc'
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - variable_set: desc
+        - variable_get: desc
+        - object_field_set:
+            object: product
+            field: description
+        - find:
+            path: meta[itemprop="price"],meta[itemprop="lowPrice"]
+            do:
+            - parse:
+                attr: content
+                filter: ([0-9\.\,]+)
+            - normalize:
+                routine: replace_substring
+                args:
+                    \,: ''
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: product
+                type: float
+                field: price
+        - find:
+            path: meta[itemprop="currency"]
+            do:
+            - parse:
+                attr: content
+            - object_field_set:
+                object: product
+                field: currency
+        - object_save:
+            name: product

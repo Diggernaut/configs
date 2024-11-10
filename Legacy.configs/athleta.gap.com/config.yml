@@ -1,0 +1,615 @@
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- walk:
+    to: http://athleta.gap.com/
+    do:
+    - find:
+        path: div.topnav_atol>ul>li>a
+        do:
+        - parse:
+            attr: href
+        - space_dedupe
+        - trim
+        - if:
+            match: \w+
+            do:
+            - link_add:
+                pool: main
+- walk:
+    to: links
+    pool: main
+    do:
+    - find:
+        path: .sidebar-navigation
+        do:
+        - node_remove: h1
+        - sequence:
+            header: h2
+            selector: h2,div
+        - find:
+            path: div.sequence
+            do:
+            - variable_clear: catname
+            - find:
+                path: h2
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - variable_set: catname
+            - find:
+                path: .sidebar-navigation--category--link
+                do: 
+                - pool_clear: pager
+                - parse:
+                    attr: href
+                    filter:
+                        - cid=(.+)
+                - variable_set: cid
+                - register_set: http://athleta.gap.com/resources/productSearch/v1/search?cid=<%cid%>&locale=en_US&isFacetsEnabled=true
+                - link_add:
+                    pool: pager
+                - walk:
+                    to: links
+                    pool: pager
+                    do:
+                    - variable_clear: ptot
+                    - find:
+                        path: pageNumberTotal
+                        do:
+                        - parse
+                        - if:
+                            match: (^\s*[0-1]\s*$)
+                            else:
+                            - variable_set: ptot
+                    - find:
+                        path: pageNumberRequested
+                        do:
+                        - parse
+                        - if:
+                            match: (^\s*0\s*$)
+                            do:
+                            - variable_get: ptot
+                            - if:
+                                match: (\d)
+                                do:
+                                - if:
+                                    gt: 1
+                                    do:
+                                    - eval:
+                                        routine: js
+                                        body: '(function (){var r = ""; for (var i = 1; i<<%ptot%>; i++){r += "<div>"+i+"</div>"}; return r;})();'
+                                    - to_block
+                                    - find:
+                                        path: div 
+                                        do:
+                                        - parse
+                                        - variable_set: pageid
+                                        - register_set: http://athleta.gap.com/resources/productSearch/v1/search?cid=<%cid%>&locale=en_US&pageId=<%pageid%>&isFacetsEnabled=true
+                                        - link_add:
+                                            pool: pager
+                    - find:
+                        path: productCategory > name
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: catname2
+                    - find:
+                        path: productCategory > childProducts
+                        do:
+                        - find:
+                            path: parentBusinessCatalogItemId
+                            do:
+                            - parse
+                            - if:
+                                match: (\S)
+                                do:
+                                - variable_set: pid
+                                - register_set: http://athleta.gap.com/browse/product.do?pid=<%pid%>&cid=<%cid%>
+                                - walk:
+                                    to: value
+                                    do:
+                                    - variable_clear: isP
+                                    - find:
+                                        path: script:matches(gap.pageProductData\s*=\s*\{)
+                                        do:
+                                        - variable_set:
+                                            field: isP
+                                            value: 1
+                                    - find:
+                                        path: html
+                                        do:
+                                        - variable_get: isP
+                                        - if:
+                                            match: (1)
+                                            do:
+                                            - object_new: product
+                                            - find:
+                                                path: head
+                                                do:
+                                                - eval:
+                                                    routine: js
+                                                    body: '(function (){var d = new Date(); return d.toISOString()})();'
+                                                - object_field_set:
+                                                    object: product
+                                                    field: date
+                                                - static_get: url
+                                                - object_field_set:
+                                                    object: product
+                                                    field: url
+                                                - register_set: 'GAP'
+                                                - object_field_set:
+                                                    object: product
+                                                    field: brand
+                                                - find:
+                                                    path: meta[name="keywords"] 
+                                                    do:
+                                                    - parse:
+                                                        attr: content
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: description
+                                            - find:
+                                                path: script:matches(gap.pageProductData\s*=\s*\{)
+                                                do:
+                                                - parse:
+                                                    filter: 
+                                                        - gap\.currentBrand\s*=\s*\"(.+)\"\;
+                                                - if:
+                                                    match: (\S)
+                                                    do:
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: brand
+                                                - parse
+                                                - normalize:
+                                                    routine: replace_substring
+                                                    args:
+                                                        var\s*gap\s*=\s*window\.gap\s*\|\|\s*\{\s*\}\;: ''
+                                                        gap\.pageProductData\s*=\s*: ''
+                                                        \s*;\s*gap.currentBrand\s*=\s*.*\;: ''
+                                                - normalize:
+                                                    routine: json2xml
+                                                - to_block
+                                                - find:
+                                                    path: productimages
+                                                    do:
+                                                    - parse:
+                                                        format: html
+                                                    - variable_set: imghtml
+                                                - find:
+                                                    path: variants > productstylecolors > productstylecolorimages
+                                                    do:
+                                                    - parse
+                                                    - normalize:
+                                                        routine: lower
+                                                    - variable_set: imgpath
+                                                    - register_set: <div><%imghtml%></div>
+                                                    - to_block
+                                                    - find:
+                                                        path: safe_<%imgpath%>
+                                                        do:
+                                                        - variable_clear: getit
+                                                        - find:
+                                                            path: xlarge
+                                                            do:
+                                                            - parse
+                                                            - if:
+                                                                match: (\S)
+                                                                do:
+                                                                - variable_set:
+                                                                    field: getit
+                                                                    value: 1
+                                                                - normalize:
+                                                                    routine: url
+                                                                - object_field_set:
+                                                                    object: product
+                                                                    field: images
+                                                                    joinby: "|"
+                                                        - variable_get: getit
+                                                        - if:
+                                                            match: (1)
+                                                            else:
+                                                            - find:
+                                                                path: large
+                                                                do:
+                                                                - parse
+                                                                - if:
+                                                                    match: (\S)
+                                                                    do:
+                                                                    - variable_set:
+                                                                        field: getit
+                                                                        value: 1
+                                                                    - normalize:
+                                                                        routine: url
+                                                                    - object_field_set:
+                                                                        object: product
+                                                                        field: images
+                                                                        joinby: "|"
+                                                        - variable_get: getit    
+                                                        - if:
+                                                            match: (1)
+                                                            else:
+                                                            - find:
+                                                                path: medium
+                                                                do:
+                                                                - parse
+                                                                - if:
+                                                                    match: (\S)
+                                                                    do:
+                                                                    - variable_set:
+                                                                        field: getit
+                                                                        value: 1
+                                                                    - normalize:
+                                                                        routine: url
+                                                                    - object_field_set:
+                                                                        object: product
+                                                                        field: images
+                                                                        joinby: "|"
+                                                        - variable_get: getit
+                                                        - if:
+                                                            match: (1)
+                                                            else:
+                                                            - find:
+                                                                path: small
+                                                                do:
+                                                                - parse
+                                                                - if:
+                                                                    match: (\S)
+                                                                    do:
+                                                                    - variable_set:
+                                                                        field: getit
+                                                                        value: 1
+                                                                    - normalize:
+                                                                        routine: url
+                                                                    - object_field_set:
+                                                                        object: product
+                                                                        field: images
+                                                                        joinby: "|"
+                                                - find:
+                                                    path: body_safe > variants > productstylecolors > colorname
+                                                    do:
+                                                    - parse
+                                                    - if:
+                                                        match: (\S)
+                                                        do:
+                                                        - object_field_set:
+                                                            object: product
+                                                            field: variations
+                                                            joinby: "|"
+                                                - find:
+                                                    path: body_safe > name
+                                                    do:       
+                                                    - parse
+                                                    - if:
+                                                        match: (\S)
+                                                        do:
+                                                        - object_field_set:
+                                                            object: product
+                                                            field: name
+                                                - find:
+                                                    path: body_safe > currentmaxprice, body_safe > currentminprice
+                                                    do:
+                                                    - parse:
+                                                        filter:
+                                                            - (\d+\.?\d*)
+                                                    - if:
+                                                        match: (\d+)
+                                                        do:
+                                                        - object_field_set:
+                                                            object: product
+                                                            field: price
+                                                            type: float
+                                                        - register_set: USD
+                                                        - object_field_set:
+                                                            object: product
+                                                            field: currency
+                                                - find:
+                                                    path: styleid
+                                                    slice: 0
+                                                    do:
+                                                    - parse
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: sku
+                                            - find:
+                                                path: body
+                                                do: 
+                                                - find:
+                                                    path: '.selected'
+                                                    do:
+                                                    - parse
+                                                    - space_dedupe
+                                                    - trim
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: category
+                                                        joinby: "|"
+                                                - variable_get: catname
+                                                - if:
+                                                    match: (\S)
+                                                    do:
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: category
+                                                        joinby: "|"
+                                                - variable_get: catname2
+                                                - if:
+                                                    match: (\S)
+                                                    do:
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: category
+                                                        joinby: "|"
+                                            - object_save:
+                                                name: product
+                    - find:
+                        path: productCategory > childCategories
+                        do:
+                        - variable_clear: catname3
+                        - find:
+                            path: name
+                            slice: 0
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - variable_set: catname3
+                        - find:
+                            path: parentBusinessCatalogItemId
+                            do:
+                            - parse
+                            - if:
+                                match: (\S)
+                                do:
+                                - variable_set: pid
+                                - register_set: http://athleta.gap.com/browse/product.do?pid=<%pid%>&cid=<%cid%>
+                                - walk:
+                                    to: value
+                                    do:
+                                    - variable_clear: isP
+                                    - find:
+                                        path: script:matches(gap.pageProductData\s*=\s*\{)
+                                        do:
+                                        - variable_set:
+                                            field: isP
+                                            value: 1
+                                    - find:
+                                        path: html
+                                        do:
+                                        - variable_get: isP
+                                        - if:
+                                            match: (1)
+                                            do:
+                                            - object_new: product
+                                            - find:
+                                                path: head
+                                                do:
+                                                - eval:
+                                                    routine: js
+                                                    body: '(function (){var d = new Date(); return d.toISOString()})();'
+                                                - object_field_set:
+                                                    object: product
+                                                    field: date
+                                                - static_get: url
+                                                - object_field_set:
+                                                    object: product
+                                                    field: url
+                                                - register_set: 'GAP'
+                                                - object_field_set:
+                                                    object: product
+                                                    field: brand
+                                                - find:
+                                                    path: meta[name="keywords"] 
+                                                    do:
+                                                    - parse:
+                                                        attr: content
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: description
+                                            - find:
+                                                path: script:matches(gap.pageProductData\s*=\s*\{)
+                                                do:
+                                                - parse:
+                                                    filter: 
+                                                        - gap\.currentBrand\s*=\s*\"(.+)\"\;
+                                                - if:
+                                                    match: (\S)
+                                                    do:
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: brand
+                                                - parse
+                                                - normalize:
+                                                    routine: replace_substring
+                                                    args:
+                                                        var\s*gap\s*=\s*window\.gap\s*\|\|\s*\{\s*\}\;: ''
+                                                        gap\.pageProductData\s*=\s*: ''
+                                                        \s*;\s*gap.currentBrand\s*=\s*.*\;: ''
+                                                - normalize:
+                                                    routine: json2xml
+                                                - to_block
+                                                - find:
+                                                    path: productimages
+                                                    do:
+                                                    - parse:
+                                                        format: html
+                                                    - variable_set: imghtml
+                                                - find:
+                                                    path: variants > productstylecolors > productstylecolorimages
+                                                    do:
+                                                    - parse
+                                                    - normalize:
+                                                        routine: lower
+                                                    - variable_set: imgpath
+                                                    - register_set: <div><%imghtml%></div>
+                                                    - to_block
+                                                    - find:
+                                                        path: safe_<%imgpath%>
+                                                        do:
+                                                        - variable_clear: getit
+                                                        - find:
+                                                            path: xlarge
+                                                            do:
+                                                            - parse
+                                                            - if:
+                                                                match: (\S)
+                                                                do:
+                                                                - variable_set:
+                                                                    field: getit
+                                                                    value: 1
+                                                                - normalize:
+                                                                    routine: url
+                                                                - object_field_set:
+                                                                    object: product
+                                                                    field: images
+                                                                    joinby: "|"
+                                                        - variable_get: getit
+                                                        - if:
+                                                            match: (1)
+                                                            else:
+                                                            - find:
+                                                                path: large
+                                                                do:
+                                                                - parse
+                                                                - if:
+                                                                    match: (\S)
+                                                                    do:
+                                                                    - variable_set:
+                                                                        field: getit
+                                                                        value: 1
+                                                                    - normalize:
+                                                                        routine: url
+                                                                    - object_field_set:
+                                                                        object: product
+                                                                        field: images
+                                                                        joinby: "|"
+                                                        - variable_get: getit    
+                                                        - if:
+                                                            match: (1)
+                                                            else:
+                                                            - find:
+                                                                path: medium
+                                                                do:
+                                                                - parse
+                                                                - if:
+                                                                    match: (\S)
+                                                                    do:
+                                                                    - variable_set:
+                                                                        field: getit
+                                                                        value: 1
+                                                                    - normalize:
+                                                                        routine: url
+                                                                    - object_field_set:
+                                                                        object: product
+                                                                        field: images
+                                                                        joinby: "|"
+                                                        - variable_get: getit
+                                                        - if:
+                                                            match: (1)
+                                                            else:
+                                                            - find:
+                                                                path: small
+                                                                do:
+                                                                - parse
+                                                                - if:
+                                                                    match: (\S)
+                                                                    do:
+                                                                    - variable_set:
+                                                                        field: getit
+                                                                        value: 1
+                                                                    - normalize:
+                                                                        routine: url
+                                                                    - object_field_set:
+                                                                        object: product
+                                                                        field: images
+                                                                        joinby: "|"
+                                                - find:
+                                                    path: body_safe > variants > productstylecolors > colorname
+                                                    do:
+                                                    - parse
+                                                    - if:
+                                                        match: (\S)
+                                                        do:
+                                                        - object_field_set:
+                                                            object: product
+                                                            field: variations
+                                                            joinby: "|"
+                                                - find:
+                                                    path: body_safe > name
+                                                    do:       
+                                                    - parse
+                                                    - if:
+                                                        match: (\S)
+                                                        do:
+                                                        - object_field_set:
+                                                            object: product
+                                                            field: name
+                                                - find:
+                                                    path: body_safe > currentmaxprice, body_safe > currentminprice
+                                                    do:
+                                                    - parse:
+                                                        filter:
+                                                            - (\d+\.?\d*)
+                                                    - if:
+                                                        match: (\d+)
+                                                        do:
+                                                        - object_field_set:
+                                                            object: product
+                                                            field: price
+                                                            type: float
+                                                        - register_set: USD
+                                                        - object_field_set:
+                                                            object: product
+                                                            field: currency
+                                                - find:
+                                                    path: styleid
+                                                    slice: 0
+                                                    do:
+                                                    - parse
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: sku
+                                            - find:
+                                                path: body
+                                                do: 
+                                                - find:
+                                                    path: '.selected'
+                                                    do:
+                                                    - parse
+                                                    - space_dedupe
+                                                    - trim
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: category
+                                                        joinby: "|"
+                                                - variable_get: catname
+                                                - if:
+                                                    match: (\S)
+                                                    do:
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: category
+                                                        joinby: "|"
+                                                - variable_get: catname2
+                                                - if:
+                                                    match: (\S)
+                                                    do:
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: category
+                                                        joinby: "|"
+                                                - variable_get: catname3
+                                                - if:
+                                                    match: (\S)
+                                                    do:
+                                                    - object_field_set:
+                                                        object: product
+                                                        field: category
+                                                        joinby: "|"
+                                            - object_save:
+                                                name: product

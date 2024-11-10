@@ -1,0 +1,329 @@
+---
+config:
+    debug: 2
+    agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36
+    proxy: #USE YOUR PROXY HERE LIKE 1.1.1.1:8888
+do:
+- variable_set:
+    field: repeatcat
+    value: "yes"
+- variable_set:
+    field: repeatitems
+    value: "yes"
+## --------------------
+## categories collector
+- walk:
+    to: https://www.bedbathandbeyond.com/apis/stateless/v1.0/navigation/category-navigation
+    headers:
+        accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+        accept-encoding: deflate
+        accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
+        cache-control: no-cache
+        pragma: no-cache
+        upgrade-insecure-requests: 1
+    do:
+    - find:
+        path: data:haschild(label:contains("Product")) > menu > items
+        slice: 0
+        do:
+        - node_remove: promo
+        - find:
+            path: url:contains("category")
+            do:
+            - parse:
+                filter: ^([^\?]+)
+            - normalize:
+                routine: url
+            - if:
+                match: \/store\/category\/
+                do:
+                - normalize:
+                    routine: replace_substring
+                    args:
+                        - \/?$: '/1-96'
+                - link_add:
+                    pool: categories
+- walk:
+    to: links
+    pool: categories
+    repeat_in_pool: <%repeatcat%>
+    headers:
+        accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+        accept-encoding: deflate
+        accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
+        cache-control: no-cache
+        pragma: no-cache
+        upgrade-insecure-requests: 1
+    do:
+    - find:
+        path: title
+        do:
+        - parse
+        - if:
+            match: Access Denied
+            do:
+            - proxy_switch
+            else:
+            ## removing repeat
+            - variable_clear: repeatcat
+            - find:
+                path: '#ctl00_InvalidRequest'
+                in: doc
+                do:
+                - parse
+                - if:
+                    match: \S
+                    do:
+                    - proxy_switch
+                    - variable_set:
+                        field: repeatcat
+                        value: "yes"
+            - find:
+                path: body
+                in: doc
+                do:
+                ## main logic to gather product item links
+                - find:
+                    path: div.mt0.tealium-product-grid
+                    do:
+                    ## collect all item links from page
+                    - find:
+                        path: 'div.tealium-product-tile > div[class*="ProductTile-"] > a[class*="PrimaryLink_"]'
+                        do:
+                        - parse:
+                            attr: href
+                            filter: ^([^\?]+)
+                        - normalize:
+                            routine: url
+                        - link_add:
+                            pool: items
+                ## and let's try to find next page here
+                - find:
+                    path: a.Pagination__btnNext
+                    do:
+                    - parse:
+                        attr: aria-disabled
+                    - if:
+                        match: "true"
+                        do:
+                        ## next page is not found
+                        else:
+                        ## found next page
+                        ## add new page link into pool
+                        - static_get: url
+                        - variable_set: url
+                        - filter:
+                            args: '\/(\d+)\-\d+$'
+                        - variable_set: pageid
+                        - eval:
+                            routine: js
+                            body: '(function () {
+                                        var cnt = <%pageid%>;
+                                        return cnt + 1;
+                                    })();'
+                        - variable_set: pageid
+                        - variable_get: url
+                        - normalize:
+                            routine: replace_substring
+                            args:
+                            - \/\d+\-\d+$: '/<%pageid%>-96'
+                        - link_add:
+                            pool: categories
+- walk:
+    to: links
+    pool: items
+    repeat_in_pool: <%repeatitems%>
+    headers:
+        accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+        accept-encoding: deflate
+        accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
+        cache-control: no-cache
+        pragma: no-cache
+        upgrade-insecure-requests: 1
+    do:
+    - find:
+        path: title
+        do:
+        - parse
+        - if:
+            match: Access Denied
+            do:
+            - proxy_switch
+            else:
+            - find:
+                path: html
+                in: doc
+                do:
+                ## removing repeat
+                - variable_clear: repeatitems
+            - find:
+                path: '#ctl00_InvalidRequest'
+                in: doc
+                do:
+                - parse
+                - if:
+                    match: \S
+                    do:
+                    - proxy_switch
+                    - variable_set:
+                        field: repeatitems
+                        value: "yes"
+    - find:
+        path: body
+        in: doc
+        do:
+        - variable_get: repeatitems
+        - if:
+            match: \S
+            else:
+            ## save item
+            - object_new: product
+            - find:
+                path: script:contains("window.__INITIAL_STATE")
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - filter: 
+                    args: 'window\.__INITIAL_STATE__\s+\=\s+(.+)\s*;\s*window.__INITIAL_STATE__.sitespect'
+                - normalize:
+                    routine: json2xml
+                - to_block
+                - find:
+                    path: body_safe > pdp > productdetails > data
+                    slice: 0
+                    do:
+                    - variable_clear: pid
+                    - variable_set:
+                        field: brand
+                        value: BedBathAndBeyond
+                    - eval:
+                        routine: js
+                        body: '(function () {
+                                    var d = new Date();
+                                    return d.toISOString();
+                                })();'
+                    - object_field_set:
+                        object: product
+                        field: date
+                    - static_get: url
+                    - object_field_set:
+                        object: product
+                        field: url
+                    - find:
+                        path: brand_name
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - variable_set: brand
+                    - variable_get: brand
+                    - object_field_set:
+                        object: product
+                        field: brand
+                    - find:
+                        path: display_name
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - object_field_set:
+                            object: product
+                            field: name
+                    - find:
+                        path: description
+                        do:
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - if:
+                            match: \w+
+                            do:
+                            - object_field_set:
+                                object: product
+                                field: description
+                    - find:
+                        path: product_id
+                        do:
+                        - parse:
+                            filter: (\d+)
+                        - space_dedupe
+                        - trim
+                        - object_field_set:
+                            object: product
+                            field: sku
+                    - find:
+                        path: low_price
+                        do:
+                        - parse:
+                            filter: ([\d\.]+)
+                        - object_field_set:
+                            object: product
+                            type: float
+                            field: price
+                    - find:
+                        path: variations > all_colors
+                        do:
+                        - find:
+                            path: color
+                            do:
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: \w+
+                                do:
+                                - object_field_set:
+                                    object: product
+                                    joinby: "|"
+                                    field: variations
+                    - find:
+                        path: image_id
+                        do:
+                        - parse
+                        - normalize:
+                            routine: replace_substring
+                            args:
+                                - '^\s*': 'https://b3h2.scene7.com/is/image/BedBathandBeyond/'
+                        - variable_set: image_url
+                        - register_set: <%image_url%>?scl=1
+                        - object_field_set:
+                            object: product
+                            joinby: "|"
+                            field: images
+                    - find:
+                        path: alt_img
+                        do:
+                        - split:
+                            context: text
+                            delimiter: ','
+                        - find:
+                            path: div.splitted
+                            do:
+                            - parse
+                            - normalize:
+                                routine: replace_substring
+                                args:
+                                    - '^\s*': 'https://b3h2.scene7.com/is/image/BedBathandBeyond/'
+                            - variable_set: image_url
+                            - register_set: <%image_url%>?scl=1
+                            - object_field_set:
+                                object: product
+                                joinby: "|"
+                                field: images
+            - find:
+                path: 'div#first > ul[class*="Breadcrumbs-"] > li > a'
+                slice: 0:-1
+                do:
+                - parse
+                - space_dedupe
+                - trim
+                - if:
+                    match: \w+
+                    do:
+                    - object_field_set:
+                        object: product
+                        joinby: "|"
+                        field: category
+            - object_save:
+                name: product

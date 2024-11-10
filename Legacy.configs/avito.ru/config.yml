@@ -1,0 +1,207 @@
+---
+config:
+    debug: 2
+    proxy: #ВСТАВЬТЕ СЮДА ВАШ ПРОКСИ СЕРВЕР В ВИДЕ 1.1.1.1:8888
+    agent: "Firefox"
+do:
+- link_add:
+    pool: catalog
+    url:
+    - https://www.avito.ru/kostroma/detskaya_odezhda_i_obuv
+- walk:
+    to: links
+    pool: catalog
+    do:
+    - sleep: 3
+    - find:
+        path: a.js-pagination-next
+        do:
+        - parse:
+            attr: href
+        - space_dedupe
+        - trim
+        - if:
+            match: \w+
+            do:
+            - normalize:
+                routine: url
+            - link_add:
+                pool: catalog
+    - find:
+        path: a.item-description-title-link
+        do:
+        - parse:
+            attr: href
+        - space_dedupe
+        - trim
+        - if:
+            match: \w+
+            do:
+            - normalize:
+                routine: url
+            - link_add:
+                pool: pages
+- walk:
+    to: links
+    pool: pages
+    do:
+    - find:
+        path: div.item-view-content
+        do:
+        - object_new: item
+        - static_get: url
+        - object_field_set:
+            object: item
+            field: url
+        - find:
+            path: .item-view-header span.title-info-title-text
+            in: doc
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: title
+        - find:
+            path: div.title-info-metadata-item-redesign
+            slice: 0
+            in: doc
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: actualized
+        - find:
+            path: span[data-marker="item-view/item-id"]
+            in: doc
+            do:
+            - parse:
+                filter: (\d+)
+            - object_field_set:
+                object: item
+                field: id
+        - find:
+            path: div.title-info-metadata-item.title-info-metadata-views
+            in: doc
+            do:
+            - node_remove: i
+            - parse:
+                filter: (\d+)\s*\(
+            - object_field_set:
+                object: item
+                field: views_total
+            - parse:
+                filter: (\d+)\s*\)
+            - object_field_set:
+                object: item
+                field: views_today
+        - find:
+            path: span[itemprop="price"]
+            slice: 0
+            in: doc
+            do:
+            - parse:
+                attr: content
+                filter: (\d+)
+            - object_field_set:
+                object: item
+                field: price
+        - find:
+            path: span[itemprop="priceCurrency"]
+            slice: 0
+            in: doc
+            do:
+            - parse:
+                attr: content
+            - object_field_set:
+                object: item
+                field: currency
+        - find:
+            path: div.item-description-text
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: description
+        - find:
+            path: span[itemprop="address"]
+            do:
+            - find:
+                path: meta[itemprop="addressLocality"]
+                do:
+                - parse:
+                    attr: content
+                - space_dedupe
+                - trim
+                - object_field_set:
+                    object: item
+                    field: city
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: address
+        - find:
+            path: div.gallery-img-frame
+            do:
+            - parse:
+                attr: data-url
+            - space_dedupe
+            - trim
+            - if:
+                match: \w+
+                do:
+                - normalize:
+                    routine: url
+                - object_field_set:
+                    object: item
+                    field: image
+                    joinby: "|"
+        - find:
+            path: div.item-view-seller-info div.seller-info-name
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: item
+                field: seller
+        - find:
+            in: doc
+            path: script:contains('avito.item.phone')
+            do:
+            - static_get: url
+            - variable_set: referer
+            - parse:
+                filter: avito\.item\.phone\s*\=\s*'([^']+)'
+            - variable_set: key
+            - parse:
+                filter: avito\.item\.url\s*\=\s*'[^']+_(\d+)';
+            - variable_set: id
+            - eval:
+                routine: js
+                body: '(function (){var key = "<%key%>"; var id = "<%id%>"; var pre = key.match(/[\da-f]+/g); if (id % 2 == 0) {pre = pre.reverse();} var mixed = pre.join(""); var s = mixed.length; var r = ""; for (var k = 0; k < s; k++) {if (k%3 == 0) {r += mixed.substr(k, 1);}} return r; })();'
+            - variable_set: pkey
+            - sleep: 10
+            - walk:
+                to: https://www.avito.ru/items/phone/<%id%>?pkey=<%pkey%>
+                do:
+                - find:
+                    path: image64
+                    do:
+                    - parse:
+                        filter: data\:image\/png\;base64\,(.+)
+                    - ocr:
+                        do:
+                        - text
+                        - object_field_set:
+                            object: item
+                            field: phone
+        - object_save:
+            name: item

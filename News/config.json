@@ -1,0 +1,22 @@
+{
+    "english": {
+        "meta": {
+            "title": "News web scrapers",
+            "title_short": "News web scrapers",
+            "description_short": "Our catalog is a collection of the best free scrapers for news websites. These tools will help you automate the process of collecting up-to-date information, including headlines, article texts, publication dates and much more. Use our scrapers to monitor news, create analytical reports, or simply for quick access to the latest information. All of our web scrapers are easy to use and don't require advanced technical knowledge. Start saving time and resources by choosing the right free scraper now!",
+            "description_long": "Welcome to our catalog of free scrapers for news websites! If you are engaged in journalism, analytics, market research or just follow the latest events, our tools will become your indispensable assistant. We have collected the best scrapers that will help you automate the process of collecting relevant news and analytics.<br/><br/>The web scrapers in our catalog are capable of extracting headlines, full text of articles, publication dates, sources and other important metadata. They are ideal for monitoring news feeds, creating digests, analyzing trends, and much more. All tools are easy to use and don't require complex customizations or in-depth technical knowledge.<br/><br/>Choose the right scraper depending on your objectives: whether you want to monitor news on a specific topic, collect data for scientific research, or create personalized news compilations. Our catalog is regularly updated to offer you the most modern and efficient solutions.<br/><br/>Save time and resources by using our scrapers for news websites. Start working with up-to-date data today and stay in the know!",
+            "keywords": "free web scaper, data extraction, web scraping",
+            "category": "News"
+        }
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсеры новостей",
+            "title_short": "Парсеры новостей",
+            "description_short": "Наш каталог представляет собой собрание лучших бесплатных парсеров для новостных сайтов. Эти инструменты помогут вам автоматизировать процесс сбора актуальной информации, включая заголовки, тексты статей, даты публикаций и многое другое. Используйте наши парсеры для мониторинга новостей, создания аналитических отчетов или просто для быстрого доступа к свежей информации. Все представленные парсеры просты в использовании и не требуют глубоких технических знаний. Начните экономить время и ресурсы, выбирая подходящий бесплатный парсер прямо сейчас!",
+            "description_long": "Добро пожаловать в наш каталог бесплатных парсеров для новостных сайтов! Если вы занимаетесь журналистикой, аналитикой, маркетинговыми исследованиями или просто следите за последними событиями, наши инструменты станут вашим незаменимым помощником. Мы собрали лучшие бесплатные парсеры, которые помогут вам автоматизировать процесс сбора актуальных новостей и аналитики.<br/><br/>Представленные в нашем каталоге парсеры способны извлекать заголовки, полные тексты статей, даты публикации, источники и другие важные метаданные. Они идеально подходят для мониторинга новостной ленты, создания дайджестов, анализа трендов и многого другого. Все инструменты просты в использовании и не требуют сложных настроек или глубоких технических знаний.<br/><br/>Выбирайте подходящий парсер в зависимости от ваших задач: хотите ли вы отслеживать новости определенной тематики, собирать данные для научных исследований или создавать персонализированные подборки новостей. Наш каталог регулярно обновляется, чтобы предложить вам самые современные и эффективные решения.<br/><br/>Экономьте время и ресурсы, используя наши бесплатные парсеры для новостных сайтов. Начните работать с актуальными данными уже сегодня и оставайтесь в курсе всех значимых событий!",
+            "keywords": "бесплатный парсер, парсинг сайтов, сбор данных",
+            "category": "Новости"
+        }
+    }
+}

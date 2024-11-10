@@ -1,0 +1,284 @@
+---
+config:
+    agent: Firefox
+    debug: 2
+do:
+# Load main channel page
+- walk:
+    to: https://www.instagram.com/instagram/
+    do:
+    # Find all elements that loads Javascript files
+    - find:
+        path: script[type="text/javascript"]
+        do:
+        # Parse value in the src attribute
+        - parse:
+            attr: src
+        # Check if filename contains ProfilePageContainer.js string
+        - if:
+            match: ProfilePageContainer\.js
+            do:
+            # If check is true, load JS file
+            - walk:
+                to: value
+                do:
+                # Find element with JS content
+                - find:
+                    path: script
+                    do:
+                    # Parse content of the block and apply regular expression filter to extract only query_hash
+                    - parse:
+                        filter: profilePosts\.byUserId\.get[^,]+,queryId\:\&\s*quot\;([^&]+)\&\s*quot\;
+                    # Set extracted value to the variable queryid
+                    - variable_set: queryid
+    # Find element script, which contains string window._sharedData
+    - find:
+        path: script:contains("window._sharedData")
+        do:
+        - parse
+        - space_dedupe
+        - trim
+        # extracting JSON
+        - filter: 
+            args: window\._sharedData\s+\=\s+(.+)\s*;\s*$
+        # Convert JSON to XML
+        - normalize:
+            routine: json2xml
+        # Convert XML content of the register to the block
+        - to_block
+        # Find elements where channel id is kept
+        - find:
+            path: entry_data > profilepage > graphql > user > id
+            do:
+            # Parse content of the current block
+            - parse
+            # Set parsed value to the variable chid
+            - variable_set: chid
+        # Find elements where rhx_gis is kept
+        - find:
+            path: rhx_gis
+            do:
+            # Parse content of the current block
+            - parse
+            # Set parsed value to the variable rhxgis
+            - variable_set: rhxgis
+        # Find record elements and iterate over them
+        - find:
+            path: entry_data > profilepage > graphql > user > edge_owner_to_timeline_media > edges > node
+            do:
+            # Create new object named item
+            - object_new: item
+            # Find element with URL of image
+            - find:
+                path: display_url
+                do:
+                # Parse content
+                - parse
+                # Save value to the field of the object item
+                - object_field_set:
+                    object: item
+                    field: url
+            # Find element with record description
+            - find:
+                path: edge_media_to_caption > edges > node > text
+                do:
+                # Parse content
+                - parse
+                # Save value to the field of the object item
+                - object_field_set:
+                    object: item
+                    field: caption
+            # Find element indicating if record is video or not
+            - find:
+                path: is_video
+                do:
+                # Parse content
+                - parse
+                # Save value to the field of the object item
+                - object_field_set:
+                    object: item
+                    field: video
+            # Find element with number of comments
+            - find:
+                path: edge_media_to_comment > count
+                do:
+                # Parse content
+                - parse
+                # Save value to the field of the object item
+                - object_field_set:
+                    object: item
+                    field: comments
+            # Find element with number of likes
+            - find:
+                path: edge_media_preview_like > count
+                do:
+                # Parse content
+                - parse
+                # Save value to the field of the object item
+                - object_field_set:
+                    object: item
+                    field: likes
+            # Save object item to the DB
+            - object_save:
+                name: item
+        # Find element where next page data kept
+        - find:
+            path: entry_data > profilepage > graphql > user > edge_owner_to_timeline_media > page_info
+            do:
+            # Find element indicating if there is next page
+            - find:
+                path: has_next_page
+                do:
+                # parse content
+                - parse
+                # Save value to the variable
+                - variable_set: hnp
+            # Read variable hnp to the register
+            - variable_get: hnp
+            # Check if value is 'true'
+            - if:
+                match: 'true'
+                do:
+                # If yes, then find element with last shown record marker
+                - find:
+                    path: end_cursor
+                    do:
+                    # Parse content
+                    - parse
+                    # Save value to the variable with name cursor
+                    - variable_set: cursor
+                    # Apply URL-encode for the value (since it may contain characters not allowed in the URL)
+                    - eval:
+                        routine: js
+                        body: '(function () {return encodeURIComponent("<%register%>")})();'
+                    # Save value to the variable with name cursor
+                    - variable_set: cursor_encoded
+                    # Form pool of links and add first link to this pool
+                    - link_add:
+                        url: https://www.instagram.com/graphql/query/?query_hash=<%queryid%>&variables=%7B%22id%22%3A%22<%chid%>%22%2C%22first%22%3A12%2C%22after%22%3A%22<%cursor_encoded%>%22%7D
+                    # Calculate signature
+                    - register_set: '<%rhxgis%>:{"id":"<%chid%>","first":12,"after":"<%cursor%>"}'
+                    - normalize:
+                        routine: md5
+                    - variable_set: signature
+    # Set counter for number of loads to 0
+    - counter_set:
+        name: pages
+        value: 0
+    # Iterate over the pool and load current URL using signature in request header
+    - walk:
+        to: links
+        headers:
+            x-instagram-gis: <%signature%>
+            x-requested-with: XMLHttpRequest
+        do:
+        - sleep: 3
+        # Find element that hold data used for loading next page
+        - find:
+            path: edge_owner_to_timeline_media > page_info
+            do:
+            # Find element indicating if there is next page available
+            - find:
+                path: has_next_page
+                do:
+                # Parse content
+                - parse
+                # Save value to the variable
+                - variable_set: hnp
+            # Read the variable to the register
+            - variable_get: hnp
+            # Check if value is 'true'
+            - if:
+                match: 'true'
+                do:
+                # If yes, check loads counter if its greater than 10
+                - counter_get: pages
+                - if:
+                    type: int
+                    gt: 10
+                    else:
+                    # If not, find element with the cursor
+                    - find:
+                        path: end_cursor
+                        do:
+                        # Parse content
+                        - parse
+                        # Save value to the variable
+                        - variable_set: cursor
+                        # Doing URL-encode
+                        - eval:
+                            routine: js
+                            body: '(function () {return encodeURIComponent("<%register%>")})();'
+                        # Save value to the variable
+                        - variable_set: cursor_encoded
+                        # Add next page URL to the links pool
+                        - link_add:
+                            url: https://www.instagram.com/graphql/query/?query_hash=<%queryid%>&variables=%7B%22id%22%3A%22<%chid%>%22%2C%22first%22%3A12%2C%22after%22%3A%22<%cursor_encoded%>%22%7D
+                        # Calculate signature
+                        - register_set: '<%rhxgis%>:{"id":"<%chid%>","first":12,"after":"<%cursor%>"}'
+                        - normalize:
+                            routine: md5
+                        - variable_set: signature
+        # Find record elements and iterate over them
+        - find:
+            path: edge_owner_to_timeline_media > edges > node
+            do:
+            # Create object with name item
+            - object_new: item
+            # Find element with URL of image
+            - find:
+                path: display_url
+                do:
+                # Parse content
+                - parse
+                # Save value to the field of the object item
+                - object_field_set:
+                    object: item
+                    field: url
+            # Find element with record description
+            - find:
+                path: edge_media_to_caption > edges > node > text
+                do:
+                # Parse content
+                - parse
+                # Save value to the field of the object item
+                - object_field_set:
+                    object: item
+                    field: caption
+            # Find element indicating if record is video or not
+            - find:
+                path: is_video
+                do:
+                # Parse content
+                - parse
+                # Save value to the field of the object item
+                - object_field_set:
+                    object: item
+                    field: video
+            # Find element with number of comments
+            - find:
+                path: edge_media_to_comment > count
+                do:
+                # Parse content
+                - parse
+                # Save value to the field of the object item
+                - object_field_set:
+                    object: item
+                    field: comments
+            # Find element with number of likes
+            - find:
+                path: edge_media_preview_like > count
+                do:
+                # Parse content
+                - parse
+                # Save value to the field of the object item
+                - object_field_set:
+                    object: item
+                    field: likes
+            # Save object item to the DB
+            - object_save:
+                name: item
+        # Increment loads counter by 1
+        - counter_increment:
+            name: pages
+            by: 1

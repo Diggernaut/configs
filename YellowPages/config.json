@@ -1,0 +1,22 @@
+{
+    "english": {
+        "meta": {
+            "title": "Yellow pages web scrapers",
+            "title_short": "Yellow pages web scrapers",
+            "description_short": "In our catalog you will find free yellow pages scrapers. These tools will help you automate the process of obtaining information about contact details, addresses, services and much more. All web scrapers are easy to use and ready to work immediately after importing the scraper into your Diggernaut account. Choose the right one and start effective company research!",
+            "description_long": "Welcome to our directory of free yellow pages scrapers! If your goal is to automate company data collection, you've come to the right place. Here you will find the best free tools to help you extract important information from yellow pages websites, databases and other sources.<br /><br />Our parsers cover a wide range of tasks, from retrieving contact information to analyzing the services and products offered by companies. Each tool is easy to set up and use, so you don't have to spend a lot of time learning how to use it. All you need to do is choose the right parser, import it to your Diggernaut account and get to work.<br /><br />Why choose us? Because we offer only high-quality and reliable solutions that really work. Our parsers are regularly updated and maintained to keep up with the latest changes on the internet. Moreover, all tools are absolutely free, which makes them accessible to all categories of users.<br /><br />Don't miss the opportunity to automate routine tasks and focus on more important aspects of your business or project. Check out our catalog and find the perfect parser for your needs today!",
+            "keywords": "yellow pages scaper, data extraction, web scraping",
+            "category": "Yellow Pages"
+        }
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсеры справочников и каталогов",
+            "title_short": "Парсеры справочников и каталогов",
+            "description_short": "В нашем каталоге вы найдете бесплатные парсеры для сбора данных о компаниях. Эти инструменты помогут вам автоматизировать процесс получения информации о контактных данных, адресах, услугах и многом другом. Все парсеры просты в использовании и готовы к работе сразу после импорта парсера в ваш аккаунт на платформе Diggernaut. Выберите подходящий вариант и начинайте эффективное исследование компаний!",
+            "description_long": "Добро пожаловать в наш каталог бесплатных парсеров для компаний! Если ваша цель — автоматизация сбора данных о компаниях, вы попали по адресу. Здесь вы найдете лучшие бесплатные инструменты, которые помогут вам извлекать важную информацию из корпоративных сайтов, баз данных и других источников.<br /><br />Наши парсеры охватывают широкий спектр задач: от получения контактных данных до анализа услуг и продуктов, предлагаемых компаниями. Каждый инструмент отличается простотой настройки и использования, поэтому вам не придется тратить много времени на обучение. Все, что нужно сделать, — это выбрать подходящий парсер, импортировать их в ваш аккаунт на платформе Diggernaut и приступить к работе.<br /><br />Почему выбирают нас? Потому что мы предлагаем только качественные и надежные решения, которые действительно работают. Наши парсеры регулярно обновляются и поддерживаются, чтобы соответствовать последним изменениям в интернете. Более того, все инструменты абсолютно бесплатны, что делает их доступными для всех категорий пользователей.<br /><br />Не упустите возможность автоматизировать рутинные задачи и сосредоточиться на более важных аспектах вашего бизнеса или проекта. Ознакомьтесь с нашим каталогом и найдите идеальный парсер для ваших нужд уже сегодня!",
+            "keywords": "парсер справочников, парсер каталога компаний, парсинг сайтов, сбор данных",
+            "category": "Справочники"
+        }
+    }
+}

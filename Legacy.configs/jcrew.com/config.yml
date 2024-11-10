@@ -1,0 +1,308 @@
+---
+config:
+    debug: 2
+    agent: Firefox
+do:
+- pool_clear: catalog
+- pool_clear: pages
+- walk:
+    to: https://www.jcrew.com
+    do:
+    - find:
+        path: script:contains('jcrew.template =')
+        do:
+        - parse
+        - normalize:
+            routine: replace_substring
+            args:
+            - function\s+getVisitsData\(\)\s+\{[^\}]+\}: ''
+            - jcrew\.global\.visitsData\s+\=\s+getVisitsData\(\);: ''
+        - variable_set: script
+        - eval:
+            routine: js
+            body: '(function (){<%script%> return JSON.stringify(jcrew.template)})();'
+        - normalize:
+            routine: json2xml
+        - to_block
+        - find:
+            path: navigationinfo>data>nav
+            do:
+            - find:
+                path: label
+                slice: 0
+                do:
+                - parse
+                - variable_set: cat1
+            - node_remove: navitems:has(navgroups)
+            - find:
+                path: navgroups
+                do:
+                - find:
+                    path: label
+                    slice: 0
+                    do:
+                    - parse
+                    - variable_set: cat2
+                - find:
+                    path: navitems:has(url)
+                    do:
+                    - find:
+                        path: label
+                        slice: 0
+                        do:
+                        - parse
+                        - variable_set: cat3
+                    - find:
+                        path: url
+                        do:
+                        - parse:
+                            filter: ^([^\?]+)
+                        - variable_set: url
+                        - register_set: <%url%>?sidecar=true&iNextCategory=0
+                        - walk:
+                            to: value
+                            do:
+                            - find:
+                                path: script:contains('window.__PRELOADED_STATE__=')
+                                do:
+                                - parse
+                                - normalize:
+                                    routine: replace_substring
+                                    args:
+                                        window\.__PRELOADED_STATE__: 'jcrew.template'
+                                - normalize:
+                                    routine: replace_substring
+                                    args:
+                                    - function\s+getVisitsData\(\)\s+\{[^\}]+\}: ''
+                                    - jcrew\.global\.visitsData\s+\=\s+getVisitsData\(\);: ''
+                                - variable_set: script
+                                - eval:
+                                    routine: js
+                                    body: '(function (){var jcrew = {};<%script%>; return JSON.stringify(jcrew.template)})();'
+                                - normalize:
+                                    routine: json2xml
+                                - to_block
+                                - find:
+                                    path: data>productarray>productlist>products>url
+                                    do:
+                                    - parse
+                                    - if:
+                                        match: \S
+                                        do:
+                                        - normalize:
+                                            routine: url
+                                        - walk:
+                                            to: value
+                                            do:
+                                            - sleep: 2
+                                            - find:
+                                                path: article.c-product
+                                                do:
+                                                - variable_clear: desc
+                                                - variable_clear: pid
+                                                - object_new: product
+                                                - eval:
+                                                    routine: js
+                                                    body: '(function (){var d = new Date(); return d.toISOString()})();'
+                                                - object_field_set:
+                                                    object: product
+                                                    field: date
+                                                - static_get: url
+                                                - object_field_set:
+                                                    object: product
+                                                    field: url
+                                                - find:
+                                                    in: doc
+                                                    path: script:contains('jcrew.template =')
+                                                    do:
+                                                    - parse
+                                                    - normalize:
+                                                        routine: replace_substring
+                                                        args:
+                                                        - function\s+getVisitsData\(\)\s+\{[^\}]+\}: ''
+                                                        - jcrew\.global\.visitsData\s+\=\s+getVisitsData\(\);: ''
+
+                                                    - variable_set: script
+                                                    - eval:
+                                                        routine: js
+                                                        body: '(function (){var jcrew = {};<%script%> return JSON.stringify(jcrew.template)})();'
+                                                    - normalize:
+                                                        routine: json2xml
+                                                    - to_block
+                                                    - find:
+                                                        path: pagejson>productdetails
+                                                        do:
+                                                        - find:
+                                                            path: productname
+                                                            do:
+                                                            - parse
+                                                            - space_dedupe
+                                                            - trim
+                                                            - object_field_set:
+                                                                object: product
+                                                                field: name
+                                                        - find:
+                                                            path: productcode
+                                                            do:
+                                                            - parse
+                                                            - space_dedupe
+                                                            - trim
+                                                            - if:
+                                                                match: \w+
+                                                                do:
+                                                                - variable_set: pid
+                                                                - object_field_set:
+                                                                    object: product
+                                                                    joinby: "|"
+                                                                    field: sku
+                                                        - register_set: J.CREW
+                                                        - object_field_set:
+                                                            object: product
+                                                            field: brand
+                                                        - find:
+                                                            path: productdescriptionseo
+                                                            do:
+                                                            - parse
+                                                            - space_dedupe
+                                                            - trim
+                                                            - variable_set: desc
+                                                        - find:
+                                                            path: productdescriptionromance
+                                                            do:
+                                                            - parse
+                                                            - space_dedupe
+                                                            - trim
+                                                            - variable_set: desc
+                                                        - variable_get: desc
+                                                        - object_field_set:
+                                                            object: product
+                                                            field: description
+                                                        - find:
+                                                            path: colorslist>colors>name
+                                                            do:
+                                                            - parse
+                                                            - space_dedupe
+                                                            - trim
+                                                            - if:
+                                                                match: \w+
+                                                                do:
+                                                                - object_field_set:
+                                                                    object: product
+                                                                    joinby: "|"
+                                                                    field: variations
+                                                        - find:
+                                                            path: listprice>formatted
+                                                            do:
+                                                            - parse:
+                                                                filter:
+                                                                - \$([0-9\.\,]+)\s*-
+                                                                - \$([0-9\.\,]+)
+                                                            - normalize:
+                                                                routine: replace_substring
+                                                                args:
+                                                                    \,: ''
+                                                            - space_dedupe
+                                                            - trim
+                                                            - object_field_set:
+                                                                object: product
+                                                                type: float
+                                                                field: price
+                                                            - parse
+                                                            - normalize:
+                                                                routine: replace_matched
+                                                                args:
+                                                                    \$: USD
+                                                            - object_field_set:
+                                                                object: product
+                                                                field: currency
+                                                        - find:
+                                                            path: saleprice>formatted
+                                                            do:
+                                                            - parse:
+                                                                filter:
+                                                                - \$([0-9\.\,]+)\s*-
+                                                                - \$([0-9\.\,]+)
+                                                            - normalize:
+                                                                routine: replace_substring
+                                                                args:
+                                                                    \,: ''
+                                                            - space_dedupe
+                                                            - trim
+                                                            - object_field_set:
+                                                                object: product
+                                                                type: float
+                                                                field: price
+                                                            - parse
+                                                            - normalize:
+                                                                routine: replace_matched
+                                                                args:
+                                                                    \$: USD
+                                                            - object_field_set:
+                                                                object: product
+                                                                field: currency
+                                                        - variable_get: cat1
+                                                        - object_field_set:
+                                                            object: product
+                                                            joinby: "|"
+                                                            field: categories
+                                                        - variable_get: cat2
+                                                        - object_field_set:
+                                                            object: product
+                                                            joinby: "|"
+                                                            field: categories
+                                                        - variable_get: cat3
+                                                        - object_field_set:
+                                                            object: product
+                                                            joinby: "|"
+                                                            field: categories
+                                                        - variable_clear: chtml
+                                                        - find:
+                                                            path: colorslist
+                                                            do:
+                                                            - parse:
+                                                                format: html
+                                                            - variable_set: chtml
+                                                            - find:
+                                                                path: colors>code
+                                                                do:
+                                                                - parse
+                                                                - space_dedupe
+                                                                - trim
+                                                                - if:
+                                                                    match: \w+
+                                                                    do:
+                                                                    - variable_set: cc
+                                                                    - register_set: https://i.s-jcrew.com/is/image/jcrew/<%pid%>_<%cc%>?$pdp_enlarge$
+                                                                    - object_field_set:
+                                                                        object: product
+                                                                        joinby: "|"
+                                                                        field: images
+                                                        - find:
+                                                            path: shottypes
+                                                            do:
+                                                            - parse
+                                                            - space_dedupe
+                                                            - trim
+                                                            - if:
+                                                                match: \w+
+                                                                do:
+                                                                - variable_set: st
+                                                                - variable_get: chtml
+                                                                - to_block
+                                                                - find:
+                                                                    path: colors>code
+                                                                    do:
+                                                                    - parse
+                                                                    - space_dedupe
+                                                                    - trim
+                                                                    - if:
+                                                                        match: \w+
+                                                                        do:
+                                                                        - variable_set: cc
+                                                                        - register_set: https://i.s-jcrew.com/is/image/jcrew/<%pid%>_<%cc%><%st%>?$pdp_enlarge$
+                                                                        - object_field_set:
+                                                                            object: product
+                                                                            joinby: "|"
+                                                                            field: images
+                                                - object_save:
+                                                    name: product

@@ -1,0 +1,22 @@
+{
+    "english": {
+        "meta": {
+            "title": "Social media web scrapers",
+            "title_short": "Social media web scrapers",
+            "description_short": "In our catalog, you'll find a collection of free social media parsers to help you automate the collection of data about profiles, posts, comments, and more. These tools are perfect for marketers, researchers, and anyone who wants to analyze social media activity deeper. All parsers are easy to use and ready to go as soon as you import them into your Diggernaut account. Choose the right one and start effective social media research!",
+            "description_long": "Welcome to our catalog of free social media scrapers! If you are interested in automating data collection from social media platforms, this section is for you. Here you will find the best free tools that will help you extract important information from profiles, posts, comments and other components of social platforms.<br /><br />Our web scrapers are suitable for a variety of tasks: from analyzing user activity to monitoring trends and studying audience behavior. Each tool stands out for its ease of setup and use, so you don't have to learn for a long time. All you need to do is choose the right scraper and import it to your Diggernaut account.<br /><br />Why choose us? Because we offer high-quality and reliable solutions that are really effective. Our web scrapers are regularly updated and maintained to keep up with the latest changes in social media. Plus, all tools are absolutely free, making them available to all users.<br /><br />Don't miss the chance to automate routine tasks and focus on more important aspects of your business or project. Browse our catalog and find the best web scraper for your purposes today!",
+            "keywords": "social media scaper, data extraction, web scraping",
+            "category": "Social Media"
+        }
+    },
+    "russian": {
+        "meta": {
+            "title": "Парсеры соцсетей",
+            "title_short": "Парсеры соцсетей",
+            "description_short": "В нашем каталоге вы найдете коллекцию бесплатных парсеров для социальных сетей, которые помогут вам автоматизировать сбор данных о профилях, постах, комментариях и многом другом. Эти инструменты идеально подходят для маркетологов, исследователей и всех, кто хочет глубже анализировать активность в соцсетях. Все парсеры просты в использовании и готовы к работе сразу после импортирования в аккаунт на платформе Diggernaut. Выберите подходящий вариант и начинайте эффективное исследование социальных сетей!",
+            "description_long": "Приветствуем вас в нашем каталоге бесплатных парсеров для социальных сетей! Если вы заинтересованы в автоматизации сбора данных из соцсетей, этот раздел предназначен именно для вас. Здесь вы найдете лучшие бесплатные инструменты, которые помогут вам извлекать важную информацию из профилей, сообщений, комментариев и других компонентов социальных платформ.<br /><br />Наши парсеры подходят для выполнения разнообразных задач: начиная от анализа пользовательской активности и заканчивая мониторингом тенденций и изучением поведения аудитории. Каждый инструмент выделяется своей простотой в настройке и использовании, благодаря чему вам не придется долго учиться. Достаточно лишь выбрать подходящий парсер, импортировать его в ваш аккаунт на платформе Diggernaut и приступить к работе.<br /><br />Почему выбирают нас? Потому что мы предлагаем высококачественные и надежные решения, которые действительно эффективны. Наши парсеры регулярно обновляются и поддерживаются, чтобы соответствовать последним изменениям в социальных сетях. К тому же, все инструменты предоставляются абсолютно бесплатно, делая их доступными для всех пользователей.<br /><br />Не упускайте шанс автоматизировать рутинные задачи и сконцентрироваться на более важных аспектах вашего бизнеса или проекта. Просмотрите наш каталог и найдите оптимальный парсер для ваших целей уже сегодня!",
+            "keywords": "парсер cоцсетей, парсер социальных сетей, парсинг сайтов, сбор данных",
+            "category": "Социальные сети"
+        }
+    }
+}

@@ -1,0 +1,236 @@
+---
+config:
+    debug: 2
+    proxy: #USE YOUR PROXY HERE LIKE 1.1.1.1:8888
+    agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36
+do:
+- walk:
+    to: https://www.footlocker.com
+    headers:
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+        Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4
+        Cache-Control: no-cache
+        Pragma: no-cache
+        Upgrade-Insecure-Requests: 1
+    do:
+    - find: 
+        path: .shop_links_column a 
+        do: 
+        - parse:
+            attr: href
+        - pool_clear: main
+        - link_add:
+            pool: main
+        - walk:
+            to: links
+            headers:
+                Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+                Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4
+                Cache-Control: no-cache
+                Pragma: no-cache
+                Upgrade-Insecure-Requests: 1
+            pool: main
+            do:
+            - cookie_reset
+            - find: 
+                path: html 
+                do: 
+                - variable_clear: rf
+                - static_get: url
+                - variable_set: rf       
+            - find: 
+                path: .next
+                slice: 0
+                do: 
+                - parse:
+                    attr: href
+                - normalize:
+                    routine: url
+                - link_add:
+                    pool: main
+            - find: 
+                path: '#endeca_search_results a.quickviewEnabled' 
+                do:
+                - parse:
+                    attr: href
+                - normalize:
+                    routine: url
+                - walk:
+                    to: value
+                    headers:
+                        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+                        Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4
+                        Cache-Control: no-cache
+                        Pragma: no-cache
+                        Upgrade-Insecure-Requests: 1
+                    do:
+                    - cookie_reset
+                    - object_new: product
+                    - find: 
+                        in: doc
+                        path: html
+                        do: 
+                        - eval:
+                            routine: js
+                            body: '(function (){var d = new Date(); return d.toISOString()})();'
+                        - object_field_set:
+                            object: product
+                            field: date
+                        - static_get: url
+                        - object_field_set:
+                            object: product
+                            field: url
+                    - find: 
+                        path: script:matches(var\s*model\s*\=\s*) 
+                        do: 
+                        - parse:
+                            filter:
+                                - attType_color\'\>([A-z0-9\s\/\\]+)\<\\\/span\>
+                            joinby: '*'
+                        - register_set: <div><%register%></div>
+                        - to_block
+                        - find: 
+                            path: div 
+                            do: 
+                            - split:
+                                context: text
+                                delimiter: '\*'
+                            - find: 
+                                path: .splitted 
+                                do: 
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - normalize:
+                                    routine: replace_substring
+                                    args:
+                                        \\\/: '/'
+                                - if:
+                                    match: (\S)
+                                    do:
+                                    - object_field_set:
+                                        object: product
+                                        field: variations
+                                        joinby: "|"
+                    - find: 
+                        path: script:matches(var\s*model\s*\=\s*) 
+                        do: 
+                        - parse
+                        - space_dedupe
+                        - trim
+                        - filter:
+                            args:
+                                - var\s*model\s*\=\s*(.+);\s*var\s*model
+                        - normalize:
+                            routine: json2xml
+                        - to_block
+                        - find: 
+                            path: inet_copy 
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - normalize:
+                                routine: unescape_html
+                            - to_block
+                            - find: 
+                                path: p
+                                do: 
+                                - parse
+                                - space_dedupe
+                                - trim
+                                - if:
+                                    match: (\S)
+                                    do:
+                                    - object_field_set:
+                                        object: product
+                                        field: description
+                        - find: 
+                            path: pr_list 
+                            do: 
+                            - parse
+                            - variable_set: price
+                        - find: 
+                            path: pr_sale 
+                            do: 
+                            - parse
+                            - if:
+                                match: (\d)
+                                do:
+                                - object_field_set:
+                                    object: product
+                                    field: price
+                                    type: float
+                                - register_set: USD
+                                - object_field_set:
+                                    object: product
+                                    field: currency
+                        - find: 
+                            path: body_safe > nm 
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: product
+                                field: name
+                        - find: 
+                            path: body_safe > gender_age, body_safe > sports > nm, body_safe > prod_tp
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: product
+                                field: categories
+                                joinby: "|"
+                        - find: 
+                            path:  body_safe > brand
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - object_field_set:
+                                object: product
+                                field: brand
+                        - find: 
+                            path: sku 
+                            do: 
+                            - parse
+                            - object_field_push:
+                                object: product
+                                field: sku
+                        - find: 
+                            path: allskus 
+                            do: 
+                            - parse
+                            - space_dedupe
+                            - trim
+                            - if:
+                                match: (\S)
+                                do:
+                                - walk:
+                                    to: http://images.footlocker.com/is/image/EBFL2/<%register%>?req=set,json
+                                    do:
+                                    - cookie_reset
+                                    - find:
+                                        path: script
+                                        do:
+                                        - parse:
+                                            filter: s7jsonResponse\((.+)\,\&quot;\&quot;\)\;
+                                        - normalize:
+                                            routine: unescape_html
+                                        - normalize:
+                                            routine: json2xml
+                                        - to_block
+                                        - find:
+                                            path: item>i>n
+                                            do:
+                                            - parse
+                                            - register_set: http://images.footlocker.com/is/image/<%register%>?wid=1000
+                                            - object_field_set:
+                                                object: product
+                                                joinby: "|"
+                                                field: images
+                    - object_save:
+                        name: product

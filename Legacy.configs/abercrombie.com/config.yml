@@ -1,0 +1,307 @@
+---
+config:
+    debug: 2
+    proxy: #USE YOUR PROXY HERE
+    agent: Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14
+do:
+- link_add:
+    pool: main
+    url:
+    - https://www.abercrombie.com/shop/wd
+    - https://www.abercrombie.com/shop/wd/kids
+- walk:
+    to: links
+    headers:
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+        Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4
+        Cache-Control: no-cache
+        Pragma: no-cache
+        Proxy-Connection: keep-alive
+        Upgrade-Insecure-Requests: 1
+    pool: main
+    do:
+    - find:
+        path: a.rs-nav__cat-label
+        do:
+        - parse:
+            attr: href
+        - space_dedupe
+        - trim
+        - if:
+            match: ^\/shop
+            do:
+            - normalize:
+                routine: url
+            - link_add:
+                pool: catalog
+- walk:
+    to: links
+    pool: catalog
+    do:
+    - variable_clear: section
+    - find:
+        path: li.rs-nav-item--minor>a    
+        do:
+        - parse:
+            attr: href
+        - space_dedupe
+        - trim
+        - if:
+            match: \w+
+            do:
+            - normalize:
+                routine: url
+            - if:
+                match: hollisterco\.com
+                else:
+                - link_add:
+                    pool: catalog
+    - find:
+        path: div.breadcrumbs
+        do:
+        - parse:
+            attr: data-categoryid
+        - variable_set: section
+        - set_converter:
+            content_type: text/html
+            converter: json
+        - walk:
+            to: https://www.abercrombie.com/webapp/wcs/stores/servlet/AjaxNavAPIResponseJSON?catalogId=10901&categoryId=<%section%>&langId=-1&requestType=category&rows=10000&sort=bestmatch&start=0&storeId=11203
+            do:
+            - find:
+                path: products>producturl
+                do:
+                - parse
+                - if:
+                    match: \/p\/
+                    do:
+                    - normalize:
+                        routine: url
+                    - link_add:
+                        pool: pages
+            - find:
+                path: products>swatches>swatchurl
+                do:
+                - parse
+                - if:
+                    match: \/p\/
+                    do:
+                    - link_add:
+                        pool: pages
+        - clear_converter:
+            content_type: text/html
+- walk:
+    to: links
+    headers:
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+        Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4
+        Cache-Control: no-cache
+        Pragma: no-cache
+        cookie: uPref=%7B%22cfi%22%3A%221%22%2C%22cur%22%3A%22USD%22%2C%22sf%22%3A%22US%22%7D; geoLocation=US:TX:;
+        Proxy-Connection: keep-alive
+        Upgrade-Insecure-Requests: 1
+    pool: pages
+    do:
+    - sleep: 3
+    - variable_clear: pageurl
+    - find:
+        path: body
+        do:
+        - static_get: url
+        - variable_set: pageurl
+    - find:
+        path: 'section.product'
+        do:
+        - variable_clear: pid
+        - variable_clear: prid
+        - variable_clear: cid
+        - variable_clear: sin
+        - variable_clear: list
+        - variable_clear: desc
+        - variable_clear: price
+        - object_new: product
+        - find:
+            path: div.details__web-item-number>span.number
+            do:
+            - parse
+            - object_field_set:
+                object: product
+                field: sku
+        - parse:
+            attr: data-collection
+        - variable_set: pid
+        - parse:
+            attr: data-seq
+        - variable_set: cid
+        - parse:
+            attr: data-productid
+        - variable_set: prid
+        - eval:
+            routine: js
+            body: '(function (){var d = new Date(); return d.toISOString()})();'
+        - object_field_set:
+            object: product
+            field: date
+        - variable_get: pageurl
+        - object_field_set:
+            object: product
+            field: url
+        - find:
+            path: .product-page-title[itemprop="name"]
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: product
+                field: name
+        - register_set: 'Abercrombie & Fitch'
+        - object_field_set:
+            object: product
+            field: brand
+        - find:
+            path: p.details__description
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: product
+                field: description
+        - find:
+            path: script:contains('var globalProducts')
+            do:
+            - parse:
+                filter: globalProducts\[\d+\]\s+\=\s+(.+);\s+\}\s+catch\(err\)
+            - normalize:
+                routine: json2xml
+            - to_block
+            - find:
+                path: offerpricefmt
+                slice: 0
+                do:
+                - parse
+                - variable_set: price
+        - find:
+            in: doc
+            path: div.upper-breadcrumb>div.breadcrumbs>a
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \w+
+                do:
+                - object_field_set:
+                    object: product
+                    field: category
+                    joinby: "|"
+        - find:
+            path: ul.product-swatches>li>label>span,ul.product-swatches>li>h2>span
+            do:
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: \w+
+                do:
+                - object_field_set:
+                    object: product
+                    field: variations
+                    joinby: "|"
+        - find:
+            path: span.product-price-v2__price
+            do:
+            - parse:
+                filter:
+                - (\$[0-9\.]+)\s*-
+                - (\$[0-9\.]+)
+            - variable_set: price
+            - variable_get: price
+            - normalize:
+                routine: replace_substring
+                args:
+                    \$: ''
+            - object_field_set:
+                object: product
+                type: float
+                field: price
+            - variable_get: price
+            - normalize:
+                routine: replace_matched
+                args:
+                    \$: USD
+            - object_field_set:
+                object: product
+                field: currency
+        - variable_get: pageurl
+        - if:
+            match: \/kids\/
+            do:
+            - register_set: https://anf.scene7.com/is/image/anf?imageset={anf/kids_<%pid%>_<%cid%>}&req=set,json&id=<%pid%>
+            else:
+            - register_set: https://anf.scene7.com/is/image/anf?imageset={anf/anf_<%pid%>_<%cid%>}&req=set,json&id=<%pid%>
+        - walk:
+            to: value
+            do:
+            - find:
+                path: body
+                do:
+                - parse:
+                    filter: s7jsonResponse\((.+),\&quot;\d+\&quot;\);
+                - normalize:
+                    routine: unescape_html
+                - normalize:
+                    routine: json2xml
+                - to_block
+                - find:
+                    path: i>n
+                    do:
+                    - variable_clear: iurl
+                    - parse
+                    - variable_set: iurl
+                    - register_set: https://anf.scene7.com/is/image/<%iurl%>?scl=1
+                    - object_field_set:
+                        object: product
+                        field: images
+                        joinby: "|"
+        - find:
+            path: ul.product-swatches>li>label>input
+            do:
+            - variable_clear: cid
+            - parse:
+                attr: data-seq
+            - variable_set: cid
+            - variable_get: pageurl
+            - if:
+                match: \/kids\/
+                do:
+                - register_set: https://anf.scene7.com/is/image/anf?imageset={anf/kids_<%pid%>_<%cid%>}&req=set,json&id=<%pid%>
+                else:
+                - register_set: https://anf.scene7.com/is/image/anf?imageset={anf/anf_<%pid%>_<%cid%>}&req=set,json&id=<%pid%>
+            - walk:
+                to: value
+                do:
+                - find:
+                    path: body
+                    do:
+                    - parse:
+                        filter: s7jsonResponse\((.+),\&quot;\d+\&quot;\);
+                    - normalize:
+                        routine: unescape_html
+                    - normalize:
+                        routine: json2xml
+                    - to_block
+                    - find:
+                        path: i>n
+                        do:
+                        - variable_clear: iurl
+                        - parse
+                        - variable_set: iurl
+                        - register_set: https://anf.scene7.com/is/image/<%iurl%>?scl=1
+                        - object_field_set:
+                            object: product
+                            field: images
+                            joinby: "|"
+        - object_save:
+            name: product

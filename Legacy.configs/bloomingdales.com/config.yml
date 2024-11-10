@@ -1,0 +1,243 @@
+---
+config:
+    debug: 2
+    agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36
+    proxy: #put your proxies list here
+do:
+- walk:
+    to: https://www.bloomingdales.com/index
+    headers:
+        accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+        accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
+        cache-control: no-cache
+    do:
+    - find: 
+        path: '#globalFlyouts a'
+        do: 
+        - pool_clear: main
+        - parse:
+            attr: href
+            filter:
+                - \?id=(\d+)
+        - variable_set: pur
+        - variable_set: 
+            field: first
+            value: 1
+        - if:
+            match: (\d)
+            do:
+            - register_set: https://www.bloomingdales.com/api/navigation/categories/facet?categoryId=<%pur%>&facet=false&pageIndex=1&bcomNavPPP=undefine
+            - link_add:
+                pool: main
+            - walk:
+                to: links
+                pool: main
+                headers:
+                    accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+                    accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
+                    cache-control: no-cache
+                do:
+                - find: 
+                    path: productids
+                    do: 
+                    - parse
+                    - if:
+                        match: (\d)
+                        do:
+                        - register_set: https://www.bloomingdales.com/shop/product/?ID=<%register%>&CategoryID=<%pur%>
+                        - link_add:
+                            pool: sub
+                - find: 
+                    path: productcount
+                    do: 
+                    - parse
+                    - if:
+                        match: (\d)
+                        do:
+                        - variable_set: count
+                        - variable_get: first
+                        - if:
+                            match: (\d+)
+                            do:
+                            - variable_clear: first
+                            - eval:
+                                routine: js
+                                body: (function () {var pages = []; for (var i=2; i*90 <= <%count%>; i++) {pages.push(i)}; return pages.join(",");})();
+                            - to_block
+                            - split:
+                                context: text
+                                delimiter: ","
+                            - find: 
+                                path: .splitted 
+                                do: 
+                                - parse
+                                - register_set: https://www.bloomingdales.com/api/navigation/categories/facet?categoryId=<%pur%>&facet=false&pageIndex=<%register%>&bcomNavPPP=undefine
+                                - link_add:
+                                    pool: main
+- walk:
+    to: links
+    headers:
+        accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+        accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7
+        cache-control: no-cache
+    pool: sub
+    do:
+    - proxy_switch
+    - cookie_reset
+    - variable_clear: allli
+    - variable_clear: descr
+    - variable_clear: n
+    - object_new: product
+    - find: 
+        in: doc
+        path: head 
+        do: 
+        - eval:
+            routine: js
+            body: '(function (){var d = new Date(); return d.toISOString()})();'
+        - object_field_set:
+            object: product
+            field: date
+        - static_get: url
+        - filter:
+            args:
+             - (.+\?[idID]+=\d+)\&
+        - object_field_set:
+            object: product
+            field: url
+        - register_set: Bloomingdale
+        - object_field_set:
+            object: product
+            field: brand
+    - find: 
+        path: '#productId' 
+        do: 
+        - parse:
+            attr: value
+        - if:
+            match: (\d)
+            do:
+            - object_field_set:
+                object: product
+                field: sku
+    - find: 
+        path: '#brandNameLink' 
+        do: 
+        - parse
+        - space_dedupe
+        - trim
+        - object_field_set:
+            object: product
+            field: brand
+    - find: 
+        path: '#productName, #productTitle' 
+        do: 
+        - variable_get: n
+        - if:
+            match: (\d)
+            else:
+            - parse
+            - space_dedupe
+            - trim
+            - object_field_set:
+                object: product
+                field: name
+            - variable_set: 
+                field: n
+                value: 1
+    - find: 
+        path: .selectedFOB
+        do: 
+        - parse
+        - space_dedupe
+        - trim
+        - normalize:
+            routine: lower
+        - object_field_set:
+            object: product
+            field: category
+            joinby: "|"
+    - find: 
+        path: 'script#pdp_data' 
+        do: 
+        - parse
+        - normalize:
+            routine: json2xml
+        - to_block
+        - find: 
+            path: colorwayadditionalimages > *, colorwayprimaryimages > *, additionalimages, imagesource
+            do: 
+            - parse
+            - split:
+                context: text
+                delimiter: ','
+            - find: 
+                path: .splitted 
+                do: 
+                - parse
+                - if:
+                    match: (\S)
+                    do:
+                    - register_set: https://images.bloomingdales.com/is/image/BLM/products/<%register%>
+                    - object_field_set:
+                        object: product
+                        field: images
+                        joinby: "|"
+        - find: 
+            path: colorfamily > * 
+            do: 
+            - parse
+            - if:
+                match: (\S)
+                do:
+                - object_field_set:
+                    object: product
+                    field: variations
+                    joinby: "|"
+        - find: 
+            path: product > seokeywords
+            slice: 0:-2
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - normalize:
+                routine: lower
+            - if:
+                match: (\S)
+                do:
+                - object_field_set:
+                    object: product
+                    field: category
+                    joinby: "|"
+        - find: 
+            path: longdescription 
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: (\S)
+                do:
+                - object_field_set:
+                    object: product
+                    field: description
+        - find: 
+            path: product > price 
+            do: 
+            - parse
+            - space_dedupe
+            - trim
+            - if:
+                match: (\d)
+                do:
+                - object_field_set:
+                    object: product
+                    field: price
+                    type: float
+                - register_set: USD
+                - object_field_set:
+                    object: product
+                    field: currency
+    - object_save:
+        name: product
